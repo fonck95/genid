@@ -2,6 +2,7 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
 import KeyIssues from './components/KeyIssues';
+import SocialFeed from './components/SocialFeed';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import './App.css';
@@ -14,6 +15,7 @@ function App() {
         <Hero />
         <About />
         <KeyIssues />
+        <SocialFeed />
         <Contact />
       </main>
       <Footer />
