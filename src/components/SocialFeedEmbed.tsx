@@ -1,117 +1,37 @@
-import React, { useState, useEffect, Suspense } from 'react';
-import { InstagramEmbed, FacebookEmbed, TikTokEmbed } from 'react-social-media-embed';
+import React, { useState, useEffect } from 'react';
 import '../styles/SocialFeedEmbed.css';
 
 // ============================================
-// TYPES & INTERFACES
+// TYPES
 // ============================================
 
-interface SocialPost {
-  id: string;
-  platform: 'instagram' | 'facebook' | 'tiktok';
-  url: string;
-  fallbackText?: string;
-}
+type Platform = 'facebook' | 'instagram';
 
-interface ProfileInfo {
-  platform: 'instagram' | 'facebook' | 'tiktok';
+interface SocialProfile {
+  platform: Platform;
   username: string;
   displayName: string;
   profileUrl: string;
-  appDeepLink?: string;
 }
 
 // ============================================
-// CONFIGURACIÓN DE PERFILES
+// PROFILES DATA
 // ============================================
 
-const profiles: ProfileInfo[] = [
+const profiles: SocialProfile[] = [
   {
     platform: 'facebook',
     username: 'jairo.cala.50',
     displayName: 'Jairo Cala',
-    profileUrl: 'https://www.facebook.com/jairo.cala.50',
-    appDeepLink: 'fb://profile/jairo.cala.50'
+    profileUrl: 'https://www.facebook.com/jairo.cala.50'
   },
   {
     platform: 'instagram',
     username: 'jairocalasantander',
     displayName: 'Jairo Cala Santander',
-    profileUrl: 'https://www.instagram.com/jairocalasantander',
-    appDeepLink: 'instagram://user?username=jairocalasantander'
-  },
-  {
-    platform: 'tiktok',
-    username: 'jairocalacomunes',
-    displayName: 'Jairo Cala Comunes',
-    profileUrl: 'https://www.tiktok.com/@jairocalacomunes',
-    appDeepLink: 'tiktok://user?username=jairocalacomunes'
+    profileUrl: 'https://www.instagram.com/jairocalasantander'
   }
 ];
-
-// ============================================
-// POSTS A EMBEBER
-// Actualiza estas URLs con posts reales de cada perfil
-// ============================================
-
-const socialPosts: SocialPost[] = [
-  // Posts de Instagram - Actualizar con URLs reales de posts
-  {
-    id: 'ig-1',
-    platform: 'instagram',
-    url: 'https://www.instagram.com/p/example1/', // Reemplazar con URL real
-    fallbackText: 'Post de Instagram'
-  },
-  {
-    id: 'ig-2',
-    platform: 'instagram',
-    url: 'https://www.instagram.com/p/example2/', // Reemplazar con URL real
-    fallbackText: 'Post de Instagram'
-  },
-  // Posts de Facebook - Actualizar con URLs reales
-  {
-    id: 'fb-1',
-    platform: 'facebook',
-    url: 'https://www.facebook.com/jairo.cala.50/posts/example1', // Reemplazar con URL real
-    fallbackText: 'Post de Facebook'
-  },
-  // Videos de TikTok - Actualizar con URLs reales
-  {
-    id: 'tt-1',
-    platform: 'tiktok',
-    url: 'https://www.tiktok.com/@jairocalacomunes/video/example1', // Reemplazar con URL real
-    fallbackText: 'Video de TikTok'
-  },
-  {
-    id: 'tt-2',
-    platform: 'tiktok',
-    url: 'https://www.tiktok.com/@jairocalacomunes/video/example2', // Reemplazar con URL real
-    fallbackText: 'Video de TikTok'
-  }
-];
-
-// ============================================
-// UTILITY HOOKS
-// ============================================
-
-const useDeviceDetection = () => {
-  const [deviceInfo, setDeviceInfo] = useState({
-    isMobile: false,
-    isIOS: false
-  });
-
-  useEffect(() => {
-    const userAgent = navigator.userAgent || navigator.vendor;
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
-      window.innerWidth <= 768;
-
-    setDeviceInfo({ isMobile, isIOS });
-  }, []);
-
-  return deviceInfo;
-};
 
 // ============================================
 // SVG ICONS
@@ -135,191 +55,221 @@ const TikTokIcon = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-const ExternalLinkIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+const ExternalIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
   </svg>
 );
 
-const VerifiedIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-  </svg>
-);
-
 // ============================================
-// LOADING SPINNER
+// FACEBOOK PAGE PLUGIN COMPONENT
+// Uses official Facebook Page Plugin (free, no API key)
 // ============================================
 
-const LoadingSpinner = () => (
-  <div className="embed-loading">
-    <div className="spinner"></div>
-    <span>Cargando contenido...</span>
-  </div>
-);
+const FacebookPagePlugin: React.FC<{ pageUrl: string }> = ({ pageUrl }) => {
+  const [dimensions, setDimensions] = useState({ width: 500, height: 600 });
 
-// ============================================
-// ERROR FALLBACK
-// ============================================
+  useEffect(() => {
+    const updateDimensions = () => {
+      const container = document.querySelector('.feed-viewer');
+      if (container) {
+        const width = Math.min(container.clientWidth - 32, 500);
+        setDimensions({ width, height: 600 });
+      }
+    };
 
-const EmbedFallback: React.FC<{ profile: ProfileInfo; message?: string }> = ({ profile, message }) => {
-  const getPlatformIcon = () => {
-    switch (profile.platform) {
-      case 'facebook': return <FacebookIcon size={40} />;
-      case 'instagram': return <InstagramIcon size={40} />;
-      case 'tiktok': return <TikTokIcon size={40} />;
-    }
-  };
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
-  const getPlatformColor = () => {
-    switch (profile.platform) {
-      case 'facebook': return '#1877F2';
-      case 'instagram': return '#E4405F';
-      case 'tiktok': return '#000000';
-    }
-  };
+  const encodedUrl = encodeURIComponent(pageUrl);
+  const pluginUrl = `https://www.facebook.com/plugins/page.php?href=${encodedUrl}&tabs=timeline&width=${dimensions.width}&height=${dimensions.height}&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId`;
 
   return (
-    <div className="embed-fallback" style={{ borderColor: getPlatformColor() }}>
-      <div className="fallback-icon" style={{ color: getPlatformColor() }}>
-        {getPlatformIcon()}
-      </div>
-      <p className="fallback-message">{message || 'Ver contenido en la app'}</p>
+    <div className="facebook-plugin-container">
+      <iframe
+        src={pluginUrl}
+        width={dimensions.width}
+        height={dimensions.height}
+        style={{ border: 'none', overflow: 'hidden' }}
+        scrolling="no"
+        frameBorder="0"
+        allowFullScreen={true}
+        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+        title="Facebook Page Timeline"
+      />
+    </div>
+  );
+};
+
+// ============================================
+// INSTAGRAM PROFILE EMBED
+// Uses official Instagram embed (oEmbed API)
+// ============================================
+
+const InstagramProfileEmbed: React.FC<{ username: string; profileUrl: string }> = ({ username, profileUrl }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Load Instagram embed script
+    const script = document.createElement('script');
+    script.src = 'https://www.instagram.com/embed.js';
+    script.async = true;
+    script.onload = () => {
+      // Process embeds after script loads
+      if (window.instgrm) {
+        window.instgrm.Embeds.process();
+      }
+      setIsLoading(false);
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup script on unmount
+      const existingScript = document.querySelector('script[src="https://www.instagram.com/embed.js"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, [username]);
+
+  // Re-process embeds when username changes
+  useEffect(() => {
+    if (window.instgrm) {
+      window.instgrm.Embeds.process();
+    }
+  }, [username]);
+
+  return (
+    <div className="instagram-embed-container">
+      {isLoading && (
+        <div className="embed-loading">
+          <div className="spinner"></div>
+          <span>Cargando Instagram...</span>
+        </div>
+      )}
+
+      {/* Instagram Profile Embed using blockquote */}
+      <blockquote
+        className="instagram-media"
+        data-instgrm-permalink={`${profileUrl}/?utm_source=ig_embed&utm_campaign=loading`}
+        data-instgrm-version="14"
+        style={{
+          background: '#FFF',
+          border: 0,
+          borderRadius: '3px',
+          boxShadow: '0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)',
+          margin: '1px',
+          maxWidth: '540px',
+          minWidth: '326px',
+          padding: 0,
+          width: 'calc(100% - 2px)'
+        }}
+      >
+        <div style={{ padding: '16px' }}>
+          <a
+            href={profileUrl}
+            style={{
+              background: '#FFFFFF',
+              lineHeight: 0,
+              padding: '0 0',
+              textAlign: 'center',
+              textDecoration: 'none',
+              width: '100%'
+            }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <div style={{
+                backgroundColor: '#F4F4F4',
+                borderRadius: '50%',
+                flexGrow: 0,
+                height: '40px',
+                marginRight: '14px',
+                width: '40px'
+              }}></div>
+              <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'center' }}>
+                <div style={{
+                  backgroundColor: '#F4F4F4',
+                  borderRadius: '4px',
+                  flexGrow: 0,
+                  height: '14px',
+                  marginBottom: '6px',
+                  width: '100px'
+                }}></div>
+                <div style={{
+                  backgroundColor: '#F4F4F4',
+                  borderRadius: '4px',
+                  flexGrow: 0,
+                  height: '14px',
+                  width: '60px'
+                }}></div>
+              </div>
+            </div>
+            <div style={{ padding: '19% 0' }}></div>
+            <div style={{
+              display: 'block',
+              height: '50px',
+              margin: '0 auto 12px',
+              width: '50px'
+            }}>
+              <InstagramIcon size={50} />
+            </div>
+            <div style={{ paddingTop: '8px' }}>
+              <div style={{
+                color: '#3897f0',
+                fontFamily: 'Arial,sans-serif',
+                fontSize: '14px',
+                fontWeight: 550,
+                lineHeight: '18px'
+              }}>
+                Ver perfil de @{username} en Instagram
+              </div>
+            </div>
+          </a>
+        </div>
+      </blockquote>
+
+      {/* Fallback button */}
       <a
-        href={profile.profileUrl}
+        href={profileUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="fallback-link"
-        style={{ background: getPlatformColor() }}
+        className="instagram-visit-btn"
       >
-        Visitar @{profile.username}
-        <ExternalLinkIcon />
+        <InstagramIcon size={20} />
+        <span>Ver perfil completo de @{username}</span>
+        <ExternalIcon size={16} />
       </a>
     </div>
   );
 };
 
 // ============================================
-// EMBED WRAPPER WITH ERROR BOUNDARY
+// PLATFORM TAB BUTTON
 // ============================================
 
-interface EmbedWrapperProps {
-  post: SocialPost;
-  profile: ProfileInfo;
-}
-
-const EmbedWrapper: React.FC<EmbedWrapperProps> = ({ post, profile }) => {
-  const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check if URL is a placeholder
-  const isPlaceholder = post.url.includes('example');
-
-  if (isPlaceholder || hasError) {
-    return <EmbedFallback profile={profile} message={post.fallbackText} />;
-  }
-
-  const handleLoad = () => {
-    setIsLoading(false);
-  };
-
-  const handleError = () => {
-    setHasError(true);
-    setIsLoading(false);
-  };
-
-  const embedProps = {
-    url: post.url,
-    width: '100%',
-    onLoad: handleLoad,
-    onError: handleError,
-    retryDelay: 5000,
-    retryDisabled: false
-  };
-
-  return (
-    <div className="embed-container">
-      {isLoading && <LoadingSpinner />}
-      <Suspense fallback={<LoadingSpinner />}>
-        <div className={`embed-content ${isLoading ? 'loading' : 'loaded'}`}>
-          {post.platform === 'instagram' && (
-            <InstagramEmbed {...embedProps} captioned />
-          )}
-          {post.platform === 'facebook' && (
-            <FacebookEmbed {...embedProps} />
-          )}
-          {post.platform === 'tiktok' && (
-            <TikTokEmbed {...embedProps} />
-          )}
-        </div>
-      </Suspense>
-    </div>
-  );
-};
-
-// ============================================
-// PROFILE HEADER CARD
-// ============================================
-
-interface ProfileCardProps {
-  profile: ProfileInfo;
+interface TabButtonProps {
+  platform: Platform;
   isActive: boolean;
   onClick: () => void;
+  profile: SocialProfile;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isActive, onClick }) => {
-  const { isMobile } = useDeviceDetection();
-
-  const getPlatformGradient = () => {
-    switch (profile.platform) {
-      case 'facebook': return 'linear-gradient(135deg, #1877F2 0%, #4267B2 100%)';
-      case 'instagram': return 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)';
-      case 'tiktok': return 'linear-gradient(135deg, #010101 0%, #25F4EE 50%, #FE2C55 100%)';
-    }
-  };
-
-  const getPlatformIcon = () => {
-    switch (profile.platform) {
-      case 'facebook': return <FacebookIcon size={20} />;
-      case 'instagram': return <InstagramIcon size={20} />;
-      case 'tiktok': return <TikTokIcon size={20} />;
-    }
-  };
-
-  const handleClick = () => {
-    onClick();
-    if (isMobile && profile.appDeepLink) {
-      const start = Date.now();
-      window.location.href = profile.appDeepLink;
-      setTimeout(() => {
-        if (Date.now() - start < 2000) {
-          window.open(profile.profileUrl, '_blank');
-        }
-      }, 1500);
-    }
-  };
+const TabButton: React.FC<TabButtonProps> = ({ platform, isActive, onClick, profile }) => {
+  const Icon = platform === 'facebook' ? FacebookIcon : InstagramIcon;
 
   return (
     <button
-      className={`profile-card ${profile.platform} ${isActive ? 'active' : ''}`}
-      onClick={handleClick}
-      style={{ '--platform-gradient': getPlatformGradient() } as React.CSSProperties}
+      className={`platform-tab ${platform} ${isActive ? 'active' : ''}`}
+      onClick={onClick}
     >
-      <div className="profile-card-header" style={{ background: getPlatformGradient() }}>
-        <span className="platform-icon">{getPlatformIcon()}</span>
-        <span className="platform-name">{profile.platform.charAt(0).toUpperCase() + profile.platform.slice(1)}</span>
-      </div>
-      <div className="profile-card-body">
-        <div className="profile-avatar">
-          <span>JC</span>
-        </div>
-        <div className="profile-details">
-          <div className="profile-name-row">
-            <span className="name">{profile.displayName}</span>
-            <span className="verified"><VerifiedIcon /></span>
-          </div>
-          <span className="username">@{profile.username}</span>
-        </div>
+      <Icon size={24} />
+      <div className="tab-info">
+        <span className="tab-platform">{platform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
+        <span className="tab-username">@{profile.username}</span>
       </div>
     </button>
   );
@@ -329,101 +279,101 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, isActive, onClick })
 // MAIN COMPONENT
 // ============================================
 
-const SocialFeedEmbed: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'instagram' | 'facebook' | 'tiktok'>('instagram');
-  const { isMobile } = useDeviceDetection();
+// Declare global window interface for Instagram embed
+declare global {
+  interface Window {
+    instgrm?: {
+      Embeds: {
+        process: () => void;
+      };
+    };
+  }
+}
 
-  const activeProfile = profiles.find(p => p.platform === activeTab)!;
-  const activePosts = socialPosts.filter(p => p.platform === activeTab);
+const SocialFeedEmbed: React.FC = () => {
+  const [activePlatform, setActivePlatform] = useState<Platform>('facebook');
+
+  const activeProfile = profiles.find(p => p.platform === activePlatform)!;
 
   return (
     <section id="redes-sociales" className="social-feed-embed">
       <div className="feed-container">
         {/* Header */}
         <header className="feed-header">
-          <div className="header-badge">
-            <span className="live-dot"></span>
-            <span>Redes Sociales Oficiales</span>
-          </div>
-          <h2>Síguenos en Redes Sociales</h2>
-          <p>Mantente informado sobre nuestras propuestas, eventos y actividades de campaña</p>
+          <h2>Redes Sociales</h2>
+          <p>Síguenos para ver nuestras propuestas y actividades</p>
         </header>
 
-        {/* Profile Tabs */}
-        <div className="profile-tabs">
+        {/* Platform Tabs */}
+        <div className="platform-tabs">
           {profiles.map(profile => (
-            <ProfileCard
+            <TabButton
               key={profile.platform}
+              platform={profile.platform}
+              isActive={activePlatform === profile.platform}
+              onClick={() => setActivePlatform(profile.platform)}
               profile={profile}
-              isActive={activeTab === profile.platform}
-              onClick={() => setActiveTab(profile.platform)}
             />
           ))}
         </div>
 
-        {/* Active Profile Info */}
-        <div className="active-profile-section">
-          <div className="active-profile-header">
-            <h3>
-              {activeTab === 'instagram' && <InstagramIcon size={24} />}
-              {activeTab === 'facebook' && <FacebookIcon size={24} />}
-              {activeTab === 'tiktok' && <TikTokIcon size={24} />}
-              <span>@{activeProfile.username}</span>
-            </h3>
+        {/* Feed Viewer */}
+        <div className="feed-viewer">
+          <div className="viewer-header">
+            {activePlatform === 'facebook' ? <FacebookIcon size={20} /> : <InstagramIcon size={20} />}
+            <span>@{activeProfile.username}</span>
             <a
               href={activeProfile.profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`visit-profile-btn ${activeTab}`}
+              className={`view-profile-btn ${activePlatform}`}
             >
-              {isMobile ? 'Abrir App' : 'Ver Perfil'}
-              <ExternalLinkIcon />
+              Ver Perfil
+              <ExternalIcon />
             </a>
+          </div>
+
+          <div className="viewer-content">
+            {activePlatform === 'facebook' ? (
+              <FacebookPagePlugin pageUrl={activeProfile.profileUrl} />
+            ) : (
+              <InstagramProfileEmbed
+                username={activeProfile.username}
+                profileUrl={activeProfile.profileUrl}
+              />
+            )}
           </div>
         </div>
 
-        {/* Embeds Grid */}
-        <div className="embeds-grid">
-          {activePosts.length > 0 ? (
-            activePosts.map(post => (
-              <EmbedWrapper
-                key={post.id}
-                post={post}
-                profile={activeProfile}
-              />
-            ))
-          ) : (
-            <EmbedFallback
-              profile={activeProfile}
-              message={`Visita nuestro perfil de ${activeProfile.platform}`}
-            />
-          )}
-        </div>
-
-        {/* Note about content */}
-        <div className="feed-note">
-          <p>
-            Para ver todo nuestro contenido actualizado, visita directamente nuestros perfiles
-            en las redes sociales.
-          </p>
-        </div>
-
-        {/* Quick Links */}
-        <div className="quick-links-row">
-          {profiles.map(profile => (
-            <a
-              key={profile.platform}
-              href={profile.profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`quick-link ${profile.platform}`}
-            >
-              {profile.platform === 'facebook' && <FacebookIcon size={18} />}
-              {profile.platform === 'instagram' && <InstagramIcon size={18} />}
-              {profile.platform === 'tiktok' && <TikTokIcon size={18} />}
-              <span>{profile.platform.charAt(0).toUpperCase() + profile.platform.slice(1)}</span>
-            </a>
-          ))}
+        {/* Quick Access Links */}
+        <div className="quick-access">
+          <a
+            href="https://www.facebook.com/jairo.cala.50"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="quick-link facebook"
+          >
+            <FacebookIcon size={20} />
+            <span>Facebook</span>
+          </a>
+          <a
+            href="https://www.instagram.com/jairocalasantander"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="quick-link instagram"
+          >
+            <InstagramIcon size={20} />
+            <span>Instagram</span>
+          </a>
+          <a
+            href="https://www.tiktok.com/@jairocalacomunes"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="quick-link tiktok"
+          >
+            <TikTokIcon size={20} />
+            <span>TikTok</span>
+          </a>
         </div>
       </div>
     </section>
