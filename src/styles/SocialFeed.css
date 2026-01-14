@@ -2289,3 +2289,673 @@
     font-size: 0.85rem;
   }
 }
+
+/* ==========================================
+   NEW: TWITTER PROFILE HEADER STYLES
+   ========================================== */
+
+.twitter-profile-header {
+  background: white;
+  border-radius: var(--sf-radius-lg);
+  overflow: hidden;
+  margin-bottom: 1rem;
+  box-shadow: var(--sf-shadow-sm);
+}
+
+.twitter-profile-banner {
+  height: 100px;
+  background: linear-gradient(135deg, #1DA1F2 0%, #0D8DDB 50%, #0A66C2 100%);
+}
+
+.twitter-profile-info {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  margin-top: -40px;
+  margin-bottom: 1rem;
+}
+
+.twitter-profile-header .twitter-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #000;
+  border: 4px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: var(--sf-shadow-md);
+}
+
+.twitter-name-section {
+  flex: 1;
+  padding-bottom: 0.5rem;
+}
+
+.twitter-name-section h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.twitter-name-section h4 svg {
+  color: #1DA1F2;
+}
+
+.twitter-handle {
+  display: block;
+  color: var(--sf-text-muted);
+  font-size: 0.9rem;
+}
+
+.twitter-bio {
+  padding: 0 1.5rem;
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: var(--sf-text-secondary);
+  line-height: 1.6;
+}
+
+.twitter-stats {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0 1.5rem 1rem;
+  font-size: 0.9rem;
+  color: var(--sf-text-muted);
+}
+
+.twitter-stats strong {
+  color: var(--sf-text-primary);
+  font-weight: 700;
+}
+
+.twitter-timeline-container {
+  display: none;
+}
+
+.twitter-fallback {
+  width: 100%;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: #F7F9FA;
+}
+
+.twitter-fallback iframe {
+  width: 100%;
+  min-height: 500px;
+  border: none;
+}
+
+/* ==========================================
+   NEW: FACEBOOK PROFILE HEADER STYLES
+   ========================================== */
+
+.facebook-profile-header {
+  background: white;
+  border-radius: var(--sf-radius-lg);
+  overflow: hidden;
+  margin-bottom: 1rem;
+  box-shadow: var(--sf-shadow-sm);
+}
+
+.facebook-cover {
+  height: 100px;
+  background: linear-gradient(135deg, #1877F2 0%, #166FE5 50%, #1565C0 100%);
+}
+
+.facebook-profile-info {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  margin-top: -40px;
+  margin-bottom: 1rem;
+}
+
+.facebook-profile-header .facebook-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #1877F2;
+  border: 4px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: var(--sf-shadow-md);
+}
+
+.facebook-name-section {
+  flex: 1;
+  padding-bottom: 0.5rem;
+}
+
+.facebook-name-section h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+}
+
+.facebook-subtitle {
+  display: block;
+  color: var(--sf-text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.facebook-bio {
+  padding: 0 1.5rem;
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: var(--sf-text-secondary);
+  line-height: 1.6;
+}
+
+.facebook-embed-container {
+  width: 100%;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: #F0F2F5;
+}
+
+.facebook-embed-container iframe {
+  width: 100%;
+  min-height: 500px;
+  border: none;
+}
+
+.facebook-link {
+  background: var(--sf-facebook);
+  color: white;
+  box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+}
+
+.facebook-link:hover {
+  background: #1565C0;
+  box-shadow: 0 8px 25px rgba(24, 119, 242, 0.4);
+}
+
+/* ==========================================
+   NEW: INSTAGRAM PROFILE CARD STYLES
+   ========================================== */
+
+.instagram-profile-card {
+  background: white;
+  border-radius: var(--sf-radius-lg);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sf-shadow-md);
+}
+
+.instagram-gradient-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: var(--sf-instagram-gradient);
+}
+
+.instagram-profile-content {
+  position: relative;
+  padding: 1.5rem;
+  padding-top: 50px;
+}
+
+.instagram-avatar-ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--sf-instagram-gradient);
+  padding: 4px;
+  margin: 0 auto 1rem;
+}
+
+.instagram-profile-card .instagram-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.instagram-profile-card .instagram-avatar::before {
+  display: none;
+}
+
+.instagram-profile-details {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.instagram-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.instagram-name-row h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.instagram-verified {
+  color: #3897F0;
+}
+
+.instagram-category {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--sf-text-muted);
+}
+
+.instagram-stats-grid {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--sf-border);
+  border-bottom: 1px solid var(--sf-border);
+  margin-bottom: 1rem;
+}
+
+.instagram-bio-section {
+  text-align: center;
+}
+
+.instagram-bio-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--sf-text-secondary);
+  line-height: 1.7;
+}
+
+.instagram-bio-text strong {
+  color: var(--sf-text-primary);
+}
+
+.instagram-embed-container {
+  margin-bottom: 1rem;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+}
+
+.instagram-feed-preview {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ig-loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.ig-loading-placeholder p {
+  color: var(--sf-text-muted);
+  margin: 0;
+}
+
+.instagram-cta-section {
+  text-align: center;
+  padding: 1rem;
+  background: var(--sf-bg-secondary);
+  border-radius: var(--sf-radius-md);
+  margin-bottom: 1rem;
+}
+
+.instagram-cta-section p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--sf-text-secondary);
+}
+
+/* ==========================================
+   NEW: YOUTUBE CHANNEL CARD STYLES
+   ========================================== */
+
+.youtube-channel-card {
+  background: white;
+  border-radius: var(--sf-radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sf-shadow-md);
+}
+
+.youtube-channel-banner {
+  height: 80px;
+  background: linear-gradient(135deg, #FF0000 0%, #CC0000 50%, #990000 100%);
+}
+
+.youtube-channel-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  padding-top: 0;
+  margin-top: -30px;
+}
+
+.youtube-channel-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: white;
+  border: 4px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF0000;
+  flex-shrink: 0;
+  box-shadow: var(--sf-shadow-md);
+}
+
+.youtube-channel-details {
+  flex: 1;
+  padding-top: 2rem;
+}
+
+.youtube-channel-details h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+}
+
+.youtube-handle {
+  display: block;
+  color: var(--sf-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.youtube-channel-desc {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+}
+
+.youtube-channel-stats {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--sf-text-muted);
+}
+
+.youtube-embed-container {
+  margin-bottom: 1.5rem;
+}
+
+.youtube-section-title {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.youtube-iframe-wrapper {
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: #000;
+  min-height: 400px;
+}
+
+.youtube-featured-section {
+  margin-top: 1.5rem;
+}
+
+.youtube-video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.youtube-video-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--sf-bg-secondary);
+  border-radius: var(--sf-radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: var(--sf-transition);
+}
+
+.youtube-video-card:hover {
+  background: var(--sf-bg-tertiary);
+  transform: translateY(-2px);
+}
+
+.youtube-thumbnail {
+  width: 140px;
+  height: 80px;
+  border-radius: var(--sf-radius-sm);
+  background: linear-gradient(135deg, #1a1a1a, #333);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.youtube-thumbnail-bg {
+  color: rgba(255, 0, 0, 0.3);
+}
+
+.youtube-thumbnail-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.youtube-play-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: var(--sf-transition);
+}
+
+.youtube-video-card:hover .youtube-play-button {
+  transform: scale(1.1);
+  background: #FF0000;
+}
+
+.youtube-video-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.youtube-video-info h6 {
+  margin: 0 0 0.35rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  line-height: 1.3;
+}
+
+.youtube-video-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--sf-text-muted);
+  line-height: 1.4;
+}
+
+/* ==========================================
+   NEW: SOCIAL STATS ROW FOR CARDS
+   ========================================== */
+
+.social-stats-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.social-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--sf-text-muted);
+}
+
+.social-stat svg {
+  opacity: 0.7;
+}
+
+.social-verified-badge {
+  color: var(--card-color, var(--sf-primary));
+  display: inline-flex;
+}
+
+/* ==========================================
+   NEW: FOLLOW BUTTON IMPROVEMENTS
+   ========================================== */
+
+.follow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--sf-transition);
+  box-shadow: var(--sf-shadow-sm);
+}
+
+.follow-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==========================================
+   RESPONSIVE FOR NEW PROFILE STYLES
+   ========================================== */
+
+@media (max-width: 768px) {
+  .twitter-profile-info,
+  .facebook-profile-info,
+  .youtube-channel-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .twitter-profile-header .twitter-avatar,
+  .facebook-profile-header .facebook-avatar {
+    margin-top: -40px;
+  }
+
+  .twitter-name-section,
+  .facebook-name-section {
+    padding-bottom: 0;
+    text-align: center;
+  }
+
+  .twitter-bio,
+  .facebook-bio {
+    text-align: center;
+  }
+
+  .twitter-stats {
+    justify-content: center;
+  }
+
+  .youtube-channel-details {
+    padding-top: 0;
+    text-align: center;
+  }
+
+  .youtube-channel-stats {
+    justify-content: center;
+  }
+
+  .youtube-video-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .instagram-stats-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .twitter-profile-banner,
+  .facebook-cover,
+  .youtube-channel-banner {
+    height: 70px;
+  }
+
+  .twitter-profile-header .twitter-avatar,
+  .facebook-profile-header .facebook-avatar,
+  .youtube-channel-avatar {
+    width: 70px;
+    height: 70px;
+    font-size: 1.25rem;
+  }
+
+  .instagram-avatar-ring {
+    width: 80px;
+    height: 80px;
+  }
+
+  .instagram-profile-card .instagram-avatar {
+    font-size: 1.5rem;
+  }
+
+  .youtube-thumbnail {
+    width: 120px;
+    height: 68px;
+  }
+
+  .youtube-play-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .youtube-iframe-wrapper {
+    min-height: 250px;
+  }
+}
