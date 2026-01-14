@@ -18,6 +18,13 @@
   --fp-radius-md: 12px;
   --fp-radius-lg: 20px;
   --fp-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Platform Colors */
+  --fp-facebook: #1877F2;
+  --fp-instagram: #E4405F;
+  --fp-tiktok: #000000;
+  --fp-tiktok-cyan: #25F4EE;
+  --fp-tiktok-red: #FE2C55;
 }
 
 /* ==========================================
@@ -38,11 +45,11 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--fp-primary), var(--fp-primary-light), #1877F2, #E4405F);
+  background: linear-gradient(90deg, var(--fp-primary), var(--fp-primary-light), #1877F2, #E4405F, #25F4EE);
 }
 
 .featured-posts-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -110,6 +117,10 @@
   margin-bottom: 3rem;
 }
 
+.featured-posts-grid.three-columns {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 /* ==========================================
    POST CARD
    ========================================== */
@@ -122,12 +133,27 @@
   border: 1px solid var(--fp-border);
   transition: var(--fp-transition);
   position: relative;
-  min-height: 400px;
+  min-height: 450px;
+  display: flex;
+  flex-direction: column;
 }
 
 .featured-post-card:hover {
   transform: translateY(-6px);
   box-shadow: var(--fp-shadow-lg);
+}
+
+/* Platform-specific card styling */
+.featured-post-card.facebook-card {
+  border-top: 3px solid var(--fp-facebook);
+}
+
+.featured-post-card.instagram-card {
+  border-top: 3px solid var(--fp-instagram);
+}
+
+.featured-post-card.tiktok-card {
+  border-top: 3px solid var(--fp-tiktok);
 }
 
 /* Platform Badge */
@@ -175,63 +201,191 @@
   to { transform: rotate(360deg); }
 }
 
-/* Error Fallback */
-.post-error-fallback {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-decoration: none;
-  color: var(--fp-text-primary);
-  height: 100%;
-  min-height: 350px;
-  transition: var(--fp-transition);
-}
-
-.post-error-fallback:hover {
-  background: var(--fp-bg-secondary);
-}
-
-.post-error-fallback:hover .fallback-icon {
-  transform: scale(1.1);
-}
-
-.fallback-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--fp-shadow-md);
-  transition: var(--fp-transition);
-}
-
-.post-error-fallback p {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.fallback-link {
-  font-size: 0.85rem;
-  color: var(--fallback-color, var(--fp-primary));
-  font-weight: 500;
-}
-
 /* Embed Container */
 .post-embed-container {
   width: 100%;
-  max-height: 600px;
+  flex: 1;
   overflow-y: auto;
+}
+
+.post-embed-container.facebook-embed {
+  padding-top: 3rem;
+  display: flex;
+  justify-content: center;
 }
 
 .post-embed-container iframe {
   border: none !important;
   margin: 0 !important;
+}
+
+/* Profile Link Overlay */
+.profile-link-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: var(--fp-bg-secondary);
+  border-top: 1px solid var(--fp-border);
+  color: var(--fp-text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: var(--fp-transition);
+}
+
+.profile-link-overlay:hover {
+  background: var(--fp-primary);
+  color: white;
+}
+
+/* ==========================================
+   PROFILE WIDGET STYLES
+   ========================================== */
+
+.profile-widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 2.5rem;
+}
+
+.profile-widget-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1.5rem 1.5rem;
+}
+
+.profile-widget-header.instagram-gradient {
+  background: linear-gradient(135deg, rgba(64, 93, 230, 0.1), rgba(225, 48, 108, 0.1));
+}
+
+.profile-widget-header.tiktok-gradient {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.05), rgba(37, 244, 238, 0.1), rgba(254, 44, 85, 0.1));
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #405DE6, #833AB4, #C13584, #E1306C, #FD1D1D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: var(--fp-shadow-md);
+}
+
+.profile-avatar.tiktok {
+  background: linear-gradient(135deg, #000000, #25F4EE, #FE2C55);
+}
+
+.profile-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--fp-text-primary);
+}
+
+.profile-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--fp-text-secondary);
+}
+
+.profile-widget-content {
+  flex: 1;
+  padding: 1rem 1.5rem;
+}
+
+.profile-description {
+  font-size: 0.95rem;
+  color: var(--fp-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+}
+
+.profile-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--fp-text-muted);
+}
+
+.stat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--fp-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fp-instagram);
+}
+
+.stat-icon.tiktok-icon {
+  color: var(--fp-tiktok);
+}
+
+/* Profile CTA Button */
+.profile-cta-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 1.5rem 1.5rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: var(--fp-transition);
+  box-shadow: var(--fp-shadow-sm);
+}
+
+.profile-cta-button.instagram {
+  background: linear-gradient(45deg, #405DE6, #833AB4, #C13584, #E1306C, #FD1D1D);
+  color: white;
+}
+
+.profile-cta-button.instagram:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+.profile-cta-button.tiktok {
+  background: linear-gradient(135deg, #000000, #1a1a1a);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-cta-button.tiktok::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(37, 244, 238, 0.3), transparent, rgba(254, 44, 85, 0.3), transparent);
+  animation: tiktok-shine 3s infinite;
+}
+
+@keyframes tiktok-shine {
+  0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+  100% { transform: translateX(50%) translateY(50%) rotate(180deg); }
+}
+
+.profile-cta-button.tiktok:hover {
+  transform: scale(1.02);
 }
 
 /* ==========================================
@@ -241,7 +395,7 @@
 .featured-posts-cta {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -249,11 +403,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 2rem;
+  padding: 0.875rem 1.75rem;
   border-radius: 50px;
   text-decoration: none;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: var(--fp-transition);
   box-shadow: var(--fp-shadow-sm);
 }
@@ -281,17 +435,50 @@
   filter: brightness(1.1);
 }
 
+.cta-social-btn.tiktok {
+  background: linear-gradient(135deg, #000000, #1a1a1a);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-social-btn.tiktok::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(37, 244, 238, 0.2), rgba(254, 44, 85, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.cta-social-btn.tiktok:hover::before {
+  opacity: 1;
+}
+
 /* ==========================================
    RESPONSIVE
    ========================================== */
 
-@media (max-width: 992px) {
-  .featured-posts-grid {
+@media (max-width: 1200px) {
+  .featured-posts-grid.three-columns {
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
   }
 
   .featured-post-card {
-    min-height: 350px;
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 992px) {
+  .featured-posts-grid,
+  .featured-posts-grid.three-columns {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .featured-post-card {
+    min-height: 400px;
   }
 }
 
@@ -300,7 +487,8 @@
     padding: 4rem 1rem;
   }
 
-  .featured-posts-grid {
+  .featured-posts-grid,
+  .featured-posts-grid.three-columns {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
@@ -321,6 +509,16 @@
     width: 100%;
     justify-content: center;
   }
+
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .profile-avatar svg {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -334,7 +532,7 @@
   }
 
   .featured-post-card {
-    min-height: 320px;
+    min-height: 350px;
   }
 
   .post-platform-badge {
@@ -344,9 +542,18 @@
     padding: 0.3rem 0.6rem;
   }
 
-  .fallback-icon {
-    width: 64px;
-    height: 64px;
+  .profile-widget-header {
+    padding: 1.5rem 1rem 1rem;
+  }
+
+  .profile-widget-content {
+    padding: 0.75rem 1rem;
+  }
+
+  .profile-cta-button {
+    margin: 0.75rem 1rem 1rem;
+    padding: 0.875rem;
+    font-size: 0.9rem;
   }
 
   .cta-social-btn {
@@ -367,8 +574,13 @@
 
   .featured-post-card,
   .cta-social-btn,
-  .fallback-icon {
+  .profile-cta-button {
     transition: none;
+  }
+
+  .profile-cta-button.tiktok::before,
+  .cta-social-btn.tiktok::before {
+    animation: none;
   }
 }
 
@@ -377,7 +589,8 @@
   outline-offset: 2px;
 }
 
-.cta-social-btn:focus-visible {
+.cta-social-btn:focus-visible,
+.profile-cta-button:focus-visible {
   outline: 3px solid white;
   outline-offset: 2px;
 }
@@ -407,5 +620,17 @@
 
   .post-embed-container {
     filter: brightness(0.95);
+  }
+
+  .profile-widget-header.instagram-gradient {
+    background: linear-gradient(135deg, rgba(64, 93, 230, 0.2), rgba(225, 48, 108, 0.2));
+  }
+
+  .profile-widget-header.tiktok-gradient {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.5), rgba(37, 244, 238, 0.15), rgba(254, 44, 85, 0.15));
+  }
+
+  .stat-icon {
+    background: #2a2a2a;
   }
 }
