@@ -14,7 +14,6 @@ const Hero: React.FC = () => {
             <CandidatePhoto
               src="/jairoprofile.png"
               alt="Jairo Reinaldo Cala Suárez - Candidato a la Cámara de Representantes"
-              scaleFactor={2}
             />
           </div>
           <div className="hero-text-section">

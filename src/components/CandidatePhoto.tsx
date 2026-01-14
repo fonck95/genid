@@ -1,59 +1,54 @@
 import React, { useState } from 'react';
-import { useWebGPUUpscale } from '../hooks/useWebGPUUpscale';
 import '../styles/CandidatePhoto.css';
 
 interface CandidatePhotoProps {
   src: string;
   alt: string;
-  scaleFactor?: number;
 }
 
-const CandidatePhoto: React.FC<CandidatePhotoProps> = ({
-  src,
-  alt,
-  scaleFactor = 2
-}) => {
-  const { canvasRef, isLoading, isSupported, error } = useWebGPUUpscale(src, {
-    scaleFactor,
-    sharpness: 0.4
-  });
-  const [fallbackVisible, setFallbackVisible] = useState(false);
+const CandidatePhoto: React.FC<CandidatePhotoProps> = ({ src, alt }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  // Show native img as fallback if canvas processing failed
-  const showFallback = error || fallbackVisible;
+  const handleImageLoad = () => {
+    setIsLoaded(true);
+  };
+
+  const handleImageError = () => {
+    setHasError(true);
+    setIsLoaded(true);
+  };
 
   return (
     <div className="candidate-photo-container">
-      <div className={`candidate-photo-wrapper ${isLoading ? 'loading' : 'loaded'}`}>
-        {/* Canvas for WebGPU/Canvas2D upscaled image */}
-        <canvas
-          ref={canvasRef}
-          className={`candidate-photo ${showFallback ? 'hidden' : ''}`}
-          aria-label={alt}
-          onError={() => setFallbackVisible(true)}
-        />
-
-        {/* Native img fallback when canvas fails */}
-        {showFallback && (
-          <img
-            src={src}
-            alt={alt}
-            className="candidate-photo candidate-photo-fallback"
-            loading="eager"
-          />
-        )}
-
-        {isLoading && !showFallback && (
+      <div className={`candidate-photo-wrapper ${isLoaded ? 'loaded' : 'loading'}`}>
+        {!isLoaded && (
           <div className="candidate-photo-loader">
             <div className="loader-spinner"></div>
           </div>
         )}
+
+        {!hasError ? (
+          <img
+            src={src}
+            alt={alt}
+            className={`candidate-photo ${isLoaded ? 'visible' : ''}`}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            loading="eager"
+            draggable={false}
+          />
+        ) : (
+          <div className="candidate-photo-error">
+            <span className="error-icon">📷</span>
+            <span className="error-text">Imagen no disponible</span>
+          </div>
+        )}
       </div>
-      {!isLoading && (
+
+      {isLoaded && !hasError && (
         <div className="photo-badge">
-          <span className="badge-text">
-            {error ? 'Foto' : isSupported ? 'WebGPU Enhanced' : 'HD Quality'}
-          </span>
+          <span className="badge-text">Candidato Santander 101</span>
         </div>
       )}
     </div>
