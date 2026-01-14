@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import '../styles/FeaturedPosts.css';
 
 // ============================================
@@ -15,7 +15,23 @@ interface SocialProfile {
   bio?: string;
   followers?: string;
   posts?: string;
+  elfsightWidgetId?: string; // ID del widget de Elfsight
 }
+
+// ============================================
+// CONFIGURACIÓN DE WIDGETS ELFSIGHT
+// Para obtener estos IDs:
+// 1. Crear cuenta en https://elfsight.com
+// 2. Crear widget de Instagram Feed o TikTok Feed
+// 3. Copiar el ID del widget (ej: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+// ============================================
+
+const ELFSIGHT_CONFIG = {
+  // Widget de Instagram Feed - Reemplazar con tu ID real
+  instagram: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+  // Widget de TikTok Feed - Reemplazar con tu ID real
+  tiktok: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+};
 
 // ============================================
 // PERFILES DE REDES SOCIALES
@@ -91,12 +107,6 @@ const VerifiedIcon = () => (
   </svg>
 );
 
-const HeartIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-  </svg>
-);
-
 const PlayIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
     <path d="M8 5v14l11-7z"/>
@@ -120,6 +130,76 @@ const ExternalLinkIcon = () => (
     <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
   </svg>
 );
+
+// ============================================
+// ELFSIGHT WIDGET COMPONENT
+// Carga widgets de Elfsight para Instagram y TikTok
+// ============================================
+
+interface ElfsightWidgetProps {
+  widgetId: string;
+  platform: 'instagram' | 'tiktok';
+  onLoad?: () => void;
+  onError?: () => void;
+}
+
+const ElfsightWidget: React.FC<ElfsightWidgetProps> = ({ widgetId, platform, onLoad, onError }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    // Verificar si el widget ID es válido (no es el placeholder)
+    const isPlaceholder = widgetId.includes('a1b2c3d4') || widgetId.includes('b2c3d4e5');
+
+    if (isPlaceholder) {
+      setHasError(true);
+      onError?.();
+      return;
+    }
+
+    // Dar tiempo para que el script de Elfsight se cargue
+    const checkElfsight = () => {
+      if ((window as any).eapps) {
+        setIsLoaded(true);
+        onLoad?.();
+        // Forzar re-renderizado del widget
+        (window as any).eapps.Apps?.init?.();
+      }
+    };
+
+    // Verificar inmediatamente y luego cada 500ms
+    checkElfsight();
+    const interval = setInterval(checkElfsight, 500);
+
+    // Timeout después de 10 segundos
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!isLoaded) {
+        setHasError(true);
+        onError?.();
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [widgetId, onLoad, onError, isLoaded]);
+
+  if (hasError) {
+    return null; // El componente padre mostrará el fallback
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={`elfsight-widget-container elfsight-${platform}`}
+    >
+      <div className={`elfsight-app-${widgetId}`} data-elfsight-app-lazy></div>
+    </div>
+  );
+};
 
 // ============================================
 // FACEBOOK PAGE PLUGIN COMPONENT
@@ -274,20 +354,22 @@ const FacebookPageWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) =
 };
 
 // ============================================
-// INSTAGRAM PROFILE WIDGET - MEJORADO
-// Con grid de contenido visual y mejor UX
+// INSTAGRAM PROFILE WIDGET - CON ELFSIGHT
+// Usa widget de Elfsight para mostrar feed real
 // ============================================
 
 const InstagramProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
-  // Simulacion de contenido visual del perfil
-  const contentPreview = [
-    { type: 'image', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-    { type: 'image', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-    { type: 'video', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
-    { type: 'image', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
-    { type: 'image', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
-    { type: 'video', gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' },
-  ];
+  const [useElfsight, setUseElfsight] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleElfsightError = () => {
+    setUseElfsight(false);
+    setIsLoading(false);
+  };
+
+  const handleElfsightLoad = () => {
+    setIsLoading(false);
+  };
 
   return (
     <div className="featured-post-card instagram-card">
@@ -299,94 +381,112 @@ const InstagramProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile 
         <span>{profile.label}</span>
       </div>
 
-      <div className="profile-widget">
-        {/* Header con avatar y stats */}
-        <div className="profile-widget-header instagram-gradient">
-          <div className="profile-avatar instagram-avatar">
-            <div className="avatar-ring">
-              <span className="avatar-initials">JC</span>
-            </div>
-          </div>
-          <div className="profile-header-stats">
-            <div className="stat-column">
-              <span className="stat-value">{profile.posts}</span>
-              <span className="stat-name">Posts</span>
-            </div>
-            <div className="stat-column">
-              <span className="stat-value">{profile.followers}</span>
-              <span className="stat-name">Seguidores</span>
-            </div>
-            <div className="stat-column">
-              <span className="stat-value">500+</span>
-              <span className="stat-name">Siguiendo</span>
-            </div>
-          </div>
+      {isLoading && useElfsight && (
+        <div className="post-loading">
+          <div className="post-loading-spinner" style={{ borderTopColor: '#E1306C' }}></div>
+          <span>Cargando Instagram...</span>
         </div>
+      )}
 
-        {/* Info del perfil */}
-        <div className="profile-details">
-          <h3 className="profile-name">{profile.displayName}</h3>
-          <p className="profile-handle">@{profile.username}</p>
-          <p className="profile-bio">{profile.bio}</p>
+      {useElfsight ? (
+        <div className="elfsight-wrapper">
+          <ElfsightWidget
+            widgetId={ELFSIGHT_CONFIG.instagram}
+            platform="instagram"
+            onLoad={handleElfsightLoad}
+            onError={handleElfsightError}
+          />
+          <a
+            href={profile.profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-link-overlay"
+          >
+            <span>Ver perfil completo en Instagram</span>
+            <ExternalLinkIcon />
+          </a>
         </div>
-
-        {/* Grid de contenido preview */}
-        <div className="content-preview-section">
-          <div className="section-header">
-            <GridIcon />
-            <span>Contenido Reciente</span>
-          </div>
-          <div className="content-grid instagram-grid">
-            {contentPreview.map((item, index) => (
-              <div
-                key={index}
-                className="content-item"
-                style={{ background: item.gradient }}
-              >
-                {item.type === 'video' && (
-                  <div className="content-type-badge">
-                    <PlayIcon />
-                  </div>
-                )}
-                <div className="content-overlay">
-                  <HeartIcon />
-                  <span>{Math.floor(Math.random() * 500 + 100)}</span>
-                </div>
+      ) : (
+        <div className="profile-widget">
+          {/* Header con avatar y stats */}
+          <div className="profile-widget-header instagram-gradient">
+            <div className="profile-avatar instagram-avatar">
+              <div className="avatar-ring">
+                <span className="avatar-initials">JC</span>
               </div>
-            ))}
+            </div>
+            <div className="profile-header-stats">
+              <div className="stat-column">
+                <span className="stat-value">{profile.posts}</span>
+                <span className="stat-name">Posts</span>
+              </div>
+              <div className="stat-column">
+                <span className="stat-value">{profile.followers}</span>
+                <span className="stat-name">Seguidores</span>
+              </div>
+              <div className="stat-column">
+                <span className="stat-value">500+</span>
+                <span className="stat-name">Siguiendo</span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <a
-          href={profile.profileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="profile-cta-button instagram"
-        >
-          <PlatformIcon platform="instagram" size={20} />
-          <span>Seguir en Instagram</span>
-          <ExternalLinkIcon />
-        </a>
-      </div>
+          {/* Info del perfil */}
+          <div className="profile-details">
+            <h3 className="profile-name">{profile.displayName}</h3>
+            <p className="profile-handle">@{profile.username}</p>
+            <p className="profile-bio">{profile.bio}</p>
+          </div>
+
+          {/* Mensaje de configuración de Elfsight */}
+          <div className="elfsight-setup-notice">
+            <div className="setup-icon">
+              <GridIcon />
+            </div>
+            <h4>Configurar Feed de Instagram</h4>
+            <p>Para mostrar el feed real de Instagram:</p>
+            <ol>
+              <li>Crear cuenta gratuita en <a href="https://elfsight.com" target="_blank" rel="noopener noreferrer">Elfsight.com</a></li>
+              <li>Crear widget "Instagram Feed"</li>
+              <li>Conectar la cuenta @{profile.username}</li>
+              <li>Copiar el ID del widget</li>
+              <li>Actualizar <code>ELFSIGHT_CONFIG.instagram</code></li>
+            </ol>
+          </div>
+
+          <a
+            href={profile.profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-cta-button instagram"
+          >
+            <PlatformIcon platform="instagram" size={20} />
+            <span>Seguir en Instagram</span>
+            <ExternalLinkIcon />
+          </a>
+        </div>
+      )}
     </div>
   );
 };
 
 // ============================================
-// TIKTOK PROFILE WIDGET - MEJORADO
-// Con preview de videos y mejor UX
+// TIKTOK PROFILE WIDGET - CON ELFSIGHT
+// Usa widget de Elfsight para mostrar feed real
 // ============================================
 
 const TikTokProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
-  // Simulacion de videos del perfil
-  const videoPreview = [
-    { views: '15.2K', gradient: 'linear-gradient(180deg, #000 0%, #FE2C55 100%)' },
-    { views: '8.7K', gradient: 'linear-gradient(180deg, #000 0%, #25F4EE 100%)' },
-    { views: '22.1K', gradient: 'linear-gradient(180deg, #25F4EE 0%, #FE2C55 100%)' },
-    { views: '5.3K', gradient: 'linear-gradient(180deg, #FE2C55 0%, #25F4EE 100%)' },
-    { views: '11.9K', gradient: 'linear-gradient(180deg, #000 0%, #FF0050 100%)' },
-    { views: '18.4K', gradient: 'linear-gradient(180deg, #00F2EA 0%, #000 100%)' },
-  ];
+  const [useElfsight, setUseElfsight] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleElfsightError = () => {
+    setUseElfsight(false);
+    setIsLoading(false);
+  };
+
+  const handleElfsightLoad = () => {
+    setIsLoading(false);
+  };
 
   return (
     <div className="featured-post-card tiktok-card">
@@ -398,73 +498,91 @@ const TikTokProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) 
         <span>{profile.label}</span>
       </div>
 
-      <div className="profile-widget">
-        {/* Header con avatar y stats */}
-        <div className="profile-widget-header tiktok-gradient">
-          <div className="profile-avatar tiktok-avatar">
-            <div className="avatar-ring tiktok-ring">
-              <span className="avatar-initials">JC</span>
-            </div>
-          </div>
-          <div className="profile-header-stats tiktok-stats">
-            <div className="stat-column">
-              <span className="stat-value">{profile.followers}</span>
-              <span className="stat-name">Seguidores</span>
-            </div>
-            <div className="stat-column">
-              <span className="stat-value">50K+</span>
-              <span className="stat-name">Me gusta</span>
-            </div>
-            <div className="stat-column">
-              <span className="stat-value">{profile.posts}</span>
-              <span className="stat-name">Videos</span>
-            </div>
-          </div>
+      {isLoading && useElfsight && (
+        <div className="post-loading">
+          <div className="post-loading-spinner" style={{ borderTopColor: '#FE2C55' }}></div>
+          <span>Cargando TikTok...</span>
         </div>
+      )}
 
-        {/* Info del perfil */}
-        <div className="profile-details tiktok-details">
-          <h3 className="profile-name">{profile.displayName}</h3>
-          <p className="profile-handle">@{profile.username}</p>
-          <p className="profile-bio">{profile.bio}</p>
+      {useElfsight ? (
+        <div className="elfsight-wrapper">
+          <ElfsightWidget
+            widgetId={ELFSIGHT_CONFIG.tiktok}
+            platform="tiktok"
+            onLoad={handleElfsightLoad}
+            onError={handleElfsightError}
+          />
+          <a
+            href={profile.profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-link-overlay"
+          >
+            <span>Ver perfil completo en TikTok</span>
+            <ExternalLinkIcon />
+          </a>
         </div>
-
-        {/* Grid de videos preview */}
-        <div className="content-preview-section">
-          <div className="section-header tiktok-section-header">
-            <PlayIcon />
-            <span>Videos Destacados</span>
-          </div>
-          <div className="content-grid tiktok-grid">
-            {videoPreview.map((video, index) => (
-              <div
-                key={index}
-                className="content-item tiktok-video-item"
-                style={{ background: video.gradient }}
-              >
-                <div className="video-play-icon">
-                  <PlayIcon />
-                </div>
-                <div className="video-views">
-                  <PlayIcon />
-                  <span>{video.views}</span>
-                </div>
+      ) : (
+        <div className="profile-widget">
+          {/* Header con avatar y stats */}
+          <div className="profile-widget-header tiktok-gradient">
+            <div className="profile-avatar tiktok-avatar">
+              <div className="avatar-ring tiktok-ring">
+                <span className="avatar-initials">JC</span>
               </div>
-            ))}
+            </div>
+            <div className="profile-header-stats tiktok-stats">
+              <div className="stat-column">
+                <span className="stat-value">{profile.followers}</span>
+                <span className="stat-name">Seguidores</span>
+              </div>
+              <div className="stat-column">
+                <span className="stat-value">50K+</span>
+                <span className="stat-name">Me gusta</span>
+              </div>
+              <div className="stat-column">
+                <span className="stat-value">{profile.posts}</span>
+                <span className="stat-name">Videos</span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <a
-          href={profile.profileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="profile-cta-button tiktok"
-        >
-          <PlatformIcon platform="tiktok" size={20} />
-          <span>Seguir en TikTok</span>
-          <ExternalLinkIcon />
-        </a>
-      </div>
+          {/* Info del perfil */}
+          <div className="profile-details tiktok-details">
+            <h3 className="profile-name">{profile.displayName}</h3>
+            <p className="profile-handle">@{profile.username}</p>
+            <p className="profile-bio">{profile.bio}</p>
+          </div>
+
+          {/* Mensaje de configuración de Elfsight */}
+          <div className="elfsight-setup-notice tiktok-setup">
+            <div className="setup-icon">
+              <PlayIcon />
+            </div>
+            <h4>Configurar Feed de TikTok</h4>
+            <p>Para mostrar el feed real de TikTok:</p>
+            <ol>
+              <li>Crear cuenta gratuita en <a href="https://elfsight.com" target="_blank" rel="noopener noreferrer">Elfsight.com</a></li>
+              <li>Crear widget "TikTok Feed"</li>
+              <li>Conectar la cuenta @{profile.username}</li>
+              <li>Copiar el ID del widget</li>
+              <li>Actualizar <code>ELFSIGHT_CONFIG.tiktok</code></li>
+            </ol>
+          </div>
+
+          <a
+            href={profile.profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-cta-button tiktok"
+          >
+            <PlatformIcon platform="tiktok" size={20} />
+            <span>Seguir en TikTok</span>
+            <ExternalLinkIcon />
+          </a>
+        </div>
+      )}
     </div>
   );
 };

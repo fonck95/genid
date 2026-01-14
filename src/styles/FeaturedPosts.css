@@ -1026,4 +1026,142 @@
   .video-play-icon {
     background: rgba(255, 255, 255, 0.95);
   }
+
+  .elfsight-setup-notice {
+    background: #2a2a2a;
+    border-color: var(--fp-border);
+  }
+
+  .elfsight-setup-notice h4 {
+    color: var(--fp-text-primary);
+  }
+
+  .elfsight-setup-notice p,
+  .elfsight-setup-notice ol li {
+    color: var(--fp-text-secondary);
+  }
+}
+
+/* ==========================================
+   ELFSIGHT WIDGET STYLES
+   ========================================== */
+
+.elfsight-widget-container {
+  width: 100%;
+  min-height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--fp-bg-secondary);
+}
+
+.elfsight-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.elfsight-instagram,
+.elfsight-tiktok {
+  padding: 0;
+}
+
+/* Setup Notice Styles */
+.elfsight-setup-notice {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  margin: 1rem;
+}
+
+.elfsight-setup-notice .setup-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.elfsight-setup-notice .setup-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.elfsight-setup-notice.tiktok-setup .setup-icon {
+  background: linear-gradient(135deg, #25F4EE 0%, #FE2C55 100%);
+}
+
+.elfsight-setup-notice h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.elfsight-setup-notice p {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.75rem;
+}
+
+.elfsight-setup-notice ol {
+  text-align: left;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.elfsight-setup-notice ol li {
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.4rem;
+  line-height: 1.5;
+}
+
+.elfsight-setup-notice ol li a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.elfsight-setup-notice ol li a:hover {
+  text-decoration: underline;
+}
+
+.elfsight-setup-notice ol li code {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: 'Monaco', 'Menlo', monospace;
+  color: #764ba2;
+}
+
+/* Mobile responsiveness for setup notice */
+@media (max-width: 768px) {
+  .elfsight-setup-notice {
+    padding: 1rem;
+    margin: 0.75rem;
+  }
+
+  .elfsight-setup-notice .setup-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .elfsight-setup-notice .setup-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .elfsight-setup-notice h4 {
+    font-size: 1rem;
+  }
+
+  .elfsight-setup-notice ol li {
+    font-size: 0.8rem;
+  }
 }
