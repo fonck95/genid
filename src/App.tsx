@@ -1,5 +1,6 @@
 import Header from './components/Header';
 import Hero from './components/Hero';
+import FeaturedPosts from './components/FeaturedPosts';
 import About from './components/About';
 import KeyIssues from './components/KeyIssues';
 import SocialFeed from './components/SocialFeed';
@@ -13,6 +14,7 @@ function App() {
       <Header />
       <main>
         <Hero />
+        <FeaturedPosts />
         <About />
         <KeyIssues />
         <SocialFeed />
