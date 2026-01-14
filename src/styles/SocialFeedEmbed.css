@@ -1,6 +1,6 @@
 /* ============================================
-   SOCIAL FEED EMBED - SIMPLIFIED VERSION
-   Shows real Facebook/Instagram feeds
+   SOCIAL FEED EMBED - DUAL FEED VERSION
+   Shows both Facebook and Instagram feeds side by side
    ============================================ */
 
 .social-feed-embed {
@@ -9,7 +9,7 @@
 }
 
 .feed-container {
-  max-width: 700px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -19,7 +19,7 @@
 
 .feed-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .feed-header h2 {
@@ -36,87 +36,71 @@
 }
 
 /* ============================================
-   PLATFORM TABS
+   FEEDS GRID - TWO COLUMNS
    ============================================ */
 
-.platform-tabs {
+.feeds-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.platform-tab {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: #1a1a1a;
-  border: 2px solid #2a2a2a;
-  border-radius: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #ffffff;
-  text-align: left;
-}
-
-.platform-tab:hover {
-  background: #222222;
-  border-color: #3a3a3a;
-}
-
-.platform-tab.active.facebook {
-  border-color: #1877F2;
-  background: rgba(24, 119, 242, 0.1);
-}
-
-.platform-tab.active.instagram {
-  border-color: #E4405F;
-  background: rgba(228, 64, 95, 0.1);
-}
-
-.tab-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.tab-platform {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.tab-username {
-  font-size: 0.85rem;
-  color: #757575;
-}
-
-/* ============================================
-   FEED VIEWER
-   ============================================ */
-
-.feed-viewer {
-  background: #1a1a1a;
-  border-radius: 1rem;
-  overflow: hidden;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.viewer-header {
+/* ============================================
+   FEED CARD
+   ============================================ */
+
+.feed-card {
+  background: #1a1a1a;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 2px solid #2a2a2a;
+  transition: border-color 0.2s ease;
+}
+
+.feed-card.facebook {
+  border-color: rgba(24, 119, 242, 0.3);
+}
+
+.feed-card.instagram {
+  border-color: rgba(228, 64, 95, 0.3);
+}
+
+.feed-card-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   padding: 1rem 1.25rem;
   background: #222222;
   border-bottom: 1px solid #2a2a2a;
   color: #ffffff;
 }
 
-.viewer-header span {
-  flex: 1;
-  font-weight: 500;
+.feed-card.facebook .feed-card-header {
+  background: linear-gradient(135deg, rgba(24, 119, 242, 0.15) 0%, #222222 100%);
 }
 
-.view-profile-btn {
+.feed-card.instagram .feed-card-header {
+  background: linear-gradient(135deg, rgba(228, 64, 95, 0.15) 0%, #222222 100%);
+}
+
+.feed-card-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.feed-card-platform {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.feed-card-username {
+  font-size: 0.85rem;
+  color: #757575;
+}
+
+.feed-card-link {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -129,23 +113,24 @@
   transition: transform 0.2s ease;
 }
 
-.view-profile-btn.facebook {
+.feed-card-link.facebook {
   background: #1877F2;
 }
 
-.view-profile-btn.instagram {
+.feed-card-link.instagram {
   background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
 }
 
-.view-profile-btn:hover {
+.feed-card-link:hover {
   transform: scale(1.05);
 }
 
-.viewer-content {
+.feed-card-content {
   padding: 1rem;
-  min-height: 400px;
+  min-height: 450px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* ============================================
@@ -154,13 +139,87 @@
 
 .facebook-plugin-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
 }
 
 .facebook-plugin-container iframe {
   max-width: 100%;
   border-radius: 8px;
+  /* iOS Safari fixes */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.facebook-visit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #1877F2;
+  border-radius: 2rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
+}
+
+.facebook-visit-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Facebook Fallback for iOS */
+.facebook-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #ffffff;
+  width: 100%;
+  min-height: 300px;
+  background: linear-gradient(180deg, rgba(24, 119, 242, 0.1) 0%, transparent 100%);
+  border-radius: 8px;
+}
+
+.facebook-fallback svg {
+  color: #1877F2;
+  margin-bottom: 1rem;
+}
+
+.facebook-fallback h4 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.facebook-fallback p {
+  margin: 0 0 1.5rem;
+  color: #757575;
+}
+
+.facebook-fallback-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  background: #1877F2;
+  border-radius: 2rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.facebook-fallback-btn:hover {
+  transform: scale(1.05);
 }
 
 /* ============================================
@@ -210,15 +269,23 @@
   gap: 1rem;
   padding: 3rem;
   color: #757575;
+  width: 100%;
 }
 
 .spinner {
   width: 40px;
   height: 40px;
   border: 3px solid #2a2a2a;
-  border-top-color: #E4405F;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+.spinner.facebook-spinner {
+  border-top-color: #1877F2;
+}
+
+.spinner.instagram-spinner {
+  border-top-color: #E4405F;
 }
 
 @keyframes spin {
@@ -268,44 +335,51 @@
 }
 
 /* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 900px) {
+  .feeds-grid {
+    gap: 1rem;
+  }
+
+  .feed-card-content {
+    padding: 0.75rem;
+    min-height: 400px;
+  }
+}
+
+/* ============================================
    RESPONSIVE - MOBILE
    ============================================ */
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .social-feed-embed {
     padding: 2rem 0.75rem;
   }
 
-  .platform-tabs {
+  .feeds-grid {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 1.5rem;
   }
 
-  .platform-tab {
-    padding: 0.875rem 1rem;
-  }
-
-  .viewer-header {
+  .feed-card-header {
     flex-wrap: wrap;
     gap: 0.75rem;
   }
 
-  .viewer-header span {
-    order: 1;
+  .feed-card-info {
     flex: 1;
+    min-width: 0;
   }
 
-  .viewer-header svg {
-    order: 0;
-  }
-
-  .view-profile-btn {
-    order: 2;
+  .feed-card-link {
     width: 100%;
     justify-content: center;
+    order: 3;
   }
 
-  .viewer-content {
+  .feed-card-content {
     padding: 0.75rem;
     min-height: 350px;
   }
@@ -320,18 +394,38 @@
   }
 }
 
+/* Small mobile */
+@media (max-width: 400px) {
+  .feed-card-header {
+    padding: 0.875rem 1rem;
+  }
+
+  .feed-card-platform {
+    font-size: 0.95rem;
+  }
+
+  .feed-card-username {
+    font-size: 0.8rem;
+  }
+}
+
 /* ============================================
    TOUCH DEVICES
    ============================================ */
 
 @media (hover: none) and (pointer: coarse) {
-  .platform-tab:hover {
-    background: #1a1a1a;
-    border-color: #2a2a2a;
+  .feed-card-link:hover,
+  .facebook-visit-btn:hover,
+  .instagram-visit-btn:hover,
+  .facebook-fallback-btn:hover {
+    transform: none;
   }
 
-  .platform-tab:active {
-    transform: scale(0.98);
+  .feed-card-link:active,
+  .facebook-visit-btn:active,
+  .instagram-visit-btn:active,
+  .facebook-fallback-btn:active {
+    transform: scale(0.95);
   }
 
   .quick-link:hover {
@@ -341,13 +435,31 @@
   .quick-link:active {
     transform: scale(0.95);
   }
+}
 
-  .view-profile-btn:hover {
-    transform: none;
+/* ============================================
+   iOS SPECIFIC FIXES
+   ============================================ */
+
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific styles */
+  .facebook-plugin-container iframe {
+    /* Fix for iOS iframe rendering issues */
+    -webkit-overflow-scrolling: touch;
+    overflow: auto;
   }
 
-  .view-profile-btn:active {
-    transform: scale(0.95);
+  .feed-card-content {
+    /* Prevent iOS zoom issues */
+    touch-action: manipulation;
+  }
+
+  /* Ensure proper touch behavior */
+  .facebook-fallback-btn,
+  .facebook-visit-btn,
+  .instagram-visit-btn {
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
   }
 }
 
@@ -368,25 +480,44 @@
     color: #666;
   }
 
-  .platform-tab {
+  .feed-card {
     background: #ffffff;
     border-color: #e0e0e0;
-    color: #1a1a1a;
   }
 
-  .platform-tab:hover {
-    background: #f5f5f5;
+  .feed-card.facebook {
+    border-color: rgba(24, 119, 242, 0.4);
   }
 
-  .feed-viewer {
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
+  .feed-card.instagram {
+    border-color: rgba(228, 64, 95, 0.4);
   }
 
-  .viewer-header {
+  .feed-card-header {
     background: #f5f5f5;
     border-color: #e0e0e0;
     color: #1a1a1a;
+  }
+
+  .feed-card.facebook .feed-card-header {
+    background: linear-gradient(135deg, rgba(24, 119, 242, 0.1) 0%, #f5f5f5 100%);
+  }
+
+  .feed-card.instagram .feed-card-header {
+    background: linear-gradient(135deg, rgba(228, 64, 95, 0.1) 0%, #f5f5f5 100%);
+  }
+
+  .facebook-fallback {
+    background: linear-gradient(180deg, rgba(24, 119, 242, 0.05) 0%, transparent 100%);
+    color: #1a1a1a;
+  }
+
+  .embed-loading {
+    color: #666;
+  }
+
+  .spinner {
+    border-color: #e0e0e0;
   }
 }
 
@@ -399,10 +530,12 @@
     animation: none;
   }
 
-  .platform-tab,
+  .feed-card,
+  .feed-card-link,
   .quick-link,
-  .view-profile-btn,
-  .instagram-visit-btn {
+  .facebook-visit-btn,
+  .instagram-visit-btn,
+  .facebook-fallback-btn {
     transition: none;
   }
 }
@@ -422,14 +555,40 @@
    FOCUS STATES
    ============================================ */
 
-.platform-tab:focus-visible {
-  outline: 3px solid #E4405F;
+.feed-card-link:focus-visible,
+.quick-link:focus-visible,
+.facebook-visit-btn:focus-visible,
+.instagram-visit-btn:focus-visible,
+.facebook-fallback-btn:focus-visible {
+  outline: 3px solid currentColor;
   outline-offset: 2px;
 }
 
-.quick-link:focus-visible,
-.view-profile-btn:focus-visible,
-.instagram-visit-btn:focus-visible {
-  outline: 3px solid currentColor;
-  outline-offset: 2px;
+/* ============================================
+   LEGACY STYLES (keep for compatibility)
+   ============================================ */
+
+/* These are kept for any remaining references */
+.platform-tabs {
+  display: none;
+}
+
+.platform-tab {
+  display: none;
+}
+
+.feed-viewer {
+  display: none;
+}
+
+.viewer-header {
+  display: none;
+}
+
+.viewer-content {
+  display: none;
+}
+
+.view-profile-btn {
+  display: none;
 }
