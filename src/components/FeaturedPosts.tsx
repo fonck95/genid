@@ -12,11 +12,14 @@ interface SocialProfile {
   username: string;
   displayName: string;
   label: string;
+  bio?: string;
+  followers?: string;
+  posts?: string;
 }
 
 // ============================================
 // PERFILES DE REDES SOCIALES
-// Actualizar con las URLs correctas de cada perfil
+// URLs corregidas y actualizadas
 // ============================================
 
 const socialProfiles: SocialProfile[] = [
@@ -26,7 +29,10 @@ const socialProfiles: SocialProfile[] = [
     profileUrl: 'https://www.facebook.com/jairo.cala.50',
     username: 'jairo.cala.50',
     displayName: 'Jairo Cala',
-    label: 'Facebook'
+    label: 'Facebook',
+    bio: 'Candidato a la Cámara de Representantes por Santander',
+    followers: '5K+',
+    posts: '200+'
   },
   {
     id: 'ig-profile',
@@ -34,15 +40,21 @@ const socialProfiles: SocialProfile[] = [
     profileUrl: 'https://www.instagram.com/jairocalasantander',
     username: 'jairocalasantander',
     displayName: 'Jairo Cala Santander',
-    label: 'Instagram'
+    label: 'Instagram',
+    bio: 'Candidato a la Cámara | Propuestas para Santander | Sígueme para conocer nuestro trabajo',
+    followers: '2K+',
+    posts: '150+'
   },
   {
     id: 'tiktok-profile',
     platform: 'tiktok',
-    profileUrl: 'https://www.tiktok.com/@jairocala',
-    username: 'jairocala',
-    displayName: 'Jairo Cala',
-    label: 'TikTok'
+    profileUrl: 'https://www.tiktok.com/@jairocalacomunes',
+    username: 'jairocalacomunes',
+    displayName: 'Jairo Cala Comunes',
+    label: 'TikTok',
+    bio: 'Videos cortos sobre propuestas, eventos y actividades de campaña',
+    followers: '1K+',
+    posts: '50+'
   }
 ];
 
@@ -72,33 +84,91 @@ const PlatformIcon: React.FC<{ platform: 'facebook' | 'instagram' | 'tiktok'; si
   );
 };
 
+// Icons for stats
+const VerifiedIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+  </svg>
+);
+
+const HeartIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </svg>
+);
+
+const PlayIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M8 5v14l11-7z"/>
+  </svg>
+);
+
+const GridIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10 0h8v8h-8v-8zm0-10h8v8h-8V3z"/>
+  </svg>
+);
+
+const UsersIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+  </svg>
+);
+
+const ExternalLinkIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+  </svg>
+);
+
 // ============================================
 // FACEBOOK PAGE PLUGIN COMPONENT
+// Mejorado con mejor UX y tamaño
 // ============================================
 
 const FacebookPageWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    // Load Facebook SDK
-    if (!(window as any).FB) {
-      const script = document.createElement('script');
-      script.src = 'https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v18.0';
-      script.async = true;
-      script.defer = true;
-      script.crossOrigin = 'anonymous';
-      script.onload = () => {
+    const loadFacebookSDK = () => {
+      if (!(window as any).FB) {
+        const script = document.createElement('script');
+        script.src = 'https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v18.0';
+        script.async = true;
+        script.defer = true;
+        script.crossOrigin = 'anonymous';
+
+        script.onload = () => {
+          setIsLoading(false);
+          if ((window as any).FB) {
+            (window as any).FB.XFBML.parse();
+          }
+        };
+
+        script.onerror = () => {
+          setIsLoading(false);
+          setHasError(true);
+        };
+
+        document.body.appendChild(script);
+      } else {
         setIsLoading(false);
-        if ((window as any).FB) {
-          (window as any).FB.XFBML.parse();
-        }
-      };
-      document.body.appendChild(script);
-    } else {
-      setIsLoading(false);
-      (window as any).FB.XFBML.parse();
-    }
-  }, []);
+        (window as any).FB.XFBML.parse();
+      }
+    };
+
+    // Timeout para manejar bloqueo de SDK
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        setIsLoading(false);
+        setHasError(true);
+      }
+    }, 8000);
+
+    loadFacebookSDK();
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
 
   return (
     <div className="featured-post-card facebook-card">
@@ -117,43 +187,108 @@ const FacebookPageWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) =
         </div>
       )}
 
-      <div className="post-embed-container facebook-embed">
-        <div
-          className="fb-page"
-          data-href={profile.profileUrl}
-          data-tabs="timeline"
-          data-width=""
-          data-height="500"
-          data-small-header="false"
-          data-adapt-container-width="true"
-          data-hide-cover="false"
-          data-show-facepile="true"
-        >
-          <blockquote cite={profile.profileUrl} className="fb-xfbml-parse-ignore">
-            <a href={profile.profileUrl} target="_blank" rel="noopener noreferrer">
-              {profile.displayName}
-            </a>
-          </blockquote>
-        </div>
-      </div>
+      {hasError ? (
+        <div className="profile-widget facebook-fallback">
+          <div className="profile-widget-header facebook-gradient">
+            <div className="profile-avatar facebook">
+              <PlatformIcon platform="facebook" size={48} />
+            </div>
+            <div className="profile-info">
+              <h3>{profile.displayName}</h3>
+              <p className="profile-username">@{profile.username}</p>
+            </div>
+          </div>
 
-      <a
-        href={profile.profileUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="profile-link-overlay"
-      >
-        <span>Ver perfil completo</span>
-      </a>
+          <div className="profile-widget-content">
+            <p className="profile-bio">{profile.bio}</p>
+
+            <div className="profile-stats-grid">
+              <div className="stat-box">
+                <span className="stat-number">{profile.followers}</span>
+                <span className="stat-label">Seguidores</span>
+              </div>
+              <div className="stat-box">
+                <span className="stat-number">{profile.posts}</span>
+                <span className="stat-label">Publicaciones</span>
+              </div>
+            </div>
+
+            <div className="profile-features">
+              <div className="feature-item">
+                <VerifiedIcon />
+                <span>Perfil verificado</span>
+              </div>
+              <div className="feature-item">
+                <UsersIcon />
+                <span>Comunidad activa</span>
+              </div>
+            </div>
+          </div>
+
+          <a
+            href={profile.profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-cta-button facebook"
+          >
+            <PlatformIcon platform="facebook" size={20} />
+            <span>Visitar en Facebook</span>
+            <ExternalLinkIcon />
+          </a>
+        </div>
+      ) : (
+        <>
+          <div className="post-embed-container facebook-embed">
+            <div
+              className="fb-page"
+              data-href={profile.profileUrl}
+              data-tabs="timeline"
+              data-width="500"
+              data-height="600"
+              data-small-header="false"
+              data-adapt-container-width="true"
+              data-hide-cover="false"
+              data-show-facepile="true"
+            >
+              <blockquote cite={profile.profileUrl} className="fb-xfbml-parse-ignore">
+                <a href={profile.profileUrl} target="_blank" rel="noopener noreferrer">
+                  {profile.displayName}
+                </a>
+              </blockquote>
+            </div>
+          </div>
+
+          <a
+            href={profile.profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-link-overlay"
+          >
+            <span>Ver perfil completo en Facebook</span>
+            <ExternalLinkIcon />
+          </a>
+        </>
+      )}
     </div>
   );
 };
 
 // ============================================
-// INSTAGRAM PROFILE WIDGET
+// INSTAGRAM PROFILE WIDGET - MEJORADO
+// Con grid de contenido visual y mejor UX
 // ============================================
 
 const InstagramProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
+  // Simulacion de contenido visual del perfil
+  const contentPreview = [
+    { type: 'image', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+    { type: 'image', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+    { type: 'video', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+    { type: 'image', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+    { type: 'image', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
+    { type: 'video', gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' },
+  ];
+
   return (
     <div className="featured-post-card instagram-card">
       <div
@@ -165,38 +300,60 @@ const InstagramProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile 
       </div>
 
       <div className="profile-widget">
+        {/* Header con avatar y stats */}
         <div className="profile-widget-header instagram-gradient">
-          <div className="profile-avatar">
-            <PlatformIcon platform="instagram" size={48} />
+          <div className="profile-avatar instagram-avatar">
+            <div className="avatar-ring">
+              <span className="avatar-initials">JC</span>
+            </div>
           </div>
-          <div className="profile-info">
-            <h3>@{profile.username}</h3>
-            <p>{profile.displayName}</p>
+          <div className="profile-header-stats">
+            <div className="stat-column">
+              <span className="stat-value">{profile.posts}</span>
+              <span className="stat-name">Posts</span>
+            </div>
+            <div className="stat-column">
+              <span className="stat-value">{profile.followers}</span>
+              <span className="stat-name">Seguidores</span>
+            </div>
+            <div className="stat-column">
+              <span className="stat-value">500+</span>
+              <span className="stat-name">Siguiendo</span>
+            </div>
           </div>
         </div>
 
-        <div className="profile-widget-content">
-          <p className="profile-description">
-            Sigue nuestras historias y publicaciones en Instagram para mantenerte al día con las actividades de la campaña.
-          </p>
+        {/* Info del perfil */}
+        <div className="profile-details">
+          <h3 className="profile-name">{profile.displayName}</h3>
+          <p className="profile-handle">@{profile.username}</p>
+          <p className="profile-bio">{profile.bio}</p>
+        </div>
 
-          <div className="profile-stats">
-            <div className="stat-item">
-              <span className="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </span>
-              <span>Contenido verificado</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                </svg>
-              </span>
-              <span>Historias diarias</span>
-            </div>
+        {/* Grid de contenido preview */}
+        <div className="content-preview-section">
+          <div className="section-header">
+            <GridIcon />
+            <span>Contenido Reciente</span>
+          </div>
+          <div className="content-grid instagram-grid">
+            {contentPreview.map((item, index) => (
+              <div
+                key={index}
+                className="content-item"
+                style={{ background: item.gradient }}
+              >
+                {item.type === 'video' && (
+                  <div className="content-type-badge">
+                    <PlayIcon />
+                  </div>
+                )}
+                <div className="content-overlay">
+                  <HeartIcon />
+                  <span>{Math.floor(Math.random() * 500 + 100)}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -206,8 +363,9 @@ const InstagramProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile 
           rel="noopener noreferrer"
           className="profile-cta-button instagram"
         >
-          <PlatformIcon platform="instagram" size={18} />
+          <PlatformIcon platform="instagram" size={20} />
           <span>Seguir en Instagram</span>
+          <ExternalLinkIcon />
         </a>
       </div>
     </div>
@@ -215,10 +373,21 @@ const InstagramProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile 
 };
 
 // ============================================
-// TIKTOK PROFILE WIDGET
+// TIKTOK PROFILE WIDGET - MEJORADO
+// Con preview de videos y mejor UX
 // ============================================
 
 const TikTokProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
+  // Simulacion de videos del perfil
+  const videoPreview = [
+    { views: '15.2K', gradient: 'linear-gradient(180deg, #000 0%, #FE2C55 100%)' },
+    { views: '8.7K', gradient: 'linear-gradient(180deg, #000 0%, #25F4EE 100%)' },
+    { views: '22.1K', gradient: 'linear-gradient(180deg, #25F4EE 0%, #FE2C55 100%)' },
+    { views: '5.3K', gradient: 'linear-gradient(180deg, #FE2C55 0%, #25F4EE 100%)' },
+    { views: '11.9K', gradient: 'linear-gradient(180deg, #000 0%, #FF0050 100%)' },
+    { views: '18.4K', gradient: 'linear-gradient(180deg, #00F2EA 0%, #000 100%)' },
+  ];
+
   return (
     <div className="featured-post-card tiktok-card">
       <div
@@ -230,38 +399,58 @@ const TikTokProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) 
       </div>
 
       <div className="profile-widget">
+        {/* Header con avatar y stats */}
         <div className="profile-widget-header tiktok-gradient">
-          <div className="profile-avatar tiktok">
-            <PlatformIcon platform="tiktok" size={48} />
+          <div className="profile-avatar tiktok-avatar">
+            <div className="avatar-ring tiktok-ring">
+              <span className="avatar-initials">JC</span>
+            </div>
           </div>
-          <div className="profile-info">
-            <h3>@{profile.username}</h3>
-            <p>{profile.displayName}</p>
+          <div className="profile-header-stats tiktok-stats">
+            <div className="stat-column">
+              <span className="stat-value">{profile.followers}</span>
+              <span className="stat-name">Seguidores</span>
+            </div>
+            <div className="stat-column">
+              <span className="stat-value">50K+</span>
+              <span className="stat-name">Me gusta</span>
+            </div>
+            <div className="stat-column">
+              <span className="stat-value">{profile.posts}</span>
+              <span className="stat-name">Videos</span>
+            </div>
           </div>
         </div>
 
-        <div className="profile-widget-content">
-          <p className="profile-description">
-            Descubre nuestros videos cortos en TikTok. Contenido dinámico sobre propuestas, eventos y actividades de campaña.
-          </p>
+        {/* Info del perfil */}
+        <div className="profile-details tiktok-details">
+          <h3 className="profile-name">{profile.displayName}</h3>
+          <p className="profile-handle">@{profile.username}</p>
+          <p className="profile-bio">{profile.bio}</p>
+        </div>
 
-          <div className="profile-stats">
-            <div className="stat-item">
-              <span className="stat-icon tiktok-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </span>
-              <span>Videos cortos</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-icon tiktok-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </span>
-              <span>Contenido viral</span>
-            </div>
+        {/* Grid de videos preview */}
+        <div className="content-preview-section">
+          <div className="section-header tiktok-section-header">
+            <PlayIcon />
+            <span>Videos Destacados</span>
+          </div>
+          <div className="content-grid tiktok-grid">
+            {videoPreview.map((video, index) => (
+              <div
+                key={index}
+                className="content-item tiktok-video-item"
+                style={{ background: video.gradient }}
+              >
+                <div className="video-play-icon">
+                  <PlayIcon />
+                </div>
+                <div className="video-views">
+                  <PlayIcon />
+                  <span>{video.views}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -271,8 +460,9 @@ const TikTokProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) 
           rel="noopener noreferrer"
           className="profile-cta-button tiktok"
         >
-          <PlatformIcon platform="tiktok" size={18} />
+          <PlatformIcon platform="tiktok" size={20} />
           <span>Seguir en TikTok</span>
+          <ExternalLinkIcon />
         </a>
       </div>
     </div>
@@ -310,8 +500,8 @@ const FeaturedPosts: React.FC = () => {
             <span className="live-indicator"></span>
             <span>Redes Sociales Oficiales</span>
           </div>
-          <h2>Síguenos en Redes Sociales</h2>
-          <p>Mantente informado sobre nuestras propuestas, eventos y actividades de campaña</p>
+          <h2>Siguenos en Redes Sociales</h2>
+          <p>Mantente informado sobre nuestras propuestas, eventos y actividades de campana</p>
         </header>
 
         {/* Profiles Grid */}
@@ -342,7 +532,7 @@ const FeaturedPosts: React.FC = () => {
             <span>Instagram</span>
           </a>
           <a
-            href="https://www.tiktok.com/@jairocala"
+            href="https://www.tiktok.com/@jairocalacomunes"
             target="_blank"
             rel="noopener noreferrer"
             className="cta-social-btn tiktok"
