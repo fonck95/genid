@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/SocialFeedEmbed.css';
 
 // ============================================
 // TYPES
 // ============================================
 
-type Platform = 'facebook' | 'instagram';
-
 interface SocialProfile {
-  platform: Platform;
+  platform: 'facebook' | 'instagram';
   username: string;
   displayName: string;
   profileUrl: string;
@@ -62,43 +60,130 @@ const ExternalIcon = ({ size = 16 }: { size?: number }) => (
 );
 
 // ============================================
-// FACEBOOK PAGE PLUGIN COMPONENT
-// Uses official Facebook Page Plugin (free, no API key)
+// DETECT iOS DEVICE
 // ============================================
 
-const FacebookPagePlugin: React.FC<{ pageUrl: string }> = ({ pageUrl }) => {
-  const [dimensions, setDimensions] = useState({ width: 500, height: 600 });
+const isIOS = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
+// ============================================
+// FACEBOOK PAGE PLUGIN COMPONENT
+// Optimized for iOS/iPhone compatibility
+// ============================================
+
+const FacebookPagePlugin: React.FC<{ pageUrl: string; username: string }> = ({ pageUrl, username }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 340, height: 500 });
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const [isiOSDevice] = useState(isIOS);
 
   useEffect(() => {
     const updateDimensions = () => {
-      const container = document.querySelector('.feed-viewer');
-      if (container) {
-        const width = Math.min(container.clientWidth - 32, 500);
-        setDimensions({ width, height: 600 });
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        // More conservative width for iOS compatibility
+        const width = Math.min(containerWidth - 16, isiOSDevice ? 340 : 400);
+        setDimensions({ width, height: isiOSDevice ? 450 : 500 });
       }
     };
 
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
+
+    // Timeout for fallback on iOS if iframe doesn't load
+    const fallbackTimeout = setTimeout(() => {
+      if (!isLoaded && isiOSDevice) {
+        setShowFallback(true);
+      }
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+      clearTimeout(fallbackTimeout);
+    };
+  }, [isiOSDevice, isLoaded]);
 
   const encodedUrl = encodeURIComponent(pageUrl);
-  const pluginUrl = `https://www.facebook.com/plugins/page.php?href=${encodedUrl}&tabs=timeline&width=${dimensions.width}&height=${dimensions.height}&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId`;
+
+  // Simplified URL parameters for better iOS compatibility
+  const pluginUrl = isiOSDevice
+    ? `https://www.facebook.com/plugins/page.php?href=${encodedUrl}&tabs=timeline&width=${dimensions.width}&height=${dimensions.height}&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false`
+    : `https://www.facebook.com/plugins/page.php?href=${encodedUrl}&tabs=timeline&width=${dimensions.width}&height=${dimensions.height}&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true`;
+
+  const handleIframeLoad = () => {
+    setIsLoaded(true);
+    setShowFallback(false);
+  };
+
+  const handleIframeError = () => {
+    setShowFallback(true);
+  };
 
   return (
-    <div className="facebook-plugin-container">
-      <iframe
-        src={pluginUrl}
-        width={dimensions.width}
-        height={dimensions.height}
-        style={{ border: 'none', overflow: 'hidden' }}
-        scrolling="no"
-        frameBorder="0"
-        allowFullScreen={true}
-        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-        title="Facebook Page Timeline"
-      />
+    <div className="facebook-plugin-container" ref={containerRef}>
+      {!isLoaded && !showFallback && (
+        <div className="embed-loading">
+          <div className="spinner facebook-spinner"></div>
+          <span>Cargando Facebook...</span>
+        </div>
+      )}
+
+      {showFallback ? (
+        <div className="facebook-fallback">
+          <FacebookIcon size={48} />
+          <h4>Jairo Cala</h4>
+          <p>@{username}</p>
+          <a
+            href={pageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="facebook-fallback-btn"
+          >
+            <FacebookIcon size={20} />
+            <span>Ver perfil en Facebook</span>
+            <ExternalIcon size={16} />
+          </a>
+        </div>
+      ) : (
+        <iframe
+          src={pluginUrl}
+          width={dimensions.width}
+          height={dimensions.height}
+          style={{
+            border: 'none',
+            overflow: 'hidden',
+            display: isLoaded ? 'block' : 'none',
+            borderRadius: '8px',
+            // iOS-specific styles
+            WebkitOverflowScrolling: 'touch',
+            transform: 'translateZ(0)',
+          }}
+          scrolling="no"
+          frameBorder="0"
+          allowFullScreen={true}
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+          title="Facebook Page Timeline"
+          loading="eager"
+          onLoad={handleIframeLoad}
+          onError={handleIframeError}
+        />
+      )}
+
+      {/* Always show direct link button */}
+      <a
+        href={pageUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="facebook-visit-btn"
+      >
+        <FacebookIcon size={20} />
+        <span>Ver perfil completo</span>
+        <ExternalIcon size={16} />
+      </a>
     </div>
   );
 };
@@ -113,11 +198,21 @@ const InstagramProfileEmbed: React.FC<{ username: string; profileUrl: string }> 
 
   useEffect(() => {
     // Load Instagram embed script
+    const existingScript = document.querySelector('script[src="https://www.instagram.com/embed.js"]');
+
+    if (existingScript) {
+      // Script already exists, just process embeds
+      if (window.instgrm) {
+        window.instgrm.Embeds.process();
+      }
+      setIsLoading(false);
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = 'https://www.instagram.com/embed.js';
     script.async = true;
     script.onload = () => {
-      // Process embeds after script loads
       if (window.instgrm) {
         window.instgrm.Embeds.process();
       }
@@ -126,13 +221,9 @@ const InstagramProfileEmbed: React.FC<{ username: string; profileUrl: string }> 
     document.body.appendChild(script);
 
     return () => {
-      // Cleanup script on unmount
-      const existingScript = document.querySelector('script[src="https://www.instagram.com/embed.js"]');
-      if (existingScript) {
-        existingScript.remove();
-      }
+      // Don't remove script on unmount since we might need it
     };
-  }, [username]);
+  }, []);
 
   // Re-process embeds when username changes
   useEffect(() => {
@@ -145,7 +236,7 @@ const InstagramProfileEmbed: React.FC<{ username: string; profileUrl: string }> 
     <div className="instagram-embed-container">
       {isLoading && (
         <div className="embed-loading">
-          <div className="spinner"></div>
+          <div className="spinner instagram-spinner"></div>
           <span>Cargando Instagram...</span>
         </div>
       )}
@@ -162,7 +253,7 @@ const InstagramProfileEmbed: React.FC<{ username: string; profileUrl: string }> 
           boxShadow: '0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)',
           margin: '1px',
           maxWidth: '540px',
-          minWidth: '326px',
+          minWidth: '280px',
           padding: 0,
           width: 'calc(100% - 2px)'
         }}
@@ -240,7 +331,7 @@ const InstagramProfileEmbed: React.FC<{ username: string; profileUrl: string }> 
         className="instagram-visit-btn"
       >
         <InstagramIcon size={20} />
-        <span>Ver perfil completo de @{username}</span>
+        <span>Ver perfil completo</span>
         <ExternalIcon size={16} />
       </a>
     </div>
@@ -248,30 +339,50 @@ const InstagramProfileEmbed: React.FC<{ username: string; profileUrl: string }> 
 };
 
 // ============================================
-// PLATFORM TAB BUTTON
+// FEED CARD COMPONENT
 // ============================================
 
-interface TabButtonProps {
-  platform: Platform;
-  isActive: boolean;
-  onClick: () => void;
+interface FeedCardProps {
   profile: SocialProfile;
 }
 
-const TabButton: React.FC<TabButtonProps> = ({ platform, isActive, onClick, profile }) => {
-  const Icon = platform === 'facebook' ? FacebookIcon : InstagramIcon;
+const FeedCard: React.FC<FeedCardProps> = ({ profile }) => {
+  const Icon = profile.platform === 'facebook' ? FacebookIcon : InstagramIcon;
+  const platformName = profile.platform === 'facebook' ? 'Facebook' : 'Instagram';
 
   return (
-    <button
-      className={`platform-tab ${platform} ${isActive ? 'active' : ''}`}
-      onClick={onClick}
-    >
-      <Icon size={24} />
-      <div className="tab-info">
-        <span className="tab-platform">{platform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
-        <span className="tab-username">@{profile.username}</span>
+    <div className={`feed-card ${profile.platform}`}>
+      <div className="feed-card-header">
+        <Icon size={24} />
+        <div className="feed-card-info">
+          <span className="feed-card-platform">{platformName}</span>
+          <span className="feed-card-username">@{profile.username}</span>
+        </div>
+        <a
+          href={profile.profileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`feed-card-link ${profile.platform}`}
+        >
+          Ver Perfil
+          <ExternalIcon />
+        </a>
       </div>
-    </button>
+
+      <div className="feed-card-content">
+        {profile.platform === 'facebook' ? (
+          <FacebookPagePlugin
+            pageUrl={profile.profileUrl}
+            username={profile.username}
+          />
+        ) : (
+          <InstagramProfileEmbed
+            username={profile.username}
+            profileUrl={profile.profileUrl}
+          />
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -291,9 +402,8 @@ declare global {
 }
 
 const SocialFeedEmbed: React.FC = () => {
-  const [activePlatform, setActivePlatform] = useState<Platform>('facebook');
-
-  const activeProfile = profiles.find(p => p.platform === activePlatform)!;
+  const facebookProfile = profiles.find(p => p.platform === 'facebook')!;
+  const instagramProfile = profiles.find(p => p.platform === 'instagram')!;
 
   return (
     <section id="redes-sociales" className="social-feed-embed">
@@ -304,45 +414,10 @@ const SocialFeedEmbed: React.FC = () => {
           <p>Síguenos para ver nuestras propuestas y actividades</p>
         </header>
 
-        {/* Platform Tabs */}
-        <div className="platform-tabs">
-          {profiles.map(profile => (
-            <TabButton
-              key={profile.platform}
-              platform={profile.platform}
-              isActive={activePlatform === profile.platform}
-              onClick={() => setActivePlatform(profile.platform)}
-              profile={profile}
-            />
-          ))}
-        </div>
-
-        {/* Feed Viewer */}
-        <div className="feed-viewer">
-          <div className="viewer-header">
-            {activePlatform === 'facebook' ? <FacebookIcon size={20} /> : <InstagramIcon size={20} />}
-            <span>@{activeProfile.username}</span>
-            <a
-              href={activeProfile.profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`view-profile-btn ${activePlatform}`}
-            >
-              Ver Perfil
-              <ExternalIcon />
-            </a>
-          </div>
-
-          <div className="viewer-content">
-            {activePlatform === 'facebook' ? (
-              <FacebookPagePlugin pageUrl={activeProfile.profileUrl} />
-            ) : (
-              <InstagramProfileEmbed
-                username={activeProfile.username}
-                profileUrl={activeProfile.profileUrl}
-              />
-            )}
-          </div>
+        {/* Both Feeds Side by Side */}
+        <div className="feeds-grid">
+          <FeedCard profile={facebookProfile} />
+          <FeedCard profile={instagramProfile} />
         </div>
 
         {/* Quick Access Links */}
