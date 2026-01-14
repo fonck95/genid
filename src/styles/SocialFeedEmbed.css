@@ -1,0 +1,661 @@
+/* ============================================
+   SOCIAL FEED EMBED STYLES
+   Compatible con todos los dispositivos
+   ============================================ */
+
+.social-feed-embed {
+  padding: 4rem 1rem;
+  background: linear-gradient(180deg, #0a0a0a 0%, #111111 100%);
+  min-height: 100vh;
+}
+
+.feed-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.feed-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #4CAF50;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.feed-header h2 {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.75rem;
+}
+
+.feed-header p {
+  color: #9e9e9e;
+  font-size: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   PROFILE TABS
+   ============================================ */
+
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.profile-card {
+  background: #1a1a1a;
+  border: 2px solid #2a2a2a;
+  border-radius: 1rem;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  text-align: left;
+}
+
+.profile-card:hover {
+  transform: translateY(-4px);
+  border-color: #3a3a3a;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.profile-card.active {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--platform-gradient);
+}
+
+.profile-card.active.instagram {
+  border-color: #E4405F;
+}
+
+.profile-card.active.facebook {
+  border-color: #1877F2;
+}
+
+.profile-card.active.tiktok {
+  border-color: #FE2C55;
+}
+
+.profile-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: white;
+}
+
+.platform-icon {
+  display: flex;
+  align-items: center;
+}
+
+.platform-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.profile-card-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #1a1a1a;
+}
+
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #333 0%, #555 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.profile-name-row .name {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-name-row .verified {
+  color: #1DA1F2;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.profile-details .username {
+  color: #757575;
+  font-size: 0.85rem;
+  display: block;
+}
+
+/* ============================================
+   ACTIVE PROFILE SECTION
+   ============================================ */
+
+.active-profile-section {
+  background: #1a1a1a;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.active-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.active-profile-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.visit-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.visit-profile-btn.instagram {
+  background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
+}
+
+.visit-profile-btn.facebook {
+  background: linear-gradient(135deg, #1877F2, #4267B2);
+}
+
+.visit-profile-btn.tiktok {
+  background: linear-gradient(135deg, #25F4EE, #FE2C55);
+  color: #000;
+}
+
+.visit-profile-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   EMBEDS GRID
+   ============================================ */
+
+.embeds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.embed-container {
+  background: #1a1a1a;
+  border-radius: 1rem;
+  overflow: hidden;
+  min-height: 400px;
+  position: relative;
+}
+
+.embed-content {
+  transition: opacity 0.3s ease;
+}
+
+.embed-content.loading {
+  opacity: 0;
+}
+
+.embed-content.loaded {
+  opacity: 1;
+}
+
+/* Override embed styles for better integration */
+.embed-container iframe {
+  max-width: 100% !important;
+  border-radius: 0.5rem !important;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.embed-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #757575;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #2a2a2a;
+  border-top-color: #E4405F;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   FALLBACK STATE
+   ============================================ */
+
+.embed-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: #1a1a1a;
+  border-radius: 1rem;
+  border: 2px dashed #2a2a2a;
+  text-align: center;
+  min-height: 300px;
+}
+
+.fallback-icon {
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.fallback-message {
+  color: #9e9e9e;
+  font-size: 1rem;
+  margin: 0 0 1.5rem;
+}
+
+.fallback-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.fallback-link:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   FEED NOTE
+   ============================================ */
+
+.feed-note {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
+
+.feed-note p {
+  color: #757575;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ============================================
+   QUICK LINKS
+   ============================================ */
+
+.quick-links-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 3rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.quick-link.facebook {
+  background: #1877F2;
+}
+
+.quick-link.instagram {
+  background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
+}
+
+.quick-link.tiktok {
+  background: #000;
+  border: 1px solid #333;
+}
+
+.quick-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 900px) {
+  .profile-tabs {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .profile-card-body {
+    padding: 0.75rem;
+  }
+
+  .profile-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .profile-name-row .name {
+    font-size: 0.85rem;
+  }
+
+  .embeds-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 600px) {
+  .social-feed-embed {
+    padding: 2rem 0.75rem;
+  }
+
+  .profile-tabs {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .profile-card {
+    border-radius: 0.75rem;
+  }
+
+  .profile-card-header {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .profile-card-body {
+    padding: 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .profile-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .active-profile-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .active-profile-header h3 {
+    justify-content: center;
+  }
+
+  .visit-profile-btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .embeds-grid {
+    gap: 1rem;
+  }
+
+  .embed-container {
+    min-height: 350px;
+  }
+
+  .embed-fallback {
+    min-height: 250px;
+    padding: 2rem 1rem;
+  }
+
+  .quick-links-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quick-link {
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   TOUCH DEVICES
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  .profile-card:hover {
+    transform: none;
+  }
+
+  .profile-card:active {
+    transform: scale(0.98);
+  }
+
+  .quick-link:hover {
+    transform: none;
+  }
+
+  .quick-link:active {
+    transform: scale(0.95);
+  }
+
+  .visit-profile-btn:hover {
+    transform: none;
+  }
+
+  .visit-profile-btn:active {
+    transform: scale(0.95);
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT (already dark by default)
+   ============================================ */
+
+@media (prefers-color-scheme: light) {
+  .social-feed-embed {
+    background: linear-gradient(180deg, #f5f5f5 0%, #ffffff 100%);
+  }
+
+  .feed-header h2 {
+    color: #1a1a1a;
+  }
+
+  .feed-header p {
+    color: #666;
+  }
+
+  .header-badge {
+    background: rgba(0, 0, 0, 0.08);
+    color: #333;
+  }
+
+  .profile-card {
+    background: #ffffff;
+    border-color: #e0e0e0;
+  }
+
+  .profile-card-body {
+    background: #ffffff;
+  }
+
+  .profile-name-row .name {
+    color: #1a1a1a;
+  }
+
+  .active-profile-section {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+  }
+
+  .active-profile-header h3 {
+    color: #1a1a1a;
+  }
+
+  .embed-container,
+  .embed-fallback {
+    background: #ffffff;
+    border-color: #e0e0e0;
+  }
+
+  .feed-note {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .feed-note p {
+    color: #666;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .spinner {
+    animation: none;
+  }
+
+  .profile-card,
+  .quick-link,
+  .visit-profile-btn,
+  .fallback-link {
+    transition: none;
+  }
+}
+
+/* ============================================
+   SAFE AREA (NOTCHED DEVICES)
+   ============================================ */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .social-feed-embed {
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+  }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+
+@media (prefers-contrast: high) {
+  .profile-card {
+    border-width: 3px;
+  }
+
+  .embed-fallback {
+    border-width: 3px;
+    border-style: solid;
+  }
+}
+
+/* ============================================
+   FOCUS STATES FOR ACCESSIBILITY
+   ============================================ */
+
+.profile-card:focus-visible {
+  outline: 3px solid #E4405F;
+  outline-offset: 2px;
+}
+
+.quick-link:focus-visible,
+.visit-profile-btn:focus-visible,
+.fallback-link:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
