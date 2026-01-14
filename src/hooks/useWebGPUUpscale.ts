@@ -99,6 +99,37 @@ fn fragmentMain(@location(0) texCoord: vec2f) -> @location(0) vec4f {
 }
 `;
 
+// Check if running in a secure context (required for WebGPU)
+const isSecureContext = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return window.isSecureContext === true;
+};
+
+// Check WebGPU availability
+const checkWebGPUSupport = async (): Promise<boolean> => {
+  if (!isSecureContext()) {
+    console.warn('WebGPU requires a secure context (HTTPS)');
+    return false;
+  }
+
+  if (!navigator.gpu) {
+    console.warn('WebGPU is not supported in this browser');
+    return false;
+  }
+
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+      console.warn('No WebGPU adapter available');
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('WebGPU adapter request failed:', err);
+    return false;
+  }
+};
+
 export function useWebGPUUpscale(
   imageSrc: string,
   options: UpscaleOptions = {}
@@ -106,21 +137,33 @@ export function useWebGPUUpscale(
   const { scaleFactor = 2, sharpness = 0.5 } = options;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const deviceRef = useRef<GPUDevice | null>(null);
   const [state, setState] = useState<UpscaleState>({
     isLoading: true,
     isSupported: true,
     error: null,
   });
 
+  // High-quality Canvas 2D fallback
   const fallbackUpscale = useCallback(async (
     canvas: HTMLCanvasElement,
     img: HTMLImageElement
   ) => {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const ctx = canvas.getContext('2d', {
+      alpha: false,
+      desynchronized: true,
+    });
+    if (!ctx) {
+      throw new Error('Could not get 2D context');
+    }
 
-    const targetWidth = Math.round(img.width * scaleFactor);
-    const targetHeight = Math.round(img.height * scaleFactor);
+    const targetWidth = Math.round(img.naturalWidth * scaleFactor);
+    const targetHeight = Math.round(img.naturalHeight * scaleFactor);
+
+    // Ensure valid dimensions
+    if (targetWidth <= 0 || targetHeight <= 0) {
+      throw new Error(`Invalid dimensions: ${targetWidth}x${targetHeight}`);
+    }
 
     canvas.width = targetWidth;
     canvas.height = targetHeight;
@@ -134,33 +177,38 @@ export function useWebGPUUpscale(
 
     // Apply sharpening via convolution
     if (sharpness > 0) {
-      const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-      const data = imageData.data;
-      const tempData = new Uint8ClampedArray(data);
+      try {
+        const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
 
-      const kernel = [
-        0, -sharpness, 0,
-        -sharpness, 1 + 4 * sharpness, -sharpness,
-        0, -sharpness, 0
-      ];
+        const kernel = [
+          0, -sharpness, 0,
+          -sharpness, 1 + 4 * sharpness, -sharpness,
+          0, -sharpness, 0
+        ];
 
-      for (let y = 1; y < targetHeight - 1; y++) {
-        for (let x = 1; x < targetWidth - 1; x++) {
-          for (let c = 0; c < 3; c++) {
-            let sum = 0;
-            for (let ky = -1; ky <= 1; ky++) {
-              for (let kx = -1; kx <= 1; kx++) {
-                const idx = ((y + ky) * targetWidth + (x + kx)) * 4 + c;
-                sum += tempData[idx] * kernel[(ky + 1) * 3 + (kx + 1)];
+        for (let y = 1; y < targetHeight - 1; y++) {
+          for (let x = 1; x < targetWidth - 1; x++) {
+            for (let c = 0; c < 3; c++) {
+              let sum = 0;
+              for (let ky = -1; ky <= 1; ky++) {
+                for (let kx = -1; kx <= 1; kx++) {
+                  const idx = ((y + ky) * targetWidth + (x + kx)) * 4 + c;
+                  sum += tempData[idx] * kernel[(ky + 1) * 3 + (kx + 1)];
+                }
               }
+              const idx = (y * targetWidth + x) * 4 + c;
+              data[idx] = Math.max(0, Math.min(255, sum));
             }
-            const idx = (y * targetWidth + x) * 4 + c;
-            data[idx] = Math.max(0, Math.min(255, sum));
           }
         }
-      }
 
-      ctx.putImageData(imageData, 0, 0);
+        ctx.putImageData(imageData, 0, 0);
+      } catch (sharpenErr) {
+        // Sharpening failed (possibly due to tainted canvas), but base upscale succeeded
+        console.warn('Sharpening failed, using unsharpened image:', sharpenErr);
+      }
     }
   }, [scaleFactor, sharpness]);
 
@@ -173,15 +221,29 @@ export function useWebGPUUpscale(
       throw new Error('WebGPU not supported');
     }
 
-    const adapter = await navigator.gpu.requestAdapter();
+    const adapter = await navigator.gpu.requestAdapter({
+      powerPreference: 'high-performance',
+    });
     if (!adapter) {
       throw new Error('No GPU adapter found');
     }
 
     const device = await adapter.requestDevice();
+    deviceRef.current = device;
 
-    const targetWidth = Math.round(img.width * scaleFactor);
-    const targetHeight = Math.round(img.height * scaleFactor);
+    // Listen for device loss
+    device.lost.then((info) => {
+      console.warn('WebGPU device lost:', info.message);
+      deviceRef.current = null;
+    });
+
+    const targetWidth = Math.round(img.naturalWidth * scaleFactor);
+    const targetHeight = Math.round(img.naturalHeight * scaleFactor);
+
+    // Ensure valid dimensions
+    if (targetWidth <= 0 || targetHeight <= 0) {
+      throw new Error(`Invalid dimensions: ${targetWidth}x${targetHeight}`);
+    }
 
     canvas.width = targetWidth;
     canvas.height = targetHeight;
@@ -203,8 +265,19 @@ export function useWebGPUUpscale(
       code: shaderCode,
     });
 
+    // Check for shader compilation errors
+    const compilationInfo = await shaderModule.getCompilationInfo();
+    const errors = compilationInfo.messages.filter(m => m.type === 'error');
+    if (errors.length > 0) {
+      throw new Error(`Shader compilation error: ${errors[0].message}`);
+    }
+
     // Create texture from image
-    const imageBitmap = await createImageBitmap(img);
+    const imageBitmap = await createImageBitmap(img, {
+      premultiplyAlpha: 'premultiply',
+      colorSpaceConversion: 'default',
+    });
+
     const texture = device.createTexture({
       size: [imageBitmap.width, imageBitmap.height],
       format: 'rgba8unorm',
@@ -214,7 +287,7 @@ export function useWebGPUUpscale(
     });
 
     device.queue.copyExternalImageToTexture(
-      { source: imageBitmap },
+      { source: imageBitmap, flipY: false },
       { texture },
       [imageBitmap.width, imageBitmap.height]
     );
@@ -224,6 +297,8 @@ export function useWebGPUUpscale(
       magFilter: 'linear',
       minFilter: 'linear',
       mipmapFilter: 'linear',
+      addressModeU: 'clamp-to-edge',
+      addressModeV: 'clamp-to-edge',
     });
 
     // Create uniform buffer
@@ -308,45 +383,142 @@ export function useWebGPUUpscale(
 
     device.queue.submit([commandEncoder.finish()]);
 
+    // Wait for GPU work to complete
+    await device.queue.onSubmittedWorkDone();
+
     // Cleanup
     texture.destroy();
     uniformBuffer.destroy();
+    imageBitmap.close();
   }, [scaleFactor, sharpness]);
+
+  // Load image handling - tries without CORS first, falls back if needed
+  const loadImage = useCallback((src: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      // First try: Load without crossOrigin for same-origin images
+      const img = new Image();
+
+      const handleLoad = () => {
+        // Check if image has valid dimensions
+        if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+          reject(new Error('Image loaded with invalid dimensions'));
+          return;
+        }
+        resolve(img);
+      };
+
+      const handleError = () => {
+        // If failed, might be a cross-origin image - try with CORS
+        if (!img.crossOrigin) {
+          const corsImg = new Image();
+          corsImg.crossOrigin = 'anonymous';
+          corsImg.onload = () => {
+            if (corsImg.naturalWidth === 0 || corsImg.naturalHeight === 0) {
+              reject(new Error('Image loaded with invalid dimensions'));
+              return;
+            }
+            resolve(corsImg);
+          };
+          corsImg.onerror = () => {
+            reject(new Error(`Failed to load image: ${src}`));
+          };
+          corsImg.src = src;
+        } else {
+          reject(new Error(`Failed to load image: ${src}`));
+        }
+      };
+
+      img.onload = handleLoad;
+      img.onerror = handleError;
+
+      // For data URLs or blob URLs, load directly
+      if (src.startsWith('data:') || src.startsWith('blob:')) {
+        img.src = src;
+      } else {
+        // For relative URLs or same-origin, try loading directly
+        // For cross-origin URLs, set crossOrigin
+        try {
+          const url = new URL(src, window.location.href);
+          if (url.origin !== window.location.origin) {
+            img.crossOrigin = 'anonymous';
+          }
+        } catch {
+          // Invalid URL, just try loading
+        }
+        img.src = src;
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !imageSrc) return;
+    if (!canvas || !imageSrc) {
+      setState({ isLoading: false, isSupported: false, error: 'No canvas or image source' });
+      return;
+    }
 
-    setState({ isLoading: true, isSupported: true, error: null });
+    let isMounted = true;
 
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
+    const processImage = async () => {
+      setState({ isLoading: true, isSupported: true, error: null });
 
-    img.onload = async () => {
       try {
-        await webgpuUpscale(canvas, img);
-        setState({ isLoading: false, isSupported: true, error: null });
+        // Load image first
+        const img = await loadImage(imageSrc);
+
+        if (!isMounted) return;
+
+        // Check WebGPU support
+        const webgpuSupported = await checkWebGPUSupport();
+
+        if (webgpuSupported) {
+          try {
+            await webgpuUpscale(canvas, img);
+            if (isMounted) {
+              setState({ isLoading: false, isSupported: true, error: null });
+            }
+            return;
+          } catch (err) {
+            console.warn('WebGPU upscale failed, using fallback:', err);
+          }
+        }
+
+        // Fallback to Canvas 2D
+        if (isMounted) {
+          try {
+            await fallbackUpscale(canvas, img);
+            setState({ isLoading: false, isSupported: false, error: null });
+          } catch (fallbackErr) {
+            setState({
+              isLoading: false,
+              isSupported: false,
+              error: fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'
+            });
+          }
+        }
       } catch (err) {
-        console.warn('WebGPU upscale failed, using fallback:', err);
-        try {
-          await fallbackUpscale(canvas, img);
-          setState({ isLoading: false, isSupported: false, error: null });
-        } catch (fallbackErr) {
+        if (isMounted) {
+          console.error('Image processing failed:', err);
           setState({
             isLoading: false,
             isSupported: false,
-            error: fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'
+            error: err instanceof Error ? err.message : 'Failed to process image'
           });
         }
       }
     };
 
-    img.onerror = () => {
-      setState({ isLoading: false, isSupported: false, error: 'Failed to load image' });
-    };
+    processImage();
 
-    img.src = imageSrc;
-  }, [imageSrc, webgpuUpscale, fallbackUpscale]);
+    return () => {
+      isMounted = false;
+      // Cleanup GPU device on unmount
+      if (deviceRef.current) {
+        deviceRef.current.destroy();
+        deviceRef.current = null;
+      }
+    };
+  }, [imageSrc, webgpuUpscale, fallbackUpscale, loadImage]);
 
   return { canvasRef, ...state };
 }
