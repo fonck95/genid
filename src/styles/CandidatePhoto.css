@@ -78,6 +78,14 @@
   object-fit: cover;
 }
 
+.candidate-photo.hidden {
+  display: none;
+}
+
+.candidate-photo-fallback {
+  display: block;
+}
+
 .candidate-photo-loader {
   position: absolute;
   top: 0;
