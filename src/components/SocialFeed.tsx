@@ -40,8 +40,8 @@ const socialNetworks: SocialNetwork[] = [
   {
     name: 'TikTok',
     icon: 'tiktok',
-    url: 'https://www.tiktok.com/@jairocala',
-    username: '@jairocala',
+    url: 'https://www.tiktok.com/@jairocalacomunes',
+    username: '@jairocalacomunes',
     color: '#000000',
     followers: '1K+'
   },
