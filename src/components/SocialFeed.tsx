@@ -15,26 +15,16 @@ interface SocialNetwork {
   posts?: string;
   description?: string;
   bio?: string;
+  hasEmbed?: boolean;
 }
 
-type TabId = 'all' | 'twitter' | 'facebook' | 'instagram' | 'youtube';
+type TabId = 'all' | 'facebook' | 'instagram';
 
 // ============================================
 // SOCIAL NETWORKS DATA - DATOS VERIFICADOS
 // ============================================
 
 const socialNetworks: SocialNetwork[] = [
-  {
-    name: 'X (Twitter)',
-    icon: 'twitter',
-    url: 'https://x.com/JairoComunes',
-    username: '@JairoComunes',
-    color: '#000000',
-    followers: '6.7K',
-    posts: '6,745',
-    description: 'Posiciones políticas y noticias en tiempo real',
-    bio: 'Representante a la Cámara por Santander | Partido Comunes | Defensor del Acuerdo de Paz'
-  },
   {
     name: 'Facebook',
     icon: 'facebook',
@@ -44,7 +34,8 @@ const socialNetworks: SocialNetwork[] = [
     followers: '5K+',
     posts: '500+',
     description: 'Eventos, fotos y actualizaciones de campaña',
-    bio: 'Representante a la Cámara por Santander del Partido Comunes'
+    bio: 'Representante a la Cámara por Santander del Partido Comunes',
+    hasEmbed: true
   },
   {
     name: 'Instagram',
@@ -55,7 +46,20 @@ const socialNetworks: SocialNetwork[] = [
     followers: '2K+',
     posts: '200+',
     description: 'Galería visual y momentos de la gestión',
-    bio: 'Representante a la Cámara por Santander | Partido Comunes'
+    bio: 'Representante a la Cámara por Santander | Partido Comunes',
+    hasEmbed: true
+  },
+  {
+    name: 'X (Twitter)',
+    icon: 'twitter',
+    url: 'https://x.com/JairoComunes',
+    username: '@JairoComunes',
+    color: '#000000',
+    followers: '6.7K',
+    posts: '6,745',
+    description: 'Posiciones políticas y noticias en tiempo real',
+    bio: 'Representante a la Cámara por Santander | Partido Comunes',
+    hasEmbed: false
   },
   {
     name: 'YouTube',
@@ -66,7 +70,8 @@ const socialNetworks: SocialNetwork[] = [
     followers: '500+',
     posts: '50+',
     description: 'Entrevistas, discursos y contenido audiovisual',
-    bio: 'Canal oficial del Representante Jairo Cala'
+    bio: 'Canal oficial del Representante Jairo Cala',
+    hasEmbed: false
   }
 ];
 
@@ -116,11 +121,6 @@ const SocialIcon: React.FC<{ network: string; size?: number }> = ({ network, siz
         <circle cx="12" cy="12" r="8"/>
       </svg>
     ),
-    play: (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8 5v14l11-7z"/>
-      </svg>
-    ),
     verified: (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
@@ -135,6 +135,36 @@ const SocialIcon: React.FC<{ network: string; size?: number }> = ({ network, siz
       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
         <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
       </svg>
+    ),
+    arrowRight: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+      </svg>
+    ),
+    comment: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+      </svg>
+    ),
+    share: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+      </svg>
+    ),
+    bookmark: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+      </svg>
+    ),
+    grid: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>
+      </svg>
+    ),
+    image: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+      </svg>
     )
   };
 
@@ -142,55 +172,7 @@ const SocialIcon: React.FC<{ network: string; size?: number }> = ({ network, siz
 };
 
 // ============================================
-// SOCIAL CARD COMPONENT - ENHANCED
-// ============================================
-
-const SocialCard: React.FC<{ network: SocialNetwork; index: number }> = ({ network, index }) => {
-  return (
-    <a
-      href={network.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="social-card"
-      style={{
-        '--card-color': network.color,
-        '--animation-delay': `${index * 0.1}s`
-      } as React.CSSProperties}
-    >
-      <div className="social-card-icon">
-        <SocialIcon network={network.icon} size={28} />
-      </div>
-      <div className="social-card-content">
-        <div className="social-card-header">
-          <h4>{network.name}</h4>
-          <span className="social-verified-badge">
-            <SocialIcon network="verified" size={14} />
-          </span>
-        </div>
-        <span className="social-username">{network.username}</span>
-        <div className="social-stats-row">
-          <div className="social-stat">
-            <SocialIcon network="users" size={14} />
-            <span>{network.followers}</span>
-          </div>
-          <div className="social-stat">
-            <SocialIcon network="document" size={14} />
-            <span>{network.posts}</span>
-          </div>
-        </div>
-        {network.description && (
-          <p className="social-description">{network.description}</p>
-        )}
-      </div>
-      <div className="social-card-arrow">
-        <SocialIcon network="external" size={18} />
-      </div>
-    </a>
-  );
-};
-
-// ============================================
-// LIVE FEED INDICATOR
+// LIVE INDICATOR COMPONENT
 // ============================================
 
 const LiveIndicator: React.FC = () => (
@@ -201,126 +183,37 @@ const LiveIndicator: React.FC = () => (
 );
 
 // ============================================
-// TWITTER/X EMBED COMPONENT - USANDO IFRAME
+// COMPACT LINK CARD - Para X y YouTube
 // ============================================
 
-const TwitterEmbed: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Cargar el widget de Twitter
-    const loadTwitterWidget = () => {
-      const existingScript = document.querySelector('script[src="https://platform.twitter.com/widgets.js"]');
-
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.src = 'https://platform.twitter.com/widgets.js';
-        script.async = true;
-        script.charset = 'utf-8';
-        script.onload = () => {
-          setTimeout(() => {
-            if (window.twttr?.widgets) {
-              window.twttr.widgets.load(containerRef.current);
-            }
-          }, 300);
-        };
-        script.onerror = () => console.error('Failed to load Twitter widget');
-        document.body.appendChild(script);
-      } else {
-        setTimeout(() => {
-          if (window.twttr?.widgets) {
-            window.twttr.widgets.load(containerRef.current);
-          }
-        }, 300);
-      }
-    };
-
-    loadTwitterWidget();
-  }, []);
-
+const CompactLinkCard: React.FC<{ network: SocialNetwork }> = ({ network }) => {
   return (
-    <div className="embedded-feed twitter-embedded">
-      <div className="embedded-feed-header">
-        <div className="feed-title">
-          <SocialIcon network="twitter" size={24} />
-          <h3>X (Twitter)</h3>
-          <LiveIndicator />
-        </div>
-        <a
-          href="https://x.com/JairoComunes"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="follow-btn follow-btn-twitter"
-        >
-          <SocialIcon network="twitter" size={16} />
-          Seguir @JairoComunes
-        </a>
+    <a
+      href={network.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="compact-link-card"
+      style={{ '--card-accent': network.color } as React.CSSProperties}
+    >
+      <div className="compact-link-icon" style={{ backgroundColor: network.color }}>
+        <SocialIcon network={network.icon} size={28} />
       </div>
-
-      <div className="embed-content-wrapper" ref={containerRef}>
-        {/* Profile Header */}
-        <div className="twitter-profile-header">
-          <div className="twitter-profile-banner"></div>
-          <div className="twitter-profile-info">
-            <div className="twitter-avatar">
-              <span>JC</span>
-            </div>
-            <div className="twitter-name-section">
-              <h4>Jairo Cala <SocialIcon network="verified" size={16} /></h4>
-              <span className="twitter-handle">@JairoComunes</span>
-            </div>
-          </div>
-          <p className="twitter-bio">
-            Representante a la Cámara por Santander | Partido Comunes |
-            Defensor del Acuerdo de Paz | Protector del Páramo de Santurbán
-          </p>
-          <div className="twitter-stats">
-            <span><strong>6,745</strong> Posts</span>
-            <span><strong>156</strong> Siguiendo</span>
-            <span><strong>6.7K</strong> Seguidores</span>
-          </div>
+      <div className="compact-link-content">
+        <div className="compact-link-header">
+          <h4>{network.name}</h4>
+          <span className="compact-link-username">{network.username}</span>
         </div>
-
-        {/* Timeline Embed usando Widget */}
-        <div className="twitter-timeline-container">
-          <a
-            className="twitter-timeline"
-            data-height="500"
-            data-theme="light"
-            data-chrome="noheader nofooter transparent"
-            data-lang="es"
-            data-dnt="true"
-            href="https://twitter.com/JairoComunes?ref_src=twsrc%5Etfw"
-          >
-            <div className="embed-loading">
-              <div className="loading-spinner"></div>
-              <p>Cargando tweets...</p>
-            </div>
-          </a>
+        <p className="compact-link-desc">{network.description}</p>
+        <div className="compact-link-stats">
+          <span><SocialIcon network="users" size={14} /> {network.followers} seguidores</span>
+          <span><SocialIcon network="document" size={14} /> {network.posts}</span>
         </div>
-
-        {/* Fallback con iframe de Publish */}
-        <div className="twitter-fallback">
-          <iframe
-            src="https://syndication.twitter.com/srv/timeline-profile/screen-name/JairoComunes?dnt=true&embedId=twitter-widget-0&frame=false&hideBorder=true&hideFooter=true&hideHeader=true&hideScrollBar=false&lang=es&maxHeight=500px&transparent=true&widgetsVersion=2615f7e52b7e0%3A1702314776716"
-            style={{ border: 'none', width: '100%', height: '500px', overflow: 'hidden' }}
-            title="Twitter Timeline de @JairoComunes"
-            loading="lazy"
-            sandbox="allow-scripts allow-same-origin allow-popups"
-          />
-        </div>
-
-        <a
-          href="https://x.com/JairoComunes"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="view-more-link"
-        >
-          <SocialIcon network="twitter" size={18} />
-          Ver perfil completo en X
-        </a>
       </div>
-    </div>
+      <div className="compact-link-action">
+        <span>Visitar</span>
+        <SocialIcon network="arrowRight" size={18} />
+      </div>
+    </a>
   );
 };
 
@@ -332,7 +225,6 @@ const FacebookEmbed: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Cargar Facebook SDK
     const loadFB = () => {
       if (window.FB) {
         window.FB.XFBML.parse(containerRef.current);
@@ -360,51 +252,80 @@ const FacebookEmbed: React.FC = () => {
   }, []);
 
   return (
-    <div className="embedded-feed facebook-embedded">
-      <div className="embedded-feed-header">
-        <div className="feed-title">
-          <SocialIcon network="facebook" size={24} />
-          <h3>Facebook</h3>
-          <LiveIndicator />
+    <div className="social-embed-card facebook-embed-card" ref={containerRef}>
+      {/* Header del perfil */}
+      <div className="embed-profile-header facebook-profile">
+        <div className="embed-cover facebook-cover-bg"></div>
+        <div className="embed-profile-info">
+          <div className="embed-avatar facebook-avatar-ring">
+            <div className="avatar-inner">
+              <span>JC</span>
+            </div>
+          </div>
+          <div className="embed-profile-details">
+            <div className="profile-name-row">
+              <h3>Jairo Cala</h3>
+              <span className="verified-badge facebook-verified">
+                <SocialIcon network="verified" size={18} />
+              </span>
+            </div>
+            <span className="profile-category">Representante a la Cámara por Santander</span>
+            <p className="profile-bio">
+              Partido Comunes | Defensor de los derechos humanos, la paz y la justicia social.
+            </p>
+          </div>
         </div>
+        <div className="embed-stats facebook-stats">
+          <div className="stat-item">
+            <strong>5K+</strong>
+            <span>Me gusta</span>
+          </div>
+          <div className="stat-item">
+            <strong>500+</strong>
+            <span>Publicaciones</span>
+          </div>
+          <div className="stat-item">
+            <strong>4.8K</strong>
+            <span>Seguidores</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sección de acciones */}
+      <div className="embed-actions">
         <a
           href="https://www.facebook.com/jairo.cala.50"
           target="_blank"
           rel="noopener noreferrer"
-          className="follow-btn follow-btn-facebook"
+          className="action-btn primary facebook-primary"
         >
-          <SocialIcon network="facebook" size={16} />
+          <SocialIcon network="facebook" size={18} />
           Me gusta
+        </a>
+        <a
+          href="https://www.facebook.com/jairo.cala.50"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="action-btn secondary"
+        >
+          <SocialIcon network="share" size={18} />
+          Compartir
         </a>
       </div>
 
-      <div className="embed-content-wrapper facebook-wrapper" ref={containerRef}>
-        {/* Facebook Profile Header */}
-        <div className="facebook-profile-header">
-          <div className="facebook-cover"></div>
-          <div className="facebook-profile-info">
-            <div className="facebook-avatar">
-              <span>JC</span>
-            </div>
-            <div className="facebook-name-section">
-              <h4>Jairo Cala</h4>
-              <span className="facebook-subtitle">Representante a la Cámara por Santander</span>
-            </div>
-          </div>
-          <p className="facebook-bio">
-            Representante a la Cámara por Santander del Partido Comunes.
-            Defensor de los derechos humanos, la paz y la justicia social.
-          </p>
+      {/* Feed de publicaciones */}
+      <div className="embed-feed-section">
+        <div className="feed-section-header">
+          <h4>Publicaciones Recientes</h4>
+          <LiveIndicator />
         </div>
 
         <div id="fb-root"></div>
-
-        {/* Facebook Page Plugin - Using iframe for better compatibility */}
-        <div className="facebook-embed-container">
+        <div className="facebook-feed-container">
           <iframe
-            src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fjairo.cala.50&tabs=timeline&width=500&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
+            src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fjairo.cala.50&tabs=timeline&width=500&height=600&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false"
             width="100%"
-            height="500"
+            height="600"
             style={{ border: 'none', overflow: 'hidden', borderRadius: '12px' }}
             scrolling="no"
             frameBorder="0"
@@ -414,14 +335,17 @@ const FacebookEmbed: React.FC = () => {
             loading="lazy"
           />
         </div>
+      </div>
 
+      {/* Footer con CTA */}
+      <div className="embed-footer">
         <a
           href="https://www.facebook.com/jairo.cala.50"
           target="_blank"
           rel="noopener noreferrer"
-          className="view-more-link facebook-link"
+          className="embed-footer-link facebook-footer-link"
         >
-          <SocialIcon network="facebook" size={18} />
+          <SocialIcon network="external" size={16} />
           Ver página completa en Facebook
         </a>
       </div>
@@ -437,7 +361,6 @@ const InstagramEmbed: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load Instagram embed script
     const loadInstagram = () => {
       const existingScript = document.querySelector('script[src="https://www.instagram.com/embed.js"]');
 
@@ -462,233 +385,195 @@ const InstagramEmbed: React.FC = () => {
   }, []);
 
   return (
-    <div className="embedded-feed instagram-embedded">
-      <div className="embedded-feed-header">
-        <div className="feed-title">
-          <SocialIcon network="instagram" size={24} />
-          <h3>Instagram</h3>
-          <LiveIndicator />
+    <div className="social-embed-card instagram-embed-card" ref={containerRef}>
+      {/* Header del perfil con gradiente de Instagram */}
+      <div className="embed-profile-header instagram-profile">
+        <div className="embed-cover instagram-gradient-bg"></div>
+        <div className="embed-profile-info">
+          <div className="embed-avatar instagram-avatar-ring">
+            <div className="avatar-inner">
+              <span>JC</span>
+            </div>
+          </div>
+          <div className="embed-profile-details">
+            <div className="profile-name-row">
+              <h3>jairocalasantander</h3>
+              <span className="verified-badge instagram-verified">
+                <SocialIcon network="verified" size={18} />
+              </span>
+            </div>
+            <span className="profile-fullname">Jairo Cala</span>
+            <span className="profile-category">Representante a la Cámara</span>
+          </div>
         </div>
+        <div className="embed-stats instagram-stats">
+          <div className="stat-item">
+            <strong>200+</strong>
+            <span>Publicaciones</span>
+          </div>
+          <div className="stat-item">
+            <strong>2K+</strong>
+            <span>Seguidores</span>
+          </div>
+          <div className="stat-item">
+            <strong>150</strong>
+            <span>Siguiendo</span>
+          </div>
+        </div>
+        <div className="instagram-bio-section">
+          <p>
+            Representante a la Cámara por Santander<br/>
+            Partido Comunes<br/>
+            Defensor del Acuerdo de Paz<br/>
+            Protector del Páramo de Santurbán
+          </p>
+        </div>
+      </div>
+
+      {/* Sección de acciones */}
+      <div className="embed-actions">
         <a
           href="https://www.instagram.com/jairocalasantander"
           target="_blank"
           rel="noopener noreferrer"
-          className="follow-btn follow-btn-instagram"
+          className="action-btn primary instagram-primary"
         >
-          <SocialIcon network="instagram" size={16} />
+          <SocialIcon network="instagram" size={18} />
           Seguir
+        </a>
+        <a
+          href="https://www.instagram.com/jairocalasantander"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="action-btn secondary"
+        >
+          <SocialIcon network="comment" size={18} />
+          Mensaje
         </a>
       </div>
 
-      <div className="embed-content-wrapper instagram-wrapper" ref={containerRef}>
-        {/* Instagram Profile Preview - Profesional */}
-        <div className="instagram-profile-card">
-          <div className="instagram-gradient-bg"></div>
-          <div className="instagram-profile-content">
-            <div className="instagram-avatar-ring">
-              <div className="instagram-avatar">
-                <span>JC</span>
-              </div>
-            </div>
-            <div className="instagram-profile-details">
-              <div className="instagram-name-row">
-                <h4>jairocalasantander</h4>
-                <span className="instagram-verified">
-                  <SocialIcon network="verified" size={16} />
-                </span>
-              </div>
-              <span className="instagram-category">Político</span>
-            </div>
-            <div className="instagram-stats-grid">
-              <div className="ig-stat">
-                <strong>200+</strong>
-                <span>Publicaciones</span>
-              </div>
-              <div className="ig-stat">
-                <strong>2K+</strong>
-                <span>Seguidores</span>
-              </div>
-              <div className="ig-stat">
-                <strong>150</strong>
-                <span>Siguiendo</span>
-              </div>
-            </div>
-            <div className="instagram-bio-section">
-              <p className="instagram-bio-text">
-                <strong>Jairo Cala</strong><br/>
-                Representante a la Cámara por Santander<br/>
-                Partido Comunes<br/>
-                Defensor del Acuerdo de Paz y los derechos humanos<br/>
-                Protector del Páramo de Santurbán
-              </p>
-            </div>
-          </div>
+      {/* Navegación de contenido */}
+      <div className="instagram-content-nav">
+        <button className="content-nav-btn active">
+          <SocialIcon network="grid" size={20} />
+          <span>Publicaciones</span>
+        </button>
+        <button className="content-nav-btn">
+          <SocialIcon network="image" size={20} />
+          <span>Reels</span>
+        </button>
+      </div>
+
+      {/* Feed de publicaciones */}
+      <div className="embed-feed-section">
+        <div className="feed-section-header">
+          <h4>Galería de Publicaciones</h4>
+          <LiveIndicator />
         </div>
 
-        {/* Instagram Embed Widget */}
-        <div className="instagram-embed-container">
-          <blockquote
-            className="instagram-media"
-            data-instgrm-permalink="https://www.instagram.com/jairocalasantander/"
-            data-instgrm-version="14"
-            style={{
-              background: '#FFF',
-              border: 0,
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              margin: '0 auto',
-              maxWidth: '100%',
-              minWidth: '280px',
-              padding: 0,
-              width: '100%'
-            }}
-          >
-            <div className="instagram-feed-preview">
-              <div className="ig-loading-placeholder">
+        <div className="instagram-feed-container">
+          {/* Grid de preview de posts */}
+          <div className="instagram-posts-preview">
+            <div className="instagram-post-item">
+              <div className="post-placeholder">
+                <SocialIcon network="image" size={32} />
+                <span>Gestión 2024</span>
+              </div>
+              <div className="post-overlay">
+                <span><SocialIcon network="heart" size={16} /> 234</span>
+                <span><SocialIcon network="comment" size={16} /> 45</span>
+              </div>
+            </div>
+            <div className="instagram-post-item">
+              <div className="post-placeholder">
+                <SocialIcon network="image" size={32} />
+                <span>Comunidades</span>
+              </div>
+              <div className="post-overlay">
+                <span><SocialIcon network="heart" size={16} /> 189</span>
+                <span><SocialIcon network="comment" size={16} /> 32</span>
+              </div>
+            </div>
+            <div className="instagram-post-item">
+              <div className="post-placeholder">
+                <SocialIcon network="image" size={32} />
+                <span>Santurbán</span>
+              </div>
+              <div className="post-overlay">
+                <span><SocialIcon network="heart" size={16} /> 567</span>
+                <span><SocialIcon network="comment" size={16} /> 89</span>
+              </div>
+            </div>
+            <div className="instagram-post-item">
+              <div className="post-placeholder">
+                <SocialIcon network="image" size={32} />
+                <span>Congreso</span>
+              </div>
+              <div className="post-overlay">
+                <span><SocialIcon network="heart" size={16} /> 312</span>
+                <span><SocialIcon network="comment" size={16} /> 56</span>
+              </div>
+            </div>
+            <div className="instagram-post-item">
+              <div className="post-placeholder">
+                <SocialIcon network="image" size={32} />
+                <span>Paz Total</span>
+              </div>
+              <div className="post-overlay">
+                <span><SocialIcon network="heart" size={16} /> 445</span>
+                <span><SocialIcon network="comment" size={16} /> 78</span>
+              </div>
+            </div>
+            <div className="instagram-post-item view-more-post">
+              <div className="view-more-content">
+                <SocialIcon network="arrowRight" size={32} />
+                <span>Ver más</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Embed oficial de Instagram */}
+          <div className="instagram-official-embed">
+            <blockquote
+              className="instagram-media"
+              data-instgrm-permalink="https://www.instagram.com/jairocalasantander/"
+              data-instgrm-version="14"
+              style={{
+                background: '#FFF',
+                border: 0,
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                margin: '0 auto',
+                maxWidth: '100%',
+                minWidth: '280px',
+                padding: 0,
+                width: '100%'
+              }}
+            >
+              <div className="instagram-embed-loading">
                 <div className="loading-spinner"></div>
                 <p>Cargando contenido de Instagram...</p>
               </div>
-            </div>
-          </blockquote>
+            </blockquote>
+          </div>
         </div>
+      </div>
 
-        {/* Call to action */}
-        <div className="instagram-cta-section">
-          <p>Descubre más contenido visual y momentos de la gestión del Representante Jairo Cala</p>
-        </div>
+      {/* CTA Section */}
+      <div className="instagram-cta">
+        <p>Descubre momentos de la gestión y conecta con nuestra comunidad</p>
+      </div>
 
+      {/* Footer */}
+      <div className="embed-footer">
         <a
           href="https://www.instagram.com/jairocalasantander"
           target="_blank"
           rel="noopener noreferrer"
-          className="view-more-link instagram-link"
+          className="embed-footer-link instagram-footer-link"
         >
-          <SocialIcon network="instagram" size={18} />
+          <SocialIcon network="external" size={16} />
           Ver perfil completo en Instagram
-        </a>
-      </div>
-    </div>
-  );
-};
-
-// ============================================
-// YOUTUBE EMBED COMPONENT - MEJORADO
-// ============================================
-
-const YouTubeEmbed: React.FC = () => {
-  const channelUrl = 'https://www.youtube.com/@jairocala5746';
-  // ID del canal obtenido del handle
-  const channelId = 'jairocala5746';
-
-  return (
-    <div className="embedded-feed youtube-embedded">
-      <div className="embedded-feed-header">
-        <div className="feed-title">
-          <SocialIcon network="youtube" size={24} />
-          <h3>YouTube</h3>
-          <LiveIndicator />
-        </div>
-        <a
-          href={channelUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="follow-btn follow-btn-youtube"
-        >
-          <SocialIcon network="youtube" size={16} />
-          Suscribirse
-        </a>
-      </div>
-
-      <div className="embed-content-wrapper youtube-wrapper">
-        {/* YouTube Channel Header */}
-        <div className="youtube-channel-card">
-          <div className="youtube-channel-banner"></div>
-          <div className="youtube-channel-content">
-            <div className="youtube-channel-avatar">
-              <SocialIcon network="youtube" size={36} />
-            </div>
-            <div className="youtube-channel-details">
-              <h4>Jairo Cala</h4>
-              <span className="youtube-handle">@jairocala5746</span>
-              <p className="youtube-channel-desc">
-                Canal oficial del Representante a la Cámara por Santander.
-                Videos sobre gestión legislativa, visitas a comunidades, entrevistas y discursos.
-              </p>
-              <div className="youtube-channel-stats">
-                <span>500+ suscriptores</span>
-                <span>•</span>
-                <span>50+ videos</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* YouTube Video Embed - Canal */}
-        <div className="youtube-embed-container">
-          <h5 className="youtube-section-title">Videos del Canal</h5>
-
-          {/* Embed del canal usando el nuevo formato */}
-          <div className="youtube-iframe-wrapper">
-            <iframe
-              src={`https://www.youtube.com/embed?listType=user_uploads&list=${channelId}`}
-              width="100%"
-              height="400"
-              style={{ border: 'none', borderRadius: '12px' }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              title="Canal de YouTube de Jairo Cala"
-              loading="lazy"
-            />
-          </div>
-
-          {/* Video destacado usando iframe de YouTube */}
-          <div className="youtube-featured-section">
-            <h5 className="youtube-section-title">Contenido Destacado</h5>
-            <div className="youtube-video-grid">
-              <div className="youtube-video-card">
-                <div className="youtube-thumbnail">
-                  <div className="youtube-thumbnail-overlay">
-                    <div className="youtube-play-button">
-                      <SocialIcon network="play" size={32} />
-                    </div>
-                  </div>
-                  <div className="youtube-thumbnail-bg">
-                    <SocialIcon network="youtube" size={48} />
-                  </div>
-                </div>
-                <div className="youtube-video-info">
-                  <h6>Gestión Legislativa 2024</h6>
-                  <p>Balance de actividades en el Congreso</p>
-                </div>
-              </div>
-              <div className="youtube-video-card">
-                <div className="youtube-thumbnail">
-                  <div className="youtube-thumbnail-overlay">
-                    <div className="youtube-play-button">
-                      <SocialIcon network="play" size={32} />
-                    </div>
-                  </div>
-                  <div className="youtube-thumbnail-bg">
-                    <SocialIcon network="youtube" size={48} />
-                  </div>
-                </div>
-                <div className="youtube-video-info">
-                  <h6>Defensa del Páramo de Santurbán</h6>
-                  <p>Trabajo por la protección ambiental</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <a
-          href={channelUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="view-more-link youtube-link"
-        >
-          <SocialIcon network="youtube" size={18} />
-          Ver canal completo en YouTube
         </a>
       </div>
     </div>
@@ -701,11 +586,9 @@ const YouTubeEmbed: React.FC = () => {
 
 const EmbeddedFeeds: React.FC<{ activeTab: TabId }> = ({ activeTab }) => {
   return (
-    <div className="embedded-feeds-container">
-      {(activeTab === 'all' || activeTab === 'twitter') && <TwitterEmbed />}
+    <div className="embedded-feeds-grid">
       {(activeTab === 'all' || activeTab === 'facebook') && <FacebookEmbed />}
       {(activeTab === 'all' || activeTab === 'instagram') && <InstagramEmbed />}
-      {(activeTab === 'all' || activeTab === 'youtube') && <YouTubeEmbed />}
     </div>
   );
 };
@@ -720,7 +603,9 @@ const SocialFeed: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Simulate loading
+  // Redes sin embed (X, YouTube) - solo enlaces
+  const networksWithoutEmbed = socialNetworks.filter(n => !n.hasEmbed);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -729,7 +614,6 @@ const SocialFeed: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-refresh every 5 minutes
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdated(new Date());
@@ -738,15 +622,10 @@ const SocialFeed: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Manual refresh handler
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
     setIsLoading(true);
 
-    // Reload widgets
-    if (window.twttr?.widgets) {
-      window.twttr.widgets.load();
-    }
     if (window.FB?.XFBML) {
       window.FB.XFBML.parse();
     }
@@ -763,10 +642,8 @@ const SocialFeed: React.FC = () => {
 
   const tabs: { id: TabId; label: string; icon: string }[] = [
     { id: 'all', label: 'Todas', icon: 'all' },
-    { id: 'twitter', label: 'X', icon: 'twitter' },
     { id: 'facebook', label: 'Facebook', icon: 'facebook' },
-    { id: 'instagram', label: 'Instagram', icon: 'instagram' },
-    { id: 'youtube', label: 'YouTube', icon: 'youtube' }
+    { id: 'instagram', label: 'Instagram', icon: 'instagram' }
   ];
 
   const formatLastUpdated = (date: Date): string => {
@@ -794,21 +671,24 @@ const SocialFeed: React.FC = () => {
               <SocialIcon network="refresh" size={18} />
             </button>
           </div>
-          <h2>Redes Sociales en Tiempo Real</h2>
+          <h2>Redes Sociales</h2>
           <p>
-            Mantente al día con las últimas publicaciones, posiciones políticas y actividades
-            del Representante Jairo Cala. Conéctate y participa en la conversación.
+            Mantente conectado con las últimas publicaciones y actividades
+            del Representante Jairo Cala en sus redes sociales oficiales.
           </p>
         </header>
 
-        {/* Social Networks Grid */}
-        <div className="social-cards-grid">
-          {socialNetworks.map((network, index) => (
-            <SocialCard key={network.name} network={network} index={index} />
-          ))}
+        {/* Enlaces a otras redes (X y YouTube) */}
+        <div className="other-networks-section">
+          <h3 className="section-subtitle">También en otras plataformas</h3>
+          <div className="compact-links-grid">
+            {networksWithoutEmbed.map((network) => (
+              <CompactLinkCard key={network.name} network={network} />
+            ))}
+          </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation - Solo para Facebook e Instagram */}
         <nav className="feed-tabs" role="tablist" aria-label="Filtrar por red social">
           {tabs.map((tab) => (
             <button
@@ -841,10 +721,9 @@ const SocialFeed: React.FC = () => {
           </div>
         ) : (
           <div className="feed-main-content">
-            {/* Embedded Feeds Section */}
             <section className="embedded-feeds-section">
               <div className="section-title">
-                <h3>Feeds en Vivo</h3>
+                <h3>Publicaciones en Vivo</h3>
                 <span className="live-badge">
                   <span className="live-dot-small"></span>
                   Contenido actualizado automáticamente
@@ -855,35 +734,21 @@ const SocialFeed: React.FC = () => {
           </div>
         )}
 
-        {/* CTA Banner */}
+        {/* CTA Banner Simplificado */}
         <div className="social-cta-banner">
-          <div className="cta-background-elements">
-            <div className="cta-circle cta-circle-1"></div>
-            <div className="cta-circle cta-circle-2"></div>
-            <div className="cta-circle cta-circle-3"></div>
-          </div>
           <div className="cta-content">
-            <h3>¡Únete a nuestra comunidad digital!</h3>
+            <h3>Síguenos en redes sociales</h3>
             <p>
-              Sé parte del movimiento por un Santander más justo y próspero.
-              Síguenos, comparte y participa en la construcción de un mejor futuro.
+              Únete a nuestra comunidad y mantente informado sobre la gestión
+              del Representante Jairo Cala por Santander.
             </p>
           </div>
           <div className="cta-buttons">
             <a
-              href="https://x.com/JairoComunes"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="cta-btn cta-btn-primary"
-            >
-              <SocialIcon network="twitter" size={20} />
-              Seguir en X
-            </a>
-            <a
               href="https://www.facebook.com/jairo.cala.50"
               target="_blank"
               rel="noopener noreferrer"
-              className="cta-btn cta-btn-secondary"
+              className="cta-btn cta-btn-facebook"
             >
               <SocialIcon network="facebook" size={20} />
               Facebook
@@ -892,19 +757,10 @@ const SocialFeed: React.FC = () => {
               href="https://www.instagram.com/jairocalasantander"
               target="_blank"
               rel="noopener noreferrer"
-              className="cta-btn cta-btn-tertiary"
+              className="cta-btn cta-btn-instagram"
             >
               <SocialIcon network="instagram" size={20} />
               Instagram
-            </a>
-            <a
-              href="https://www.youtube.com/@jairocala5746"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="cta-btn cta-btn-youtube"
-            >
-              <SocialIcon network="youtube" size={20} />
-              YouTube
             </a>
           </div>
         </div>
@@ -919,11 +775,6 @@ const SocialFeed: React.FC = () => {
 
 declare global {
   interface Window {
-    twttr?: {
-      widgets: {
-        load: (element?: HTMLElement | null) => void;
-      };
-    };
     FB?: {
       init: (config: object) => void;
       XFBML: {

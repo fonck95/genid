@@ -1,7 +1,7 @@
 /* ==========================================
    SOCIAL FEED COMPONENT STYLES
-   Visor profesional de redes sociales en tiempo real
-   Diseño moderno, accesible y responsivo
+   Vista previa de redes sociales - Facebook e Instagram
+   Con enlaces compactos para X y YouTube
    ========================================== */
 
 /* ==========================================
@@ -16,7 +16,6 @@
   --sf-facebook: #1877F2;
   --sf-instagram: #E4405F;
   --sf-instagram-gradient: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
-  --sf-tiktok: #000000;
   --sf-youtube: #FF0000;
   --sf-text-primary: #1a1a1a;
   --sf-text-secondary: #4a4a4a;
@@ -95,6 +94,17 @@
   animation: fadeInUp 0.8s ease-out;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .header-badge {
   display: inline-flex;
   align-items: center;
@@ -171,6 +181,10 @@
   color: white;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .social-feed-header h2 {
   font-size: clamp(1.75rem, 4vw, 2.75rem);
   color: var(--sf-text-primary);
@@ -188,22 +202,41 @@
 }
 
 /* ==========================================
-   SOCIAL CARDS GRID
+   OTHER NETWORKS SECTION - X & YouTube Links
    ========================================== */
 
-.social-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.25rem;
+.other-networks-section {
   margin-bottom: 3rem;
   animation: fadeInUp 0.8s ease-out 0.1s both;
 }
 
-.social-card {
+.section-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sf-text-muted);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.compact-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ==========================================
+   COMPACT LINK CARD - Para X y YouTube
+   ========================================== */
+
+.compact-link-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
-  padding: 1.25rem;
+  padding: 1.25rem 1.5rem;
   background: var(--sf-bg-primary);
   border-radius: var(--sf-radius-lg);
   text-decoration: none;
@@ -213,101 +246,99 @@
   border: 1px solid var(--sf-border);
   position: relative;
   overflow: hidden;
-  animation: fadeInUp 0.6s ease-out backwards;
-  animation-delay: var(--animation-delay, 0s);
 }
 
-.social-card::before {
+.compact-link-card::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  width: 100%;
-  height: 4px;
-  background: var(--card-color, var(--sf-primary));
-  transform: scaleX(0);
-  transform-origin: left;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: var(--card-accent, var(--sf-primary));
+  transform: scaleY(0);
   transition: transform var(--sf-transition);
 }
 
-.social-card:hover {
-  transform: translateY(-6px);
+.compact-link-card:hover {
+  transform: translateY(-4px);
   box-shadow: var(--sf-shadow-lg);
-  border-color: var(--card-color, var(--sf-primary));
+  border-color: var(--card-accent, var(--sf-primary));
 }
 
-.social-card:hover::before {
-  transform: scaleX(1);
+.compact-link-card:hover::before {
+  transform: scaleY(1);
 }
 
-.social-card-icon {
+.compact-link-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: var(--sf-radius-md);
-  background: var(--card-color, var(--sf-primary));
   color: white;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.social-card-content {
+.compact-link-content {
   flex: 1;
   min-width: 0;
 }
 
-.social-card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.social-card-header h4 {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  margin: 0;
-}
-
-.social-followers-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: white;
-  background: var(--card-color, var(--sf-primary));
-  padding: 0.15rem 0.5rem;
-  border-radius: 50px;
-}
-
-.social-username {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--sf-text-muted);
+.compact-link-header {
   margin-bottom: 0.35rem;
 }
 
-.social-description {
-  font-size: 0.8rem;
+.compact-link-header h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0 0 0.15rem 0;
+}
+
+.compact-link-username {
+  font-size: 0.85rem;
+  color: var(--sf-text-muted);
+}
+
+.compact-link-desc {
+  font-size: 0.85rem;
   color: var(--sf-text-secondary);
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   line-height: 1.4;
 }
 
-.social-card-arrow {
+.compact-link-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
   color: var(--sf-text-muted);
+}
+
+.compact-link-stats span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.compact-link-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--card-accent, var(--sf-primary));
+  font-weight: 600;
+  font-size: 0.9rem;
   opacity: 0;
   transform: translateX(-10px);
   transition: var(--sf-transition);
   flex-shrink: 0;
-  margin-top: 0.25rem;
 }
 
-.social-card:hover .social-card-arrow {
+.compact-link-card:hover .compact-link-action {
   opacity: 1;
   transform: translateX(0);
-  color: var(--card-color, var(--sf-primary));
 }
 
 /* ==========================================
@@ -416,10 +447,6 @@
   animation: loadingPulse 1.5s ease-in-out infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 @keyframes loadingPulse {
   0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
   50% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -455,14 +482,6 @@
   margin: 0;
 }
 
-.posts-count {
-  font-size: 0.85rem;
-  color: var(--sf-text-muted);
-  background: var(--sf-bg-tertiary);
-  padding: 0.35rem 0.75rem;
-  border-radius: 50px;
-}
-
 .live-badge {
   display: inline-flex;
   align-items: center;
@@ -481,375 +500,511 @@
 }
 
 /* ==========================================
-   POSTS GRID
+   EMBEDDED FEEDS GRID
    ========================================== */
 
-.recent-posts-section {
-  margin-bottom: 3rem;
-}
-
-.posts-grid {
+.embedded-feeds-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.5rem;
-}
-
-.post-card {
-  background: var(--sf-bg-primary);
-  border-radius: var(--sf-radius-lg);
-  padding: 1.5rem;
-  box-shadow: var(--sf-shadow-sm);
-  border: 1px solid var(--sf-border);
-  transition: var(--sf-transition);
-  animation: fadeInUp 0.6s ease-out backwards;
-  animation-delay: var(--animation-delay, 0s);
-}
-
-.post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--sf-shadow-lg);
-}
-
-.post-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.post-platform-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 50px;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.post-date {
-  font-size: 0.8rem;
-  color: var(--sf-text-muted);
-}
-
-.post-card-body {
-  margin-bottom: 1rem;
-}
-
-.post-content {
-  font-size: 0.95rem;
-  color: var(--sf-text-primary);
-  line-height: 1.6;
-  margin: 0 0 1rem 0;
-}
-
-.post-image-placeholder {
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  margin-top: 1rem;
-}
-
-.image-skeleton {
-  height: 180px;
-  background: linear-gradient(135deg, var(--sf-bg-secondary) 0%, var(--sf-bg-tertiary) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sf-text-muted);
-}
-
-.post-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 1rem;
-  border-top: 1px solid var(--sf-border);
-}
-
-.post-stats {
-  display: flex;
-  gap: 1rem;
-}
-
-.post-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: var(--sf-text-muted);
-  font-size: 0.85rem;
-}
-
-.post-stat svg {
-  opacity: 0.7;
-}
-
-.post-view-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--sf-primary);
-  text-decoration: none;
-  transition: var(--sf-transition);
-}
-
-.post-view-link:hover {
-  color: var(--sf-primary-dark);
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 2rem;
 }
 
 /* ==========================================
-   EMBEDDED FEEDS
+   SOCIAL EMBED CARD - Base Styles
    ========================================== */
 
-.embedded-feeds-section {
-  margin-bottom: 3rem;
-}
-
-.embedded-feeds-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
-.embedded-feed {
+.social-embed-card {
   background: var(--sf-bg-primary);
   border-radius: var(--sf-radius-xl);
   overflow: hidden;
-  box-shadow: var(--sf-shadow-md);
+  box-shadow: var(--sf-shadow-lg);
   border: 1px solid var(--sf-border);
-}
-
-.embedded-feed-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--sf-border);
-  background: var(--sf-bg-secondary);
-}
-
-.feed-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.feed-title h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  margin: 0;
-}
-
-.follow-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-decoration: none;
   transition: var(--sf-transition);
 }
 
-.follow-btn-twitter {
-  background: var(--sf-twitter);
-  color: white;
+.social-embed-card:hover {
+  box-shadow: var(--sf-shadow-xl);
+  transform: translateY(-4px);
 }
 
-.follow-btn-twitter:hover {
-  background: #333;
-  transform: translateY(-2px);
+/* ==========================================
+   EMBED PROFILE HEADER
+   ========================================== */
+
+.embed-profile-header {
+  position: relative;
+  padding-bottom: 1.5rem;
 }
 
-.follow-btn-facebook {
-  background: var(--sf-facebook);
-  color: white;
+.embed-cover {
+  height: 120px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.follow-btn-facebook:hover {
-  background: #1565C0;
-  transform: translateY(-2px);
+.facebook-cover-bg {
+  background: linear-gradient(135deg, var(--sf-facebook) 0%, #4267B2 50%, #1877F2 100%);
 }
 
-.follow-btn-instagram {
+.instagram-gradient-bg {
   background: var(--sf-instagram-gradient);
-  color: white;
 }
 
-.follow-btn-instagram:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-/* Twitter Embed */
-.twitter-embed-wrapper {
-  padding: 1rem;
-  min-height: 500px;
-  background: #F7F9FA;
-}
-
-.twitter-timeline {
-  display: block;
-  text-align: center;
-  padding: 2rem;
-  color: var(--sf-text-muted);
-}
-
-/* Facebook Embed */
-.facebook-embed-wrapper {
+.embed-profile-info {
   display: flex;
-  justify-content: center;
-  padding: 1rem;
-  min-height: 500px;
-  background: #F0F2F5;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  margin-top: -40px;
+  position: relative;
+  z-index: 2;
 }
 
-.facebook-embed-wrapper iframe {
-  max-width: 100%;
-  border-radius: var(--sf-radius-md);
-}
-
-/* Instagram Custom Widget */
-.instagram-embed-wrapper {
-  padding: 1.5rem;
-}
-
-.instagram-profile-card {
-  background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
-  border-radius: var(--sf-radius-lg);
-  padding: 1.5rem;
-}
-
-.instagram-profile-top {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.instagram-avatar-large {
+.embed-avatar {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  background: var(--sf-instagram-gradient);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 4px;
+  background: white;
+  box-shadow: var(--sf-shadow-md);
   flex-shrink: 0;
 }
 
-.instagram-avatar-large span {
+.facebook-avatar-ring {
+  background: linear-gradient(135deg, #fff, #f0f0f0);
+}
+
+.instagram-avatar-ring {
+  background: var(--sf-instagram-gradient);
+}
+
+.avatar-inner {
   width: 100%;
   height: 100%;
-  background: white;
   border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--sf-text-primary);
+  color: white;
 }
 
-.instagram-stats {
+.facebook-embed-card .avatar-inner {
+  background: linear-gradient(135deg, var(--sf-facebook), #4267B2);
+}
+
+.instagram-embed-card .avatar-inner {
+  background: var(--sf-instagram-gradient);
+}
+
+.embed-profile-details {
+  flex: 1;
+  padding-bottom: 0.5rem;
+}
+
+.profile-name-row {
   display: flex;
-  gap: 1.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
-.instagram-stat {
+.profile-name-row h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.verified-badge {
+  color: #1DA1F2;
+}
+
+.facebook-verified {
+  color: var(--sf-facebook);
+}
+
+.instagram-verified {
+  color: var(--sf-instagram);
+}
+
+.profile-fullname {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.profile-category {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--sf-text-muted);
+}
+
+.profile-bio {
+  font-size: 0.9rem;
+  color: var(--sf-text-secondary);
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   EMBED STATS
+   ========================================== */
+
+.embed-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 1rem 1.5rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--sf-border);
+  border-bottom: 1px solid var(--sf-border);
+  background: var(--sf-bg-secondary);
+}
+
+.stat-item {
   text-align: center;
 }
 
-.instagram-stat strong {
+.stat-item strong {
   display: block;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--sf-text-primary);
 }
 
-.instagram-stat span {
-  font-size: 0.75rem;
-  color: var(--sf-text-muted);
-}
-
-.instagram-profile-info {
-  margin-bottom: 1.5rem;
-}
-
-.instagram-profile-info h4 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  margin: 0 0 0.25rem 0;
-}
-
-.instagram-category {
-  display: inline-block;
+.stat-item span {
   font-size: 0.8rem;
   color: var(--sf-text-muted);
-  margin-bottom: 0.75rem;
 }
 
-.instagram-bio-text {
+/* ==========================================
+   INSTAGRAM BIO SECTION
+   ========================================== */
+
+.instagram-bio-section {
+  padding: 1rem 1.5rem 0;
+}
+
+.instagram-bio-section p {
   font-size: 0.9rem;
   color: var(--sf-text-secondary);
   line-height: 1.6;
   margin: 0;
 }
 
-.instagram-grid-preview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  margin-bottom: 1.5rem;
+/* ==========================================
+   EMBED ACTIONS
+   ========================================== */
+
+.embed-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--sf-radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--sf-transition);
+  cursor: pointer;
+}
+
+.action-btn.primary {
+  color: white;
+}
+
+.action-btn.secondary {
+  background: var(--sf-bg-tertiary);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border);
+}
+
+.action-btn.secondary:hover {
+  background: var(--sf-bg-secondary);
+  border-color: var(--sf-text-muted);
+}
+
+.facebook-primary {
+  background: var(--sf-facebook);
+}
+
+.facebook-primary:hover {
+  background: #166fe5;
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.4);
+}
+
+.instagram-primary {
+  background: var(--sf-instagram-gradient);
+}
+
+.instagram-primary:hover {
+  box-shadow: 0 4px 12px rgba(228, 64, 95, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ==========================================
+   INSTAGRAM CONTENT NAV
+   ========================================== */
+
+.instagram-content-nav {
+  display: flex;
+  border-top: 1px solid var(--sf-border);
+}
+
+.content-nav-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--sf-text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: var(--sf-transition);
+  border-bottom: 2px solid transparent;
+}
+
+.content-nav-btn:hover {
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-secondary);
+}
+
+.content-nav-btn.active {
+  color: var(--sf-text-primary);
+  border-bottom-color: var(--sf-text-primary);
+}
+
+/* ==========================================
+   EMBED FEED SECTION
+   ========================================== */
+
+.embed-feed-section {
+  padding: 1.5rem;
+}
+
+.feed-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.feed-section-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+/* ==========================================
+   FACEBOOK FEED CONTAINER
+   ========================================== */
+
+.facebook-feed-container {
+  background: var(--sf-bg-secondary);
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.facebook-feed-container iframe {
+  display: block;
+  background: white;
+}
+
+/* ==========================================
+   INSTAGRAM FEED CONTAINER
+   ========================================== */
+
+.instagram-feed-container {
+  background: var(--sf-bg-secondary);
   border-radius: var(--sf-radius-md);
   overflow: hidden;
 }
 
-.instagram-grid-item {
-  aspect-ratio: 1;
-}
+/* ==========================================
+   INSTAGRAM POSTS PREVIEW GRID
+   ========================================== */
 
-.grid-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #E8E8E8 0%, #D0D0D0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(0, 0, 0, 0.2);
-  transition: var(--sf-transition);
-}
-
-.grid-placeholder:hover {
-  background: linear-gradient(135deg, #D8D8D8 0%, #C0C0C0 100%);
-}
-
-.instagram-view-full {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 1rem;
-  background: var(--sf-instagram-gradient);
-  color: white;
-  text-decoration: none;
+.instagram-posts-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: var(--sf-bg-tertiary);
   border-radius: var(--sf-radius-md);
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: var(--sf-transition);
-  box-shadow: 0 4px 15px rgba(193, 53, 132, 0.3);
+  margin-bottom: 1.5rem;
 }
 
-.instagram-view-full:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(193, 53, 132, 0.4);
+.instagram-post-item {
+  position: relative;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--sf-transition);
+}
+
+.instagram-post-item:hover {
+  transform: scale(1.02);
+}
+
+.instagram-post-item:hover .post-overlay {
+  opacity: 1;
+}
+
+.post-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--sf-text-muted);
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.post-placeholder span {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.post-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: var(--sf-transition);
+}
+
+.post-overlay span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.view-more-post {
+  background: var(--sf-instagram-gradient);
+}
+
+.view-more-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: white;
+  gap: 0.5rem;
+}
+
+.view-more-content span {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ==========================================
+   INSTAGRAM OFFICIAL EMBED
+   ========================================== */
+
+.instagram-official-embed {
+  padding: 1rem;
+  background: white;
+  border-radius: var(--sf-radius-md);
+}
+
+.instagram-embed-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+}
+
+.instagram-embed-loading p {
+  font-size: 0.9rem;
+  color: var(--sf-text-muted);
+}
+
+/* ==========================================
+   INSTAGRAM CTA
+   ========================================== */
+
+.instagram-cta {
+  text-align: center;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(228, 64, 95, 0.05) 0%, rgba(131, 58, 180, 0.05) 100%);
+}
+
+.instagram-cta p {
+  font-size: 0.9rem;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+/* ==========================================
+   EMBED FOOTER
+   ========================================== */
+
+.embed-footer {
+  padding: 1rem 1.5rem;
+  background: var(--sf-bg-secondary);
+  border-top: 1px solid var(--sf-border);
+}
+
+.embed-footer-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--sf-radius-md);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: var(--sf-transition);
+}
+
+.facebook-footer-link {
+  color: var(--sf-facebook);
+  background: rgba(24, 119, 242, 0.08);
+}
+
+.facebook-footer-link:hover {
+  background: rgba(24, 119, 242, 0.15);
+}
+
+.instagram-footer-link {
+  color: var(--sf-instagram);
+  background: rgba(228, 64, 95, 0.08);
+}
+
+.instagram-footer-link:hover {
+  background: rgba(228, 64, 95, 0.15);
 }
 
 /* ==========================================
@@ -857,180 +1012,103 @@
    ========================================== */
 
 .social-cta-banner {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  padding: 3rem;
+  margin-top: 3rem;
+  padding: 2.5rem;
   background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-primary-light) 100%);
   border-radius: var(--sf-radius-xl);
-  color: white;
-  box-shadow: 0 20px 60px rgba(255, 102, 0, 0.35);
-  overflow: hidden;
-  animation: fadeInUp 0.8s ease-out 0.4s both;
-}
-
-.cta-background-elements {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.cta-circle {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.cta-circle-1 {
-  width: 300px;
-  height: 300px;
-  top: -50%;
-  right: -10%;
-}
-
-.cta-circle-2 {
-  width: 200px;
-  height: 200px;
-  bottom: -40%;
-  left: -5%;
-}
-
-.cta-circle-3 {
-  width: 150px;
-  height: 150px;
-  top: 50%;
-  left: 40%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.cta-content {
-  flex: 1;
-  position: relative;
-  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  box-shadow: var(--sf-shadow-lg);
 }
 
 .cta-content h3 {
-  font-size: 1.75rem;
-  font-weight: 800;
-  margin: 0 0 0.75rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.5rem 0;
 }
 
 .cta-content p {
-  font-size: 1.05rem;
-  opacity: 0.95;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
   margin: 0;
-  line-height: 1.6;
   max-width: 500px;
 }
 
 .cta-buttons {
   display: flex;
   gap: 1rem;
-  position: relative;
-  z-index: 1;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .cta-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 1.5rem;
-  border-radius: var(--sf-radius-md);
-  font-weight: 600;
-  font-size: 0.95rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 50px;
   text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
   transition: var(--sf-transition);
-  white-space: nowrap;
 }
 
-.cta-btn-primary {
-  background: white;
-  color: var(--sf-text-primary);
-  box-shadow: var(--sf-shadow-md);
-}
-
-.cta-btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--sf-shadow-lg);
-}
-
-.cta-btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
+.cta-btn-facebook {
+  background: var(--sf-facebook);
   color: white;
-  border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
-.cta-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
+.cta-btn-facebook:hover {
+  background: #166fe5;
   transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4);
 }
 
-.cta-btn-tertiary {
-  background: rgba(255, 255, 255, 0.15);
+.cta-btn-instagram {
+  background: var(--sf-instagram-gradient);
   color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.cta-btn-tertiary:hover {
-  background: rgba(255, 255, 255, 0.25);
+.cta-btn-instagram:hover {
   transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(228, 64, 95, 0.4);
 }
 
 /* ==========================================
-   ANIMATIONS
+   VERIFIED BADGE STYLES
    ========================================== */
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.social-verified-badge {
+  color: var(--sf-primary);
+}
+
+.social-stats-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.social-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--sf-text-muted);
 }
 
 /* ==========================================
    RESPONSIVE DESIGN
    ========================================== */
 
-@media (max-width: 1200px) {
-  .social-cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-}
-
-@media (max-width: 992px) {
-  .social-feed {
-    padding: 4rem 1.5rem;
-  }
-
-  .embedded-feeds-container {
+@media (max-width: 1024px) {
+  .embedded-feeds-grid {
     grid-template-columns: 1fr;
-  }
-
-  .social-cta-banner {
-    flex-direction: column;
-    text-align: center;
-    padding: 2.5rem 2rem;
-  }
-
-  .cta-content {
-    max-width: 100%;
-  }
-
-  .cta-content p {
-    max-width: 100%;
-  }
-
-  .cta-buttons {
-    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto;
   }
 }
 
@@ -1039,70 +1117,61 @@
     padding: 3rem 1rem;
   }
 
-  .header-badge {
+  .compact-links-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compact-link-card {
     flex-wrap: wrap;
+  }
+
+  .compact-link-action {
+    opacity: 1;
+    transform: translateX(0);
+    width: 100%;
     justify-content: center;
-    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sf-border);
   }
 
-  .social-feed-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .social-feed-header p {
-    font-size: 1rem;
-  }
-
-  .social-cards-grid {
+  .embedded-feeds-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
-  .feed-tabs {
-    gap: 0.5rem;
-  }
-
-  .feed-tab {
-    padding: 0.6rem 1rem;
-  }
-
-  .tab-label {
-    display: none;
-  }
-
-  .tab-icon-all {
-    font-size: 1.25rem;
-  }
-
-  .posts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .embedded-feeds-container {
-    grid-template-columns: 1fr;
-  }
-
-  .instagram-profile-top {
+  .embed-profile-info {
     flex-direction: column;
+    align-items: center;
     text-align: center;
+    margin-top: -50px;
+    padding: 0 1rem;
   }
 
-  .instagram-stats {
+  .embed-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profile-name-row {
     justify-content: center;
   }
 
-  .section-title {
+  .embed-actions {
     flex-direction: column;
-    gap: 0.75rem;
-    text-align: center;
+    padding: 1rem;
   }
 
-  .cta-content h3 {
-    font-size: 1.4rem;
+  .action-btn {
+    width: 100%;
   }
 
-  .cta-content p {
-    font-size: 0.95rem;
+  .instagram-posts-preview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .social-cta-banner {
+    padding: 2rem 1.5rem;
   }
 
   .cta-buttons {
@@ -1117,56 +1186,62 @@
 }
 
 @media (max-width: 480px) {
-  .social-feed {
-    padding: 2rem 1rem;
+  .header-badge {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
   }
 
-  .social-card {
-    padding: 1rem;
+  .feed-tabs {
+    gap: 0.5rem;
   }
 
-  .social-card-icon {
-    width: 44px;
-    height: 44px;
+  .feed-tab {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
   }
 
-  .post-card {
-    padding: 1rem;
+  .embed-cover {
+    height: 100px;
   }
 
-  .post-stats {
-    gap: 0.75rem;
+  .embed-stats {
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
-  .post-stat span {
+  .stat-item {
+    flex: 1 1 30%;
+    min-width: 80px;
+  }
+
+  .instagram-posts-preview {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+  }
+
+  .post-placeholder span {
     display: none;
   }
+}
 
-  .embedded-feed-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-
-  .feed-title {
-    justify-content: center;
-  }
-
-  .instagram-avatar-large {
-    width: 70px;
-    height: 70px;
-  }
-
-  .instagram-avatar-large span {
-    font-size: 1.5rem;
-  }
-
-  .instagram-stats {
-    gap: 1rem;
-  }
-
-  .social-cta-banner {
-    padding: 2rem 1.5rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1175,1787 +1250,35 @@
    ========================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .social-card,
-  .feed-tab,
-  .post-card,
-  .follow-btn,
-  .cta-btn,
-  .refresh-btn,
-  .instagram-view-full {
-    transition: none;
-  }
-
-  .social-feed-header,
-  .social-cards-grid,
-  .feed-tabs,
-  .feed-main-content,
-  .social-cta-banner,
-  .social-card,
-  .post-card {
-    animation: none;
-  }
-
-  .loading-spinner,
-  .loading-pulse,
-  .live-dot {
-    animation: none;
-  }
-
-  .social-feed::before,
-  .social-feed::after {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
-/* Focus states for keyboard navigation */
-.social-card:focus-visible,
 .feed-tab:focus-visible,
-.follow-btn:focus-visible,
+.action-btn:focus-visible,
 .cta-btn:focus-visible,
-.refresh-btn:focus-visible,
-.post-view-link:focus-visible,
-.instagram-view-full:focus-visible {
+.compact-link-card:focus-visible {
   outline: 3px solid var(--sf-primary);
   outline-offset: 2px;
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .social-card,
-  .post-card,
-  .embedded-feed {
-    border-width: 2px;
-  }
-
-  .feed-tab {
-    border-width: 3px;
-  }
-}
-
 /* ==========================================
-   NEW: POST AUTHOR STYLES
+   DARK MODE SUPPORT (Optional)
    ========================================== */
 
-.post-author-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.post-author-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.post-author-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.post-author-name {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  font-size: 0.9rem;
-  margin-bottom: 0.2rem;
-}
-
-.verified-badge {
-  display: inline-flex;
-  color: #1D9BF0;
-}
-
-.post-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-/* ==========================================
-   NEW: MEDIA CONTAINER STYLES
-   ========================================== */
-
-.post-media-container {
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  margin-top: 1rem;
-  position: relative;
-  background: var(--sf-bg-tertiary);
-}
-
-.post-media {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: cover;
-  max-height: 400px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.post-media.loaded {
-  opacity: 1;
-}
-
-.image-skeleton {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 200px;
-  background: linear-gradient(135deg, var(--sf-bg-secondary) 0%, var(--sf-bg-tertiary) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.skeleton-shimmer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.image-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  color: var(--sf-text-muted);
-  background: var(--sf-bg-tertiary);
-}
-
-.image-error span {
-  font-size: 0.85rem;
-}
-
-/* ==========================================
-   NEW: VIDEO OVERLAY STYLES
-   ========================================== */
-
-.post-video-wrapper {
-  position: relative;
-}
-
-.video-play-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-  transition: var(--sf-transition);
-}
-
-.post-video-wrapper:hover .video-play-overlay {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.play-button {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sf-text-primary);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: var(--sf-transition);
-}
-
-.post-video-wrapper:hover .play-button {
-  transform: scale(1.1);
-}
-
-/* ==========================================
-   NEW: TAB COUNT BADGE
-   ========================================== */
-
-.tab-count {
-  font-size: 0.7rem;
-  font-weight: 700;
-  background: rgba(0, 0, 0, 0.1);
-  padding: 0.15rem 0.5rem;
-  border-radius: 50px;
-  margin-left: 0.25rem;
-}
-
-.feed-tab.active .tab-count {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-/* ==========================================
-   NEW: TWITTER FALLBACK STYLES
-   ========================================== */
-
-.embed-fallback {
-  padding: 1.5rem;
-}
-
-.twitter-fallback {
-  background: #F7F9FA;
-  border-radius: var(--sf-radius-md);
-}
-
-.fallback-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--sf-border);
-}
-
-.fallback-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: var(--sf-twitter);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.fallback-info h4 {
-  margin: 0 0 0.2rem 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-}
-
-.fallback-info span {
-  font-size: 0.85rem;
-  color: var(--sf-text-muted);
-}
-
-.fallback-tweets {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.fallback-tweet {
-  padding: 1rem;
-  background: white;
-  border-radius: var(--sf-radius-md);
-  border: 1px solid var(--sf-border);
-}
-
-.fallback-tweet p {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
-  color: var(--sf-text-primary);
-  line-height: 1.5;
-}
-
-.fallback-tweet .tweet-date {
-  font-size: 0.75rem;
-  color: var(--sf-text-muted);
-}
-
-.fallback-link {
-  display: block;
-  text-align: center;
-  padding: 1rem;
-  margin-top: 1rem;
-  color: var(--sf-twitter);
-  font-weight: 600;
-  text-decoration: none;
-  transition: var(--sf-transition);
-}
-
-.fallback-link:hover {
-  color: #333;
-}
-
-.twitter-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: var(--sf-text-muted);
-}
-
-.twitter-loading p {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-}
-
-/* ==========================================
-   NEW: FACEBOOK PREVIEW STYLES
-   ========================================== */
-
-.facebook-preview-container {
-  background: white;
-  border-radius: var(--sf-radius-md);
-  padding: 1.5rem;
-  width: 100%;
-}
-
-.facebook-page-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--sf-border);
-}
-
-.fb-page-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--sf-facebook);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.fb-page-info h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-}
-
-.fb-page-info span {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--sf-text-muted);
-}
-
-.fb-followers {
-  color: var(--sf-text-secondary) !important;
-  font-weight: 500;
-  margin-top: 0.25rem;
-}
-
-.facebook-posts-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.fb-post-preview {
-  padding: 1rem;
-  background: var(--sf-bg-secondary);
-  border-radius: var(--sf-radius-md);
-  transition: var(--sf-transition);
-}
-
-.fb-post-preview:hover {
-  background: var(--sf-bg-tertiary);
-}
-
-.fb-post-text {
-  margin: 0 0 0.75rem 0;
-  font-size: 0.9rem;
-  color: var(--sf-text-primary);
-  line-height: 1.5;
-}
-
-.fb-post-image {
-  border-radius: var(--sf-radius-sm);
-  overflow: hidden;
-  margin-bottom: 0.75rem;
-}
-
-.fb-post-image img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  display: block;
-}
-
-.fb-post-stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: var(--sf-text-muted);
-}
-
-.fb-view-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 1rem;
-  background: var(--sf-facebook);
-  color: white;
-  text-decoration: none;
-  border-radius: var(--sf-radius-md);
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: var(--sf-transition);
-}
-
-.fb-view-page:hover {
-  background: #1565C0;
-  transform: translateY(-2px);
-}
-
-/* ==========================================
-   NEW: INSTAGRAM GRID WITH IMAGES
-   ========================================== */
-
-.instagram-grid-preview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  margin-bottom: 1.5rem;
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-}
-
-.instagram-grid-item {
-  aspect-ratio: 1;
-  position: relative;
-  overflow: hidden;
-  display: block;
-}
-
-.instagram-grid-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
-}
-
-.instagram-grid-item:hover img {
-  transform: scale(1.05);
-}
-
-.instagram-grid-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.instagram-grid-item:hover .instagram-grid-overlay {
-  opacity: 1;
-}
-
-.instagram-grid-overlay span {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: white;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-/* ==========================================
-   NEW: SOCIAL STATS MINI
-   ========================================== */
-
-.social-stats-mini {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 0.35rem;
-}
-
-.social-stats-mini span {
-  font-size: 0.75rem;
-  color: var(--sf-text-muted);
-}
-
-/* ==========================================
-   RESPONSIVE ADJUSTMENTS FOR NEW STYLES
-   ========================================== */
-
-@media (max-width: 768px) {
-  .post-author-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 0.85rem;
-  }
-
-  .post-media {
-    max-height: 300px;
-  }
-
-  .play-button {
-    width: 50px;
-    height: 50px;
-  }
-
-  .facebook-page-header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .fb-post-image img {
-    height: 150px;
-  }
-
-  .tab-count {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .post-author-name span {
-    font-size: 0.85rem;
-  }
-
-  .post-meta {
-    gap: 0.35rem;
-  }
-
-  .post-platform-badge {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.7rem;
-  }
-
-  .fb-post-image img {
-    height: 120px;
-  }
-
-  .instagram-grid-preview {
-    gap: 2px;
-  }
-}
-
-/* ==========================================
-   YOUTUBE EMBED STYLES
-   ========================================== */
-
-.youtube-embedded {
-  background: var(--sf-bg-primary);
-}
-
-.follow-btn-youtube {
-  background: var(--sf-youtube);
-  color: white;
-}
-
-.follow-btn-youtube:hover {
-  background: #CC0000;
-  transform: translateY(-2px);
-}
-
-.youtube-wrapper {
-  padding: 1.5rem;
-}
-
-.youtube-channel-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, #282828 0%, #1a1a1a 100%);
-  border-radius: var(--sf-radius-md);
-  margin-bottom: 1.5rem;
-}
-
-.youtube-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--sf-youtube);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-}
-
-.youtube-channel-info h4 {
-  margin: 0 0 0.25rem 0;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.youtube-channel-info p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-}
-
-.youtube-videos-container {
-  margin-bottom: 1.5rem;
-}
-
-.youtube-videos-container h5 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-}
-
-.youtube-embed-container {
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  background: #000;
-  min-height: 400px;
-}
-
-.youtube-embed-container iframe {
-  width: 100%;
-  height: 400px;
-  border: none;
-}
-
-.youtube-latest-section {
-  margin-top: 1rem;
-}
-
-.youtube-video-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--sf-bg-secondary);
-  border-radius: var(--sf-radius-md);
-  transition: var(--sf-transition);
-  cursor: pointer;
-}
-
-.youtube-video-card:hover {
-  background: var(--sf-bg-tertiary);
-}
-
-.video-thumbnail {
-  width: 160px;
-  height: 90px;
-  border-radius: var(--sf-radius-sm);
-  background: linear-gradient(135deg, #282828 0%, #1a1a1a 100%);
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.video-thumbnail .play-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.video-thumbnail .play-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--sf-youtube);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: var(--sf-transition);
-}
-
-.youtube-video-card:hover .play-icon {
-  transform: scale(1.1);
-}
-
-.video-thumbnail .video-duration {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  font-size: 0.7rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
-  font-weight: 500;
-}
-
-.video-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.video-info h6 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  line-height: 1.3;
-}
-
-.video-info p {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--sf-text-muted);
-  line-height: 1.4;
-}
-
-.view-more-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 1rem;
-  border-radius: var(--sf-radius-md);
-  font-weight: 600;
-  font-size: 0.95rem;
-  text-decoration: none;
-  transition: var(--sf-transition);
-  margin-top: 1rem;
-}
-
-.view-more-link:hover {
-  transform: translateY(-2px);
-}
-
-.youtube-link {
-  background: var(--sf-youtube);
-  color: white;
-  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
-}
-
-.youtube-link:hover {
-  background: #CC0000;
-  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.4);
-}
-
-/* ==========================================
-   INSTAGRAM IMPROVED STYLES
-   ========================================== */
-
-.instagram-wrapper {
-  padding: 1.5rem;
-}
-
-.instagram-profile-preview {
-  background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
-  border-radius: var(--sf-radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.instagram-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.instagram-avatar-container {
-  flex-shrink: 0;
-}
-
-.instagram-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--sf-instagram-gradient);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.75rem;
-  font-weight: 700;
-  padding: 3px;
-}
-
-.instagram-avatar::before {
-  content: 'JC';
-  width: calc(100% - 6px);
-  height: calc(100% - 6px);
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sf-text-primary);
-}
-
-.instagram-info {
-  flex: 1;
-}
-
-.instagram-info h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.instagram-info .verified-icon {
-  color: #3897F0;
-}
-
-.instagram-info p {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--sf-text-muted);
-}
-
-.instagram-stats-row {
-  display: flex;
-  justify-content: space-around;
-  padding: 1rem 0;
-  border-top: 1px solid var(--sf-border);
-  border-bottom: 1px solid var(--sf-border);
-  margin-bottom: 1rem;
-}
-
-.ig-stat {
-  text-align: center;
-}
-
-.ig-stat strong {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-}
-
-.ig-stat span {
-  font-size: 0.75rem;
-  color: var(--sf-text-muted);
-}
-
-.instagram-bio {
-  margin-bottom: 1rem;
-}
-
-.instagram-bio p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--sf-text-secondary);
-  line-height: 1.6;
-}
-
-.instagram-posts-container {
-  margin-bottom: 1rem;
-}
-
-.instagram-posts-container h5 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-}
-
-.instagram-grid {
-  display: flex;
-  justify-content: center;
-}
-
-.instagram-media {
-  margin: 0 auto !important;
-}
-
-.instagram-link {
-  background: var(--sf-instagram-gradient);
-  color: white;
-  box-shadow: 0 4px 15px rgba(193, 53, 132, 0.3);
-}
-
-.instagram-link:hover {
-  box-shadow: 0 8px 25px rgba(193, 53, 132, 0.4);
-  opacity: 0.95;
-}
-
-/* ==========================================
-   EMBED LOADING & ERROR STATES
-   ========================================== */
-
-.embed-content-wrapper {
-  padding: 1rem;
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
-}
-
-.embed-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-  flex: 1;
-}
-
-.embed-loading .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--sf-bg-tertiary);
-  border-top-color: var(--sf-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-.embed-loading p {
-  color: var(--sf-text-muted);
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.embed-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-  color: var(--sf-text-muted);
-  flex: 1;
-}
-
-.embed-error svg {
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.embed-error p {
-  margin: 0 0 1rem 0;
-  font-size: 0.95rem;
-}
-
-.embed-error-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--sf-bg-tertiary);
-  color: var(--sf-text-primary);
-  text-decoration: none;
-  border-radius: var(--sf-radius-md);
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: var(--sf-transition);
-}
-
-.embed-error-link:hover {
-  background: var(--sf-primary);
-  color: white;
-}
-
-/* ==========================================
-   FACEBOOK IFRAME CONTAINER
-   ========================================== */
-
-.facebook-iframe-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  overflow: hidden;
-  border-radius: var(--sf-radius-md);
-}
-
-.facebook-iframe-container iframe {
-  max-width: 100%;
-  border-radius: var(--sf-radius-md);
-}
-
-/* ==========================================
-   CTA BUTTON YOUTUBE
-   ========================================== */
-
-.cta-btn-youtube {
-  background: rgba(255, 0, 0, 0.2);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.cta-btn-youtube:hover {
-  background: rgba(255, 0, 0, 0.4);
-  transform: translateY(-3px);
-}
-
-/* ==========================================
-   RESPONSIVE ADJUSTMENTS FOR NEW EMBEDS
-   ========================================== */
-
-@media (max-width: 768px) {
-  .youtube-channel-header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .youtube-video-card {
-    flex-direction: column;
-  }
-
-  .video-thumbnail {
-    width: 100%;
-    height: 180px;
-  }
-
-  .youtube-embed-container iframe {
-    height: 250px;
-  }
-
-  .instagram-header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .instagram-avatar {
-    width: 100px;
-    height: 100px;
-    font-size: 2rem;
-  }
-
-  .instagram-stats-row {
-    gap: 1rem;
-  }
-
-  .embed-content-wrapper {
-    min-height: 300px;
-  }
-}
-
-@media (max-width: 480px) {
-  .youtube-avatar {
-    width: 50px;
-    height: 50px;
-  }
-
-  .video-thumbnail {
-    height: 150px;
-  }
-
-  .youtube-embed-container iframe {
-    height: 200px;
-  }
-
-  .instagram-avatar {
-    width: 80px;
-    height: 80px;
-    font-size: 1.5rem;
-  }
-
-  .ig-stat strong {
-    font-size: 1rem;
-  }
-
-  .view-more-link {
-    padding: 0.75rem;
-    font-size: 0.85rem;
-  }
-}
-
-/* ==========================================
-   NEW: TWITTER PROFILE HEADER STYLES
-   ========================================== */
-
-.twitter-profile-header {
-  background: white;
-  border-radius: var(--sf-radius-lg);
-  overflow: hidden;
-  margin-bottom: 1rem;
-  box-shadow: var(--sf-shadow-sm);
-}
-
-.twitter-profile-banner {
-  height: 100px;
-  background: linear-gradient(135deg, #1DA1F2 0%, #0D8DDB 50%, #0A66C2 100%);
-}
-
-.twitter-profile-info {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-  padding: 0 1.5rem;
-  margin-top: -40px;
-  margin-bottom: 1rem;
-}
-
-.twitter-profile-header .twitter-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #000;
-  border: 4px solid white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-  box-shadow: var(--sf-shadow-md);
-}
-
-.twitter-name-section {
-  flex: 1;
-  padding-bottom: 0.5rem;
-}
-
-.twitter-name-section h4 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--sf-text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.twitter-name-section h4 svg {
-  color: #1DA1F2;
-}
-
-.twitter-handle {
-  display: block;
-  color: var(--sf-text-muted);
-  font-size: 0.9rem;
-}
-
-.twitter-bio {
-  padding: 0 1.5rem;
-  margin: 0 0 1rem 0;
-  font-size: 0.95rem;
-  color: var(--sf-text-secondary);
-  line-height: 1.6;
-}
-
-.twitter-stats {
-  display: flex;
-  gap: 1.5rem;
-  padding: 0 1.5rem 1rem;
-  font-size: 0.9rem;
-  color: var(--sf-text-muted);
-}
-
-.twitter-stats strong {
-  color: var(--sf-text-primary);
-  font-weight: 700;
-}
-
-.twitter-timeline-container {
-  display: none;
-}
-
-.twitter-fallback {
-  width: 100%;
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  background: #F7F9FA;
-}
-
-.twitter-fallback iframe {
-  width: 100%;
-  min-height: 500px;
-  border: none;
-}
-
-/* ==========================================
-   NEW: FACEBOOK PROFILE HEADER STYLES
-   ========================================== */
-
-.facebook-profile-header {
-  background: white;
-  border-radius: var(--sf-radius-lg);
-  overflow: hidden;
-  margin-bottom: 1rem;
-  box-shadow: var(--sf-shadow-sm);
-}
-
-.facebook-cover {
-  height: 100px;
-  background: linear-gradient(135deg, #1877F2 0%, #166FE5 50%, #1565C0 100%);
-}
-
-.facebook-profile-info {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-  padding: 0 1.5rem;
-  margin-top: -40px;
-  margin-bottom: 1rem;
-}
-
-.facebook-profile-header .facebook-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #1877F2;
-  border: 4px solid white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-  box-shadow: var(--sf-shadow-md);
-}
-
-.facebook-name-section {
-  flex: 1;
-  padding-bottom: 0.5rem;
-}
-
-.facebook-name-section h4 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--sf-text-primary);
-}
-
-.facebook-subtitle {
-  display: block;
-  color: var(--sf-text-muted);
-  font-size: 0.9rem;
-  margin-top: 0.25rem;
-}
-
-.facebook-bio {
-  padding: 0 1.5rem;
-  margin: 0 0 1rem 0;
-  font-size: 0.95rem;
-  color: var(--sf-text-secondary);
-  line-height: 1.6;
-}
-
-.facebook-embed-container {
-  width: 100%;
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  background: #F0F2F5;
-}
-
-.facebook-embed-container iframe {
-  width: 100%;
-  min-height: 500px;
-  border: none;
-}
-
-.facebook-link {
-  background: var(--sf-facebook);
-  color: white;
-  box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
-}
-
-.facebook-link:hover {
-  background: #1565C0;
-  box-shadow: 0 8px 25px rgba(24, 119, 242, 0.4);
-}
-
-/* ==========================================
-   NEW: INSTAGRAM PROFILE CARD STYLES
-   ========================================== */
-
-.instagram-profile-card {
-  background: white;
-  border-radius: var(--sf-radius-lg);
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--sf-shadow-md);
-}
-
-.instagram-gradient-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 80px;
-  background: var(--sf-instagram-gradient);
-}
-
-.instagram-profile-content {
-  position: relative;
-  padding: 1.5rem;
-  padding-top: 50px;
-}
-
-.instagram-avatar-ring {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: var(--sf-instagram-gradient);
-  padding: 4px;
-  margin: 0 auto 1rem;
-}
-
-.instagram-profile-card .instagram-avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-}
-
-.instagram-profile-card .instagram-avatar::before {
-  display: none;
-}
-
-.instagram-profile-details {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.instagram-name-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.instagram-name-row h4 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-}
-
-.instagram-verified {
-  color: #3897F0;
-}
-
-.instagram-category {
-  display: block;
-  font-size: 0.9rem;
-  color: var(--sf-text-muted);
-}
-
-.instagram-stats-grid {
-  display: flex;
-  justify-content: center;
-  gap: 2.5rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--sf-border);
-  border-bottom: 1px solid var(--sf-border);
-  margin-bottom: 1rem;
-}
-
-.instagram-bio-section {
-  text-align: center;
-}
-
-.instagram-bio-text {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--sf-text-secondary);
-  line-height: 1.7;
-}
-
-.instagram-bio-text strong {
-  color: var(--sf-text-primary);
-}
-
-.instagram-embed-container {
-  margin-bottom: 1rem;
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-}
-
-.instagram-feed-preview {
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ig-loading-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem;
-  text-align: center;
-}
-
-.ig-loading-placeholder p {
-  color: var(--sf-text-muted);
-  margin: 0;
-}
-
-.instagram-cta-section {
-  text-align: center;
-  padding: 1rem;
-  background: var(--sf-bg-secondary);
-  border-radius: var(--sf-radius-md);
-  margin-bottom: 1rem;
-}
-
-.instagram-cta-section p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--sf-text-secondary);
-}
-
-/* ==========================================
-   NEW: YOUTUBE CHANNEL CARD STYLES
-   ========================================== */
-
-.youtube-channel-card {
-  background: white;
-  border-radius: var(--sf-radius-lg);
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--sf-shadow-md);
-}
-
-.youtube-channel-banner {
-  height: 80px;
-  background: linear-gradient(135deg, #FF0000 0%, #CC0000 50%, #990000 100%);
-}
-
-.youtube-channel-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  padding-top: 0;
-  margin-top: -30px;
-}
-
-.youtube-channel-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: white;
-  border: 4px solid white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FF0000;
-  flex-shrink: 0;
-  box-shadow: var(--sf-shadow-md);
-}
-
-.youtube-channel-details {
-  flex: 1;
-  padding-top: 2rem;
-}
-
-.youtube-channel-details h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--sf-text-primary);
-}
-
-.youtube-handle {
-  display: block;
-  color: var(--sf-text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.youtube-channel-desc {
-  margin: 0 0 0.75rem 0;
-  font-size: 0.9rem;
-  color: var(--sf-text-secondary);
-  line-height: 1.5;
-}
-
-.youtube-channel-stats {
-  display: flex;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--sf-text-muted);
-}
-
-.youtube-embed-container {
-  margin-bottom: 1.5rem;
-}
-
-.youtube-section-title {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-}
-
-.youtube-iframe-wrapper {
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  background: #000;
-  min-height: 400px;
-}
-
-.youtube-featured-section {
-  margin-top: 1.5rem;
-}
-
-.youtube-video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.youtube-video-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--sf-bg-secondary);
-  border-radius: var(--sf-radius-md);
-  text-decoration: none;
-  color: inherit;
-  transition: var(--sf-transition);
-}
-
-.youtube-video-card:hover {
-  background: var(--sf-bg-tertiary);
-  transform: translateY(-2px);
-}
-
-.youtube-thumbnail {
-  width: 140px;
-  height: 80px;
-  border-radius: var(--sf-radius-sm);
-  background: linear-gradient(135deg, #1a1a1a, #333);
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.youtube-thumbnail-bg {
-  color: rgba(255, 0, 0, 0.3);
-}
-
-.youtube-thumbnail-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.youtube-play-button {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(255, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: var(--sf-transition);
-}
-
-.youtube-video-card:hover .youtube-play-button {
-  transform: scale(1.1);
-  background: #FF0000;
-}
-
-.youtube-video-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.youtube-video-info h6 {
-  margin: 0 0 0.35rem 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  line-height: 1.3;
-}
-
-.youtube-video-info p {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--sf-text-muted);
-  line-height: 1.4;
-}
-
-/* ==========================================
-   NEW: SOCIAL STATS ROW FOR CARDS
-   ========================================== */
-
-.social-stats-row {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.social-stat {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  color: var(--sf-text-muted);
-}
-
-.social-stat svg {
-  opacity: 0.7;
-}
-
-.social-verified-badge {
-  color: var(--card-color, var(--sf-primary));
-  display: inline-flex;
-}
-
-/* ==========================================
-   NEW: FOLLOW BUTTON IMPROVEMENTS
-   ========================================== */
-
-.follow-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  border-radius: 50px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: var(--sf-transition);
-  box-shadow: var(--sf-shadow-sm);
-}
-
-.follow-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* ==========================================
-   RESPONSIVE FOR NEW PROFILE STYLES
-   ========================================== */
-
-@media (max-width: 768px) {
-  .twitter-profile-info,
-  .facebook-profile-info,
-  .youtube-channel-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .twitter-profile-header .twitter-avatar,
-  .facebook-profile-header .facebook-avatar {
-    margin-top: -40px;
-  }
-
-  .twitter-name-section,
-  .facebook-name-section {
-    padding-bottom: 0;
-    text-align: center;
-  }
-
-  .twitter-bio,
-  .facebook-bio {
-    text-align: center;
-  }
-
-  .twitter-stats {
-    justify-content: center;
-  }
-
-  .youtube-channel-details {
-    padding-top: 0;
-    text-align: center;
-  }
-
-  .youtube-channel-stats {
-    justify-content: center;
-  }
-
-  .youtube-video-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .instagram-stats-grid {
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .twitter-profile-banner,
-  .facebook-cover,
-  .youtube-channel-banner {
-    height: 70px;
-  }
-
-  .twitter-profile-header .twitter-avatar,
-  .facebook-profile-header .facebook-avatar,
-  .youtube-channel-avatar {
-    width: 70px;
-    height: 70px;
-    font-size: 1.25rem;
-  }
-
-  .instagram-avatar-ring {
-    width: 80px;
-    height: 80px;
-  }
-
-  .instagram-profile-card .instagram-avatar {
-    font-size: 1.5rem;
-  }
-
-  .youtube-thumbnail {
-    width: 120px;
-    height: 68px;
-  }
-
-  .youtube-play-button {
-    width: 36px;
-    height: 36px;
-  }
-
-  .youtube-iframe-wrapper {
-    min-height: 250px;
+@media (prefers-color-scheme: dark) {
+  .social-feed {
+    --sf-text-primary: #f0f0f0;
+    --sf-text-secondary: #b0b0b0;
+    --sf-text-muted: #808080;
+    --sf-bg-primary: #1a1a1a;
+    --sf-bg-secondary: #252525;
+    --sf-bg-tertiary: #303030;
+    --sf-border: #404040;
   }
 }
