@@ -1231,3 +1231,537 @@
     border-width: 3px;
   }
 }
+
+/* ==========================================
+   NEW: POST AUTHOR STYLES
+   ========================================== */
+
+.post-author-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.post-author-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.post-author-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-author-name {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+.verified-badge {
+  display: inline-flex;
+  color: #1D9BF0;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ==========================================
+   NEW: MEDIA CONTAINER STYLES
+   ========================================== */
+
+.post-media-container {
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  margin-top: 1rem;
+  position: relative;
+  background: var(--sf-bg-tertiary);
+}
+
+.post-media {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  max-height: 400px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.post-media.loaded {
+  opacity: 1;
+}
+
+.image-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, var(--sf-bg-secondary) 0%, var(--sf-bg-tertiary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--sf-text-muted);
+  background: var(--sf-bg-tertiary);
+}
+
+.image-error span {
+  font-size: 0.85rem;
+}
+
+/* ==========================================
+   NEW: VIDEO OVERLAY STYLES
+   ========================================== */
+
+.post-video-wrapper {
+  position: relative;
+}
+
+.video-play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  transition: var(--sf-transition);
+}
+
+.post-video-wrapper:hover .video-play-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.play-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-primary);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: var(--sf-transition);
+}
+
+.post-video-wrapper:hover .play-button {
+  transform: scale(1.1);
+}
+
+/* ==========================================
+   NEW: TAB COUNT BADGE
+   ========================================== */
+
+.tab-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 50px;
+  margin-left: 0.25rem;
+}
+
+.feed-tab.active .tab-count {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================================
+   NEW: TWITTER FALLBACK STYLES
+   ========================================== */
+
+.embed-fallback {
+  padding: 1.5rem;
+}
+
+.twitter-fallback {
+  background: #F7F9FA;
+  border-radius: var(--sf-radius-md);
+}
+
+.fallback-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.fallback-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--sf-twitter);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.fallback-info h4 {
+  margin: 0 0 0.2rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.fallback-info span {
+  font-size: 0.85rem;
+  color: var(--sf-text-muted);
+}
+
+.fallback-tweets {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fallback-tweet {
+  padding: 1rem;
+  background: white;
+  border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border);
+}
+
+.fallback-tweet p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--sf-text-primary);
+  line-height: 1.5;
+}
+
+.fallback-tweet .tweet-date {
+  font-size: 0.75rem;
+  color: var(--sf-text-muted);
+}
+
+.fallback-link {
+  display: block;
+  text-align: center;
+  padding: 1rem;
+  margin-top: 1rem;
+  color: var(--sf-twitter);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--sf-transition);
+}
+
+.fallback-link:hover {
+  color: #333;
+}
+
+.twitter-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--sf-text-muted);
+}
+
+.twitter-loading p {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+/* ==========================================
+   NEW: FACEBOOK PREVIEW STYLES
+   ========================================== */
+
+.facebook-preview-container {
+  background: white;
+  border-radius: var(--sf-radius-md);
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.facebook-page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.fb-page-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--sf-facebook);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.fb-page-info h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.fb-page-info span {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--sf-text-muted);
+}
+
+.fb-followers {
+  color: var(--sf-text-secondary) !important;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.facebook-posts-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.fb-post-preview {
+  padding: 1rem;
+  background: var(--sf-bg-secondary);
+  border-radius: var(--sf-radius-md);
+  transition: var(--sf-transition);
+}
+
+.fb-post-preview:hover {
+  background: var(--sf-bg-tertiary);
+}
+
+.fb-post-text {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: var(--sf-text-primary);
+  line-height: 1.5;
+}
+
+.fb-post-image {
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.fb-post-image img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.fb-post-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--sf-text-muted);
+}
+
+.fb-view-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  background: var(--sf-facebook);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--sf-radius-md);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: var(--sf-transition);
+}
+
+.fb-view-page:hover {
+  background: #1565C0;
+  transform: translateY(-2px);
+}
+
+/* ==========================================
+   NEW: INSTAGRAM GRID WITH IMAGES
+   ========================================== */
+
+.instagram-grid-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin-bottom: 1.5rem;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+}
+
+.instagram-grid-item {
+  aspect-ratio: 1;
+  position: relative;
+  overflow: hidden;
+  display: block;
+}
+
+.instagram-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.instagram-grid-item:hover img {
+  transform: scale(1.05);
+}
+
+.instagram-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.instagram-grid-item:hover .instagram-grid-overlay {
+  opacity: 1;
+}
+
+.instagram-grid-overlay span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* ==========================================
+   NEW: SOCIAL STATS MINI
+   ========================================== */
+
+.social-stats-mini {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.social-stats-mini span {
+  font-size: 0.75rem;
+  color: var(--sf-text-muted);
+}
+
+/* ==========================================
+   RESPONSIVE ADJUSTMENTS FOR NEW STYLES
+   ========================================== */
+
+@media (max-width: 768px) {
+  .post-author-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .post-media {
+    max-height: 300px;
+  }
+
+  .play-button {
+    width: 50px;
+    height: 50px;
+  }
+
+  .facebook-page-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .fb-post-image img {
+    height: 150px;
+  }
+
+  .tab-count {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .post-author-name span {
+    font-size: 0.85rem;
+  }
+
+  .post-meta {
+    gap: 0.35rem;
+  }
+
+  .post-platform-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .fb-post-image img {
+    height: 120px;
+  }
+
+  .instagram-grid-preview {
+    gap: 2px;
+  }
+}
