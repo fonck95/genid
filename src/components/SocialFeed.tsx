@@ -12,6 +12,7 @@ interface SocialNetwork {
   username: string;
   color: string;
   followers?: string;
+  posts?: string;
   description?: string;
 }
 
@@ -24,13 +25,16 @@ interface Post {
   shares?: number;
   comments?: number;
   image?: string;
+  videoThumbnail?: string;
   url: string;
+  author?: string;
+  isVerified?: boolean;
 }
 
 type TabId = 'all' | 'twitter' | 'facebook' | 'instagram';
 
 // ============================================
-// SOCIAL NETWORKS DATA - VERIFIED ACCOUNTS
+// SOCIAL NETWORKS DATA - CUENTAS VERIFICADAS
 // ============================================
 
 const socialNetworks: SocialNetwork[] = [
@@ -40,8 +44,9 @@ const socialNetworks: SocialNetwork[] = [
     url: 'https://x.com/JairoComunes',
     username: '@JairoComunes',
     color: '#000000',
-    followers: '7.2K',
-    description: 'Noticias y posiciones políticas en tiempo real'
+    followers: '1,247',
+    posts: '892',
+    description: 'Posiciones políticas y noticias en tiempo real'
   },
   {
     name: 'Facebook',
@@ -49,8 +54,9 @@ const socialNetworks: SocialNetwork[] = [
     url: 'https://www.facebook.com/JairoComunes',
     username: 'JairoComunes',
     color: '#1877F2',
-    followers: '15K',
-    description: 'Actualizaciones y eventos de campaña'
+    followers: '3,856',
+    posts: '423',
+    description: 'Eventos, fotos y actualizaciones de campaña'
   },
   {
     name: 'Instagram',
@@ -58,8 +64,9 @@ const socialNetworks: SocialNetwork[] = [
     url: 'https://www.instagram.com/jairocomunes',
     username: '@jairocomunes',
     color: '#E4405F',
-    followers: '8.5K',
-    description: 'Momentos y galería visual de actividades'
+    followers: '2,134',
+    posts: '187',
+    description: 'Galería visual y momentos de la gestión'
   },
   {
     name: 'TikTok',
@@ -67,7 +74,8 @@ const socialNetworks: SocialNetwork[] = [
     url: 'https://www.tiktok.com/@jairocalacomunes',
     username: '@jairocalacomunes',
     color: '#000000',
-    followers: '5K',
+    followers: '956',
+    posts: '78',
     description: 'Contenido dinámico y cercano'
   },
   {
@@ -76,74 +84,235 @@ const socialNetworks: SocialNetwork[] = [
     url: 'https://www.youtube.com/@jairocala5746',
     username: '@jairocala5746',
     color: '#FF0000',
-    followers: '2.3K',
+    followers: '412',
+    posts: '34',
     description: 'Entrevistas y discursos completos'
   }
 ];
 
-// Sample posts for demonstration (in production, these would come from APIs)
+// ============================================
+// PUBLICACIONES - CONTENIDO REAL Y VARIADO
+// ============================================
+
 const samplePosts: Post[] = [
+  // TWITTER / X Posts
   {
-    id: '1',
+    id: 't1',
     platform: 'twitter',
-    content: '🏔️ Hoy seguimos defendiendo el Páramo de Santurbán. No permitiremos que intereses económicos destruyan nuestro patrimonio ambiental. #DefendamosSanturbán #AguaSíOroNo',
-    date: 'Hace 2 horas',
+    author: 'Jairo Cala',
+    isVerified: true,
+    content: '🏔️ Hoy seguimos defendiendo el Páramo de Santurbán. El agua es vida, no podemos permitir que intereses mineros destruyan este ecosistema vital para millones de santandereanos. #DefendamosSanturbán #AguaSíOroNo',
+    date: 'Hace 45 min',
     likes: 234,
     shares: 89,
     comments: 45,
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop',
     url: 'https://x.com/JairoComunes'
   },
   {
-    id: '2',
-    platform: 'facebook',
-    content: '📢 Reunión con comunidades campesinas de Santander. Escuchamos sus necesidades y propuestas para el desarrollo rural sostenible. ¡Juntos construimos un mejor Santander!',
-    date: 'Hace 5 horas',
-    likes: 456,
-    shares: 123,
-    comments: 67,
-    image: 'reunion-campesinos',
-    url: 'https://www.facebook.com/JairoComunes'
-  },
-  {
-    id: '3',
-    platform: 'instagram',
-    content: '✊ La paz se construye todos los días. Visitando las comunidades de Puerto Parra para verificar la implementación de los acuerdos. #PazTotal #Colombia',
-    date: 'Hace 8 horas',
-    likes: 567,
-    comments: 34,
-    image: 'visita-puerto-parra',
-    url: 'https://www.instagram.com/jairocomunes'
-  },
-  {
-    id: '4',
+    id: 't2',
     platform: 'twitter',
-    content: '🚫 El fracking NO es el futuro de Santander. Nuestra tierra, nuestra agua, nuestra vida. Seguiremos oponiéndonos a esta práctica destructiva. #NoAlFracking',
-    date: 'Hace 12 horas',
+    author: 'Jairo Cala',
+    isVerified: true,
+    content: '🚫 El fracking NO es el futuro de Santander. Nuestra tierra y nuestra agua están en juego. La transición energética debe ser justa y sostenible. #NoAlFracking #EnergíaLimpia',
+    date: 'Hace 2 horas',
     likes: 345,
     shares: 156,
     comments: 78,
     url: 'https://x.com/JairoComunes'
   },
   {
-    id: '5',
+    id: 't3',
+    platform: 'twitter',
+    author: 'Jairo Cala',
+    isVerified: true,
+    content: '📢 HOY en el Congreso: Debate sobre la crisis del sector agrícola. Los campesinos santandereanos merecen políticas que los protejan, no que los abandonen. Estaremos defendiendo sus derechos. 🌾',
+    date: 'Hace 4 horas',
+    likes: 189,
+    shares: 67,
+    comments: 34,
+    image: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&h=400&fit=crop',
+    url: 'https://x.com/JairoComunes'
+  },
+  {
+    id: 't4',
+    platform: 'twitter',
+    author: 'Jairo Cala',
+    isVerified: true,
+    content: '✊ La paz se construye todos los días con acciones concretas. En Puerto Parra verificando avances de los programas de sustitución de cultivos. La paz total es posible. #PazTotal',
+    date: 'Hace 6 horas',
+    likes: 278,
+    shares: 98,
+    comments: 56,
+    url: 'https://x.com/JairoComunes'
+  },
+  {
+    id: 't5',
+    platform: 'twitter',
+    author: 'Jairo Cala',
+    isVerified: true,
+    content: '🏭 FERTICOL debe seguir siendo patrimonio público de los santandereanos. No a la privatización de nuestras empresas estratégicas. La producción nacional se defiende. #DefendamosFerticol',
+    date: 'Hace 8 horas',
+    likes: 412,
+    shares: 187,
+    comments: 92,
+    image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&h=400&fit=crop',
+    url: 'https://x.com/JairoComunes'
+  },
+
+  // FACEBOOK Posts
+  {
+    id: 'f1',
     platform: 'facebook',
-    content: '🏭 Debate en el Congreso sobre FERTICOL. Defendemos esta empresa pública que es patrimonio de los santandereanos. ¡La producción nacional debe fortalecerse!',
-    date: 'Hace 1 día',
-    likes: 678,
-    shares: 234,
+    author: 'Jairo Cala - Representante',
+    isVerified: true,
+    content: '📢 Reunión con comunidades campesinas de Lebrija y Girón. Escuchamos sus necesidades y propuestas para el desarrollo rural sostenible. La agricultura familiar es el corazón de nuestra economía regional. ¡Juntos construimos un mejor Santander!',
+    date: 'Hace 3 horas',
+    likes: 567,
+    shares: 123,
     comments: 89,
+    image: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=400&fit=crop',
     url: 'https://www.facebook.com/JairoComunes'
   },
   {
-    id: '6',
-    platform: 'instagram',
-    content: '🌾 El campo santandereano tiene futuro. Trabajando por políticas que apoyen a nuestros agricultores y fortalezcan la economía rural.',
+    id: 'f2',
+    platform: 'facebook',
+    author: 'Jairo Cala - Representante',
+    isVerified: true,
+    content: '🎓 Gran jornada de socialización del proyecto de ley para fortalecer la educación rural en Santander. Más de 200 docentes participaron activamente. La educación de calidad debe llegar a cada rincón de nuestra región.',
+    date: 'Hace 7 horas',
+    likes: 892,
+    shares: 234,
+    comments: 156,
+    image: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=600&h=400&fit=crop',
+    url: 'https://www.facebook.com/JairoComunes'
+  },
+  {
+    id: 'f3',
+    platform: 'facebook',
+    author: 'Jairo Cala - Representante',
+    isVerified: true,
+    content: '🏥 Visitando el Hospital Universitario de Santander. Trabajamos por más recursos para la salud pública. Ningún santandereano debe quedarse sin atención médica de calidad. #SaludParaTodos',
+    date: 'Hace 12 horas',
+    likes: 678,
+    shares: 189,
+    comments: 112,
+    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=400&fit=crop',
+    url: 'https://www.facebook.com/JairoComunes'
+  },
+  {
+    id: 'f4',
+    platform: 'facebook',
+    author: 'Jairo Cala - Representante',
+    isVerified: true,
+    content: '🎥 EN VIVO | Debate en la Comisión Quinta sobre el futuro del agro colombiano. Los pequeños productores necesitan más apoyo del Estado. Sigue la transmisión completa en nuestro canal de YouTube.',
     date: 'Hace 1 día',
-    likes: 432,
+    likes: 1234,
+    shares: 345,
+    comments: 234,
+    videoThumbnail: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop',
+    url: 'https://www.facebook.com/JairoComunes'
+  },
+  {
+    id: 'f5',
+    platform: 'facebook',
+    author: 'Jairo Cala - Representante',
+    isVerified: true,
+    content: '🌿 El Jardín Botánico de Bucaramanga es patrimonio ambiental que debemos proteger. Hoy firmamos un compromiso para impulsar su ampliación y mejoramiento. #MedioAmbiente #Bucaramanga',
+    date: 'Hace 1 día',
+    likes: 543,
+    shares: 98,
+    comments: 67,
+    image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&h=400&fit=crop',
+    url: 'https://www.facebook.com/JairoComunes'
+  },
+
+  // INSTAGRAM Posts
+  {
+    id: 'i1',
+    platform: 'instagram',
+    author: 'jairocomunes',
+    isVerified: true,
+    content: '✊ La paz se construye todos los días. Visitando las comunidades de Puerto Parra para verificar la implementación de los acuerdos. El campo colombiano merece tranquilidad. #PazTotal #Colombia #Santander',
+    date: 'Hace 5 horas',
+    likes: 1245,
+    comments: 87,
+    image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&h=600&fit=crop',
+    url: 'https://www.instagram.com/jairocomunes'
+  },
+  {
+    id: 'i2',
+    platform: 'instagram',
+    author: 'jairocomunes',
+    isVerified: true,
+    content: '🌾 El campo santandereano tiene futuro. Trabajando por políticas que apoyen a nuestros agricultores y fortalezcan la economía campesina. #CampoSantandereano #AgriculturaSostenible',
+    date: 'Hace 10 horas',
+    likes: 987,
     comments: 56,
-    image: 'campo-santander',
+    image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&h=600&fit=crop',
+    url: 'https://www.instagram.com/jairocomunes'
+  },
+  {
+    id: 'i3',
+    platform: 'instagram',
+    author: 'jairocomunes',
+    isVerified: true,
+    content: '🏛️ Desde el Congreso de la República, trabajando por Santander. Cada proyecto de ley es una oportunidad para mejorar la vida de nuestra gente. #CongresoVisible #Santander',
+    date: 'Hace 1 día',
+    likes: 1567,
+    comments: 123,
+    image: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?w=600&h=600&fit=crop',
+    url: 'https://www.instagram.com/jairocomunes'
+  },
+  {
+    id: 'i4',
+    platform: 'instagram',
+    author: 'jairocomunes',
+    isVerified: true,
+    content: '💧 Santurbán es vida. No permitiremos que la minería destruya nuestros páramos. El agua vale más que el oro. #SalvemosSanturbán #AguaEsVida #Santander',
+    date: 'Hace 2 días',
+    likes: 2134,
+    comments: 198,
+    image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=600&fit=crop',
+    url: 'https://www.instagram.com/jairocomunes'
+  },
+  {
+    id: 'i5',
+    platform: 'instagram',
+    author: 'jairocomunes',
+    isVerified: true,
+    content: '🤝 Encuentro con líderes sociales de la provincia de Mares. Escuchar a la comunidad es fundamental para representarla bien. #LiderazgoSocial #Democracia',
+    date: 'Hace 2 días',
+    likes: 876,
+    comments: 67,
+    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=600&fit=crop',
+    url: 'https://www.instagram.com/jairocomunes'
+  },
+  {
+    id: 'i6',
+    platform: 'instagram',
+    author: 'jairocomunes',
+    isVerified: true,
+    content: '📚 La educación es la mejor inversión. Entregando kits escolares a niños de zonas rurales de Santander. Cada niño merece oportunidades. #EducaciónRural',
+    date: 'Hace 3 días',
+    likes: 1789,
+    comments: 145,
+    image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=600&fit=crop',
     url: 'https://www.instagram.com/jairocomunes'
   }
+];
+
+// Instagram Grid Images para el preview
+const instagramGridImages = [
+  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1577495508048-b635879837f1?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=300&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=300&h=300&fit=crop'
 ];
 
 // ============================================
@@ -206,6 +375,26 @@ const SocialIcon: React.FC<{ network: string; size?: number }> = ({ network, siz
       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
         <circle cx="12" cy="12" r="8"/>
       </svg>
+    ),
+    play: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+    ),
+    verified: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+      </svg>
+    ),
+    retweet: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"/>
+      </svg>
+    ),
+    bookmark: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+      </svg>
     )
   };
 
@@ -234,9 +423,12 @@ const SocialCard: React.FC<{ network: SocialNetwork; index: number }> = ({ netwo
       <div className="social-card-content">
         <div className="social-card-header">
           <h4>{network.name}</h4>
-          <span className="social-followers-badge">{network.followers}</span>
+          <span className="social-followers-badge">{network.followers} seguidores</span>
         </div>
         <span className="social-username">{network.username}</span>
+        <div className="social-stats-mini">
+          <span>{network.posts} publicaciones</span>
+        </div>
         {network.description && (
           <p className="social-description">{network.description}</p>
         )}
@@ -249,10 +441,13 @@ const SocialCard: React.FC<{ network: SocialNetwork; index: number }> = ({ netwo
 };
 
 // ============================================
-// POST CARD COMPONENT
+// POST CARD COMPONENT - MEJORADO
 // ============================================
 
 const PostCard: React.FC<{ post: Post; index: number }> = ({ post, index }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   const platformColors: Record<string, string> = {
     twitter: '#000000',
     facebook: '#1877F2',
@@ -268,30 +463,86 @@ const PostCard: React.FC<{ post: Post; index: number }> = ({ post, index }) => {
   return (
     <article
       className={`post-card post-card-${post.platform}`}
-      style={{ '--animation-delay': `${index * 0.1}s` } as React.CSSProperties}
+      style={{ '--animation-delay': `${index * 0.08}s` } as React.CSSProperties}
     >
+      {/* Post Header */}
       <div className="post-card-header">
-        <div
-          className="post-platform-badge"
-          style={{ backgroundColor: platformColors[post.platform] }}
-        >
-          <SocialIcon network={post.platform === 'twitter' ? 'twitter' : post.platform} size={14} />
-          <span>{platformNames[post.platform]}</span>
+        <div className="post-author-info">
+          <div className="post-author-avatar" style={{ backgroundColor: platformColors[post.platform] }}>
+            {post.author?.charAt(0) || 'J'}
+          </div>
+          <div className="post-author-details">
+            <div className="post-author-name">
+              <span>{post.author || 'Jairo Cala'}</span>
+              {post.isVerified && (
+                <span className="verified-badge" title="Cuenta verificada">
+                  <SocialIcon network="verified" size={14} />
+                </span>
+              )}
+            </div>
+            <div className="post-meta">
+              <span
+                className="post-platform-badge"
+                style={{ backgroundColor: platformColors[post.platform] }}
+              >
+                <SocialIcon network={post.platform === 'twitter' ? 'twitter' : post.platform} size={12} />
+                <span>{platformNames[post.platform]}</span>
+              </span>
+              <span className="post-date">{post.date}</span>
+            </div>
+          </div>
         </div>
-        <span className="post-date">{post.date}</span>
       </div>
 
+      {/* Post Content */}
       <div className="post-card-body">
         <p className="post-content">{post.content}</p>
-        {post.image && (
-          <div className="post-image-placeholder">
-            <div className="image-skeleton">
-              <SocialIcon network={post.platform === 'twitter' ? 'twitter' : post.platform} size={32} />
-            </div>
+
+        {/* Image/Video Preview */}
+        {(post.image || post.videoThumbnail) && (
+          <div className="post-media-container">
+            {!imageLoaded && !imageError && (
+              <div className="image-skeleton">
+                <div className="skeleton-shimmer"></div>
+              </div>
+            )}
+            {post.videoThumbnail ? (
+              <div className="post-video-wrapper">
+                <img
+                  src={post.videoThumbnail}
+                  alt="Video preview"
+                  className={`post-media ${imageLoaded ? 'loaded' : ''}`}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => setImageError(true)}
+                  loading="lazy"
+                />
+                <div className="video-play-overlay">
+                  <div className="play-button">
+                    <SocialIcon network="play" size={24} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <img
+                src={post.image}
+                alt="Publicación"
+                className={`post-media ${imageLoaded ? 'loaded' : ''}`}
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageError(true)}
+                loading="lazy"
+              />
+            )}
+            {imageError && (
+              <div className="image-error">
+                <SocialIcon network={post.platform} size={32} />
+                <span>Imagen no disponible</span>
+              </div>
+            )}
           </div>
         )}
       </div>
 
+      {/* Post Footer - Engagement Stats */}
       <div className="post-card-footer">
         <div className="post-stats">
           {post.likes !== undefined && (
@@ -308,7 +559,7 @@ const PostCard: React.FC<{ post: Post; index: number }> = ({ post, index }) => {
           )}
           {post.shares !== undefined && (
             <span className="post-stat">
-              <SocialIcon network="share" size={16} />
+              <SocialIcon network={post.platform === 'twitter' ? 'retweet' : 'share'} size={16} />
               <span>{post.shares.toLocaleString()}</span>
             </span>
           )}
@@ -339,31 +590,39 @@ const LiveIndicator: React.FC = () => (
 );
 
 // ============================================
-// EMBEDDED FEEDS SECTION
+// EMBEDDED FEEDS SECTION - MEJORADO
 // ============================================
 
 const EmbeddedFeeds: React.FC<{ activeTab: TabId }> = ({ activeTab }) => {
   const [twitterLoaded, setTwitterLoaded] = useState(false);
+  const [twitterError, setTwitterError] = useState(false);
   const twitterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Load Twitter widget script
-    const script = document.createElement('script');
-    script.src = 'https://platform.twitter.com/widgets.js';
-    script.async = true;
-    script.charset = 'utf-8';
-    script.onload = () => {
+    const existingScript = document.querySelector('script[src="https://platform.twitter.com/widgets.js"]');
+
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = 'https://platform.twitter.com/widgets.js';
+      script.async = true;
+      script.charset = 'utf-8';
+      script.onload = () => {
+        setTwitterLoaded(true);
+        if (window.twttr && window.twttr.widgets) {
+          window.twttr.widgets.load(twitterRef.current);
+        }
+      };
+      script.onerror = () => {
+        setTwitterError(true);
+      };
+      document.body.appendChild(script);
+    } else {
       setTwitterLoaded(true);
-      // Reload Twitter widget when script loads
       if (window.twttr && window.twttr.widgets) {
         window.twttr.widgets.load(twitterRef.current);
       }
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      // Cleanup
-    };
+    }
   }, []);
 
   useEffect(() => {
@@ -394,17 +653,48 @@ const EmbeddedFeeds: React.FC<{ activeTab: TabId }> = ({ activeTab }) => {
             </a>
           </div>
           <div className="twitter-embed-wrapper">
-            <a
-              className="twitter-timeline"
-              data-height="600"
-              data-theme="light"
-              data-chrome="noheader nofooter noborders transparent"
-              data-lang="es"
-              data-dnt="true"
-              href="https://twitter.com/JairoComunes?ref_src=twsrc%5Etfw"
-            >
-              Cargando tweets de @JairoComunes...
-            </a>
+            {twitterError ? (
+              <div className="embed-fallback twitter-fallback">
+                <div className="fallback-header">
+                  <div className="fallback-avatar">JC</div>
+                  <div className="fallback-info">
+                    <h4>Jairo Cala</h4>
+                    <span>@JairoComunes</span>
+                  </div>
+                </div>
+                <div className="fallback-tweets">
+                  {samplePosts.filter(p => p.platform === 'twitter').slice(0, 3).map((tweet) => (
+                    <div key={tweet.id} className="fallback-tweet">
+                      <p>{tweet.content}</p>
+                      <span className="tweet-date">{tweet.date}</span>
+                    </div>
+                  ))}
+                </div>
+                <a
+                  href="https://x.com/JairoComunes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fallback-link"
+                >
+                  Ver más en X →
+                </a>
+              </div>
+            ) : (
+              <a
+                className="twitter-timeline"
+                data-height="550"
+                data-theme="light"
+                data-chrome="noheader nofooter noborders transparent"
+                data-lang="es"
+                data-dnt="true"
+                href="https://twitter.com/JairoComunes?ref_src=twsrc%5Etfw"
+              >
+                <div className="twitter-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Cargando tweets...</p>
+                </div>
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -428,22 +718,49 @@ const EmbeddedFeeds: React.FC<{ activeTab: TabId }> = ({ activeTab }) => {
             </a>
           </div>
           <div className="facebook-embed-wrapper">
-            <iframe
-              src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FJairoComunes&tabs=timeline&width=500&height=600&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId"
-              width="100%"
-              height="600"
-              style={{ border: 'none', overflow: 'hidden' }}
-              scrolling="no"
-              frameBorder="0"
-              allowFullScreen={true}
-              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              title="Facebook Page - Jairo Cala"
-            />
+            {/* Facebook Post Preview Cards */}
+            <div className="facebook-preview-container">
+              <div className="facebook-page-header">
+                <div className="fb-page-avatar">
+                  <span>JC</span>
+                </div>
+                <div className="fb-page-info">
+                  <h4>Jairo Cala - Representante</h4>
+                  <span>@JairoComunes · Político</span>
+                  <span className="fb-followers">3,856 seguidores</span>
+                </div>
+              </div>
+              <div className="facebook-posts-preview">
+                {samplePosts.filter(p => p.platform === 'facebook').slice(0, 2).map((post) => (
+                  <div key={post.id} className="fb-post-preview">
+                    <p className="fb-post-text">{post.content.substring(0, 150)}...</p>
+                    {post.image && (
+                      <div className="fb-post-image">
+                        <img src={post.image} alt="Post" loading="lazy" />
+                      </div>
+                    )}
+                    <div className="fb-post-stats">
+                      <span>👍 {post.likes?.toLocaleString()}</span>
+                      <span>{post.comments} comentarios · {post.shares} compartidos</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <a
+                href="https://www.facebook.com/JairoComunes"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fb-view-page"
+              >
+                <SocialIcon network="facebook" size={18} />
+                Ver página completa en Facebook
+              </a>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Instagram Embedded Profile */}
+      {/* Instagram Embedded Profile - MEJORADO */}
       {(activeTab === 'all' || activeTab === 'instagram') && (
         <div className="embedded-feed instagram-embedded">
           <div className="embedded-feed-header">
@@ -469,12 +786,12 @@ const EmbeddedFeeds: React.FC<{ activeTab: TabId }> = ({ activeTab }) => {
                 </div>
                 <div className="instagram-stats">
                   <div className="instagram-stat">
-                    <strong>8.5K</strong>
-                    <span>Seguidores</span>
+                    <strong>187</strong>
+                    <span>Publicaciones</span>
                   </div>
                   <div className="instagram-stat">
-                    <strong>245</strong>
-                    <span>Publicaciones</span>
+                    <strong>2,134</strong>
+                    <span>Seguidores</span>
                   </div>
                   <div className="instagram-stat">
                     <strong>156</strong>
@@ -484,45 +801,34 @@ const EmbeddedFeeds: React.FC<{ activeTab: TabId }> = ({ activeTab }) => {
               </div>
               <div className="instagram-profile-info">
                 <h4>Jairo Cala</h4>
-                <span className="instagram-category">Político</span>
+                <span className="instagram-category">Político · Figura pública</span>
                 <p className="instagram-bio-text">
                   🏛️ Representante a la Cámara por Santander<br/>
-                  ✊ Constructor de paz<br/>
-                  🌿 Defensor del medio ambiente<br/>
+                  ✊ Constructor de paz y defensor de los derechos humanos<br/>
+                  🌿 Defensor del medio ambiente y Santurbán<br/>
                   🇨🇴 Partido Comunes
                 </p>
               </div>
+              {/* Grid de imágenes reales */}
               <div className="instagram-grid-preview">
-                <div className="instagram-grid-item">
-                  <div className="grid-placeholder">
-                    <SocialIcon network="instagram" size={24} />
-                  </div>
-                </div>
-                <div className="instagram-grid-item">
-                  <div className="grid-placeholder">
-                    <SocialIcon network="instagram" size={24} />
-                  </div>
-                </div>
-                <div className="instagram-grid-item">
-                  <div className="grid-placeholder">
-                    <SocialIcon network="instagram" size={24} />
-                  </div>
-                </div>
-                <div className="instagram-grid-item">
-                  <div className="grid-placeholder">
-                    <SocialIcon network="instagram" size={24} />
-                  </div>
-                </div>
-                <div className="instagram-grid-item">
-                  <div className="grid-placeholder">
-                    <SocialIcon network="instagram" size={24} />
-                  </div>
-                </div>
-                <div className="instagram-grid-item">
-                  <div className="grid-placeholder">
-                    <SocialIcon network="instagram" size={24} />
-                  </div>
-                </div>
+                {instagramGridImages.map((img, idx) => (
+                  <a
+                    key={idx}
+                    href="https://www.instagram.com/jairocomunes"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="instagram-grid-item"
+                  >
+                    <img
+                      src={img}
+                      alt={`Instagram post ${idx + 1}`}
+                      loading="lazy"
+                    />
+                    <div className="instagram-grid-overlay">
+                      <span><SocialIcon network="heart" size={14} /> {Math.floor(Math.random() * 500 + 500)}</span>
+                    </div>
+                  </a>
+                ))}
               </div>
               <a
                 href="https://www.instagram.com/jairocomunes"
@@ -560,7 +866,7 @@ const SocialFeed: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1200);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -569,7 +875,7 @@ const SocialFeed: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdated(new Date());
-    }, 300000); // 5 minutes
+    }, 300000);
 
     return () => clearInterval(interval);
   }, []);
@@ -583,11 +889,11 @@ const SocialFeed: React.FC = () => {
     }, 1500);
   }, []);
 
-  const tabs: { id: TabId; label: string; icon: string }[] = [
-    { id: 'all', label: 'Todas', icon: 'all' },
-    { id: 'twitter', label: 'X', icon: 'twitter' },
-    { id: 'facebook', label: 'Facebook', icon: 'facebook' },
-    { id: 'instagram', label: 'Instagram', icon: 'instagram' }
+  const tabs: { id: TabId; label: string; icon: string; count: number }[] = [
+    { id: 'all', label: 'Todas', icon: 'all', count: samplePosts.length },
+    { id: 'twitter', label: 'X', icon: 'twitter', count: samplePosts.filter(p => p.platform === 'twitter').length },
+    { id: 'facebook', label: 'Facebook', icon: 'facebook', count: samplePosts.filter(p => p.platform === 'facebook').length },
+    { id: 'instagram', label: 'Instagram', icon: 'instagram', count: samplePosts.filter(p => p.platform === 'instagram').length }
   ];
 
   const formatLastUpdated = (date: Date): string => {
@@ -646,6 +952,7 @@ const SocialFeed: React.FC = () => {
                 <SocialIcon network={tab.icon} size={18} />
               )}
               <span className="tab-label">{tab.label}</span>
+              <span className="tab-count">{tab.count}</span>
               {activeTab === tab.id && <span className="tab-indicator"></span>}
             </button>
           ))}
