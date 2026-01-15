@@ -54,10 +54,15 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   );
 
   // Transición suave cuando el upscaling termine
+  // Delay aumentado a 200ms para asegurar que el canvas esté completamente dibujado
   useEffect(() => {
-    if (!isLoading && !error && originalLoaded) {
-      const timer = setTimeout(() => setShowUpscaled(true), 100);
-      return () => clearTimeout(timer);
+    if (!isLoading && !error && originalLoaded && canvasRef.current) {
+      // Verificar que el canvas tenga dimensiones válidas antes de mostrar
+      const canvas = canvasRef.current;
+      if (canvas.width > 0 && canvas.height > 0) {
+        const timer = setTimeout(() => setShowUpscaled(true), 200);
+        return () => clearTimeout(timer);
+      }
     }
   }, [isLoading, error, originalLoaded]);
 
@@ -78,12 +83,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         </div>
       )}
 
-      {/* Imagen original (comprimida) */}
+      {/* Imagen original (comprimida) - se mantiene visible para evitar flickering */}
       {isInView && (
         <img
           src={src}
           alt={alt}
-          className={`optimized-image-original ${originalLoaded ? 'loaded' : ''} ${showUpscaled ? 'hidden' : ''}`}
+          className={`optimized-image-original ${originalLoaded ? 'loaded' : ''}`}
           onLoad={handleOriginalLoad}
           loading={priority ? 'eager' : 'lazy'}
         />
