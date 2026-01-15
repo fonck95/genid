@@ -1,1 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150">
+  <!-- Color naranja Fuerza Ciudadana: #F57F20 -->
+  
+  <!-- Letra J - Estilo Sólido y Bold -->
+  <path d="M25 40 H70 V55 H55 V95 Q55 115 40 115 H15 V100 H30 Q40 100 40 90 V55 H25 Z" 
+        fill="#F57F20"/>
+  
+  <!-- Letra C - Estilo Sólido y Bold -->
+  <path d="M85 40 H150 V55 H105 Q95 55 95 65 V90 Q95 100 105 100 H150 V115 H100 Q75 115 75 90 V65 Q75 40 100 40 Z" 
+        fill="#F57F20"/>
+  
+  <!-- PUÑO REDISEÑADO (Sólido y con más fuerza) -->
+  <g transform="translate(170, 35)">
+    <!-- Silueta principal del puño y muñeca -->
+    <path d="M10 80 L10 70 Q10 65 15 65 L65 65 Q72 65 72 58 L72 15 Q72 8 65 8 L55 8 Q48 8 48 15 L48 18 Q42 12 35 12 L28 12 Q21 12 21 18 L21 22 Q15 15 8 15 L3 15 Q-5 15 -5 25 L-5 50 Q-5 60 5 62 L5 80 Z" 
+          fill="#F57F20"/>
+    
+    <!-- Pulgar cerrando con fuerza (Espacio negativo) -->
+    <path d="M5 62 Q-2 62 -2 50 L-2 35 Q-2 30 3 30 L40 30 Q48 30 48 40 L48 55 Q48 65 38 65 L10 65" 
+          fill="white" transform="translate(1, 2) scale(0.95)"/>
+    <!-- Relleno del pulgar para que sea naranja pero definido -->
+    <path d="M8 64 Q2 64 2 52 L2 37 Q2 32 7 32 L42 32 Q50 32 50 42 L50 57 Q50 67 40 67 L12 67" 
+          fill="#F57F20"/>
+
+    <!-- Líneas de definición de dedos (Espacios finos) -->
+    <line x1="21" y1="15" x2="21" y2="32" stroke="white" stroke-width="2"/>
+    <line x1="48" y1="12" x2="48" y2="32" stroke="white" stroke-width="2"/>
+    
+    <!-- Sombra/Detalle en la palma para realismo -->
+    <path d="M15 67 L40 67" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Línea de base decorativa -->
+  <rect x="25" y="125" width="220" height="6" rx="3" fill="#F57F20"/>
+</svg>

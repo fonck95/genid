@@ -7,6 +7,7 @@ const About: React.FC = () => {
       <div className="about-container">
         <h2 className="section-title">Biografía</h2>
         <div className="about-content">
+          {/* Photo Gallery */}
           <div className="about-gallery">
             <div className="gallery-main">
               <img src="/jairo1.png" alt="Jairo Cala en campaña" className="gallery-image main" />
@@ -17,6 +18,8 @@ const About: React.FC = () => {
               <img src="/caricatura.png" alt="Caricatura de Jairo Cala" className="gallery-image caricatura" />
             </div>
           </div>
+
+          {/* Biography Text */}
           <div className="about-text">
             <p className="about-intro">
               Nacido en Palmar, Santander, en 1964, con formación en administración pública.
