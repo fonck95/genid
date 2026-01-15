@@ -1,13 +1,22 @@
 import React from 'react';
+import OptimizedImage from './OptimizedImage';
 import CandidatePhoto from './CandidatePhoto';
 import '../styles/Hero.css';
 
 const Hero: React.FC = () => {
   return (
     <section id="inicio" className="hero">
+      {/* Imagen de fondo optimizada con WebGPU upscaling */}
       <div className="hero-background">
-        <div className="hero-particles"></div>
+        <OptimizedImage
+          src="/jairo2.png"
+          alt="Jairo Reinaldo Cala Suárez en campaña"
+          scaleFactor={2.5}
+          objectFit="cover"
+          priority={true}
+        />
       </div>
+
       <div className="hero-overlay">
         <div className="hero-content">
           <div className="hero-photo-section">

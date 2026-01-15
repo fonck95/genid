@@ -1,0 +1,116 @@
+.optimized-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.optimized-image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FF6600 0%, #FF8C00 100%);
+}
+
+.optimized-image-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.optimized-image-original,
+.optimized-image-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: var(--object-fit, cover);
+  transition: opacity 0.3s ease-out;
+}
+
+.optimized-image-original {
+  opacity: 0;
+  z-index: 1;
+}
+
+.optimized-image-original.loaded {
+  opacity: 1;
+}
+
+.optimized-image-original.hidden {
+  opacity: 0;
+}
+
+.optimized-image-canvas {
+  opacity: 0;
+  z-index: 2;
+}
+
+.optimized-image-canvas.visible {
+  opacity: 1;
+}
+
+/* Indicador de estado (opcional) */
+.optimized-image-indicator {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.indicator-loading {
+  background: rgba(0, 0, 0, 0.6);
+  color: #FFFFFF;
+}
+
+.indicator-success {
+  background: rgba(0, 128, 0, 0.8);
+  color: #FFFFFF;
+}
+
+/* Modo background para Hero */
+.optimized-image-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.optimized-image-background .optimized-image-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Para imágenes de galería */
+.optimized-image-gallery {
+  border-radius: 12px;
+}
+
+.optimized-image-gallery .optimized-image-original,
+.optimized-image-gallery .optimized-image-upscaled {
+  border-radius: 12px;
+}
