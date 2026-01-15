@@ -50,10 +50,7 @@
 
 .optimized-image-original.loaded {
   opacity: 1;
-}
-
-.optimized-image-original.hidden {
-  opacity: 0;
+  /* Se mantiene visible - el canvas con z-index mayor se superpone sin parpadeo */
 }
 
 .optimized-image-canvas {
