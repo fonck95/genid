@@ -1,11 +1,40 @@
 .hero {
   min-height: 100vh;
-  background: linear-gradient(135deg, #FF6600 0%, #FF8C00 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   margin-top: 80px;
+  overflow: hidden;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.hero-background .optimized-image-container {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 102, 0, 0.75) 0%,
+    rgba(255, 140, 0, 0.65) 100%
+  );
+  z-index: 1;
 }
 
 .hero-overlay {
@@ -15,6 +44,8 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  position: relative;
+  z-index: 2;
 }
 
 .hero-content {
