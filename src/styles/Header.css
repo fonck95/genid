@@ -18,6 +18,17 @@
   padding: 0 2rem;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-image {
+  height: 45px;
+  width: auto;
+}
+
 .logo h1 {
   color: #FF6600;
   font-size: 1.5rem;
@@ -62,5 +73,9 @@
 
   .logo h1 {
     font-size: 1.2rem;
+  }
+
+  .logo-image {
+    height: 35px;
   }
 }

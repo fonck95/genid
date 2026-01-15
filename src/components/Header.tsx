@@ -13,6 +13,7 @@ const Header: React.FC = () => {
     <header className="header">
       <div className="header-container">
         <div className="logo">
+          <img src="/logomarca.png" alt="Fuerza Ciudadana" className="logo-image" />
           <h1>FUERZA CIUDADANA</h1>
         </div>
         <nav className="nav">

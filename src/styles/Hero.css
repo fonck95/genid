@@ -24,6 +24,19 @@
   animation: fadeInUp 1s ease-out;
 }
 
+.hero-image-container {
+  margin-bottom: 2rem;
+}
+
+.hero-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #FFFFFF;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
 .hero-title {
   font-size: 3.5rem;
   font-weight: 800;

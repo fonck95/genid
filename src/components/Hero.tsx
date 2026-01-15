@@ -6,6 +6,13 @@ const Hero: React.FC = () => {
     <section id="inicio" className="hero">
       <div className="hero-overlay">
         <div className="hero-content">
+          <div className="hero-image-container">
+            <img
+              src="/jairoprofile.png"
+              alt="Jairo Reinaldo Cala Suárez"
+              className="hero-image"
+            />
+          </div>
           <h1 className="hero-title">JAIRO REINALDO CALA SUÁREZ</h1>
           <h2 className="hero-subtitle">Candidato a la Cámara de Representantes</h2>
           <p className="hero-district">Santander 101</p>
