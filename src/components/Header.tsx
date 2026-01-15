@@ -11,7 +11,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'publicaciones', label: 'Publicaciones' },
   { id: 'biografia', label: 'Biografía' },
   { id: 'propuestas', label: 'Propuestas' },
-  { id: 'redes-sociales', label: 'Redes' },
+  { id: 'galeria', label: 'Galería' },
   { id: 'contacto', label: 'Contacto' },
 ];
 

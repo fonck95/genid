@@ -3,6 +3,7 @@ import Hero from './components/Hero';
 import SocialFeedEmbed from './components/SocialFeedEmbed';
 import About from './components/About';
 import KeyIssues from './components/KeyIssues';
+import CampaignGallery from './components/CampaignGallery';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import './App.css';
@@ -16,6 +17,7 @@ function App() {
         <SocialFeedEmbed />
         <About />
         <KeyIssues />
+        <CampaignGallery />
         <Contact />
       </main>
       <Footer />
