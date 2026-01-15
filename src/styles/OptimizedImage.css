@@ -33,7 +33,7 @@
 }
 
 .optimized-image-original,
-.optimized-image-upscaled {
+.optimized-image-canvas {
   position: absolute;
   top: 0;
   left: 0;
@@ -56,12 +56,12 @@
   opacity: 0;
 }
 
-.optimized-image-upscaled {
+.optimized-image-canvas {
   opacity: 0;
   z-index: 2;
 }
 
-.optimized-image-upscaled.visible {
+.optimized-image-canvas.visible {
   opacity: 1;
 }
 

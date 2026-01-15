@@ -7,11 +7,9 @@ interface OptimizedImageProps {
   alt: string;
   className?: string;
   scaleFactor?: number;
-  targetWidth?: number;
-  targetHeight?: number;
-  showUpscaleIndicator?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none';
   priority?: boolean;
+  showUpscaleIndicator?: boolean;
 }
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
@@ -19,11 +17,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   alt,
   className = '',
   scaleFactor = 2,
-  targetWidth,
-  targetHeight,
-  showUpscaleIndicator = false,
   objectFit = 'cover',
   priority = false,
+  showUpscaleIndicator = false,
 }) => {
   const [originalLoaded, setOriginalLoaded] = useState(false);
   const [showUpscaled, setShowUpscaled] = useState(false);
@@ -52,19 +48,18 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   }, [priority]);
 
   // Solo iniciar upscaling cuando la imagen esté en vista
-  const { upscaledUrl, isLoading, isWebGPUSupported } = useWebGPUUpscale(
-    isInView ? src : null,
-    { scaleFactor, targetWidth, targetHeight }
+  const { canvasRef, isLoading, isSupported, error } = useWebGPUUpscale(
+    isInView ? src : '',
+    { scaleFactor, sharpness: 0.5 }
   );
 
   // Transición suave cuando el upscaling termine
   useEffect(() => {
-    if (upscaledUrl && originalLoaded) {
-      // Pequeño delay para asegurar que la imagen upscaled esté en cache
-      const timer = setTimeout(() => setShowUpscaled(true), 50);
+    if (!isLoading && !error && originalLoaded) {
+      const timer = setTimeout(() => setShowUpscaled(true), 100);
       return () => clearTimeout(timer);
     }
-  }, [upscaledUrl, originalLoaded]);
+  }, [isLoading, error, originalLoaded]);
 
   const handleOriginalLoad = () => {
     setOriginalLoaded(true);
@@ -94,14 +89,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         />
       )}
 
-      {/* Imagen upscaled con WebGPU */}
-      {upscaledUrl && (
-        <img
-          src={upscaledUrl}
-          alt={alt}
-          className={`optimized-image-upscaled ${showUpscaled ? 'visible' : ''}`}
-        />
-      )}
+      {/* Canvas con imagen upscaled usando WebGPU/Canvas2D */}
+      <canvas
+        ref={canvasRef}
+        className={`optimized-image-canvas ${showUpscaled ? 'visible' : ''}`}
+        aria-label={alt}
+      />
 
       {/* Indicador de upscaling (opcional para debugging) */}
       {showUpscaleIndicator && (
@@ -110,7 +103,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             <span className="indicator-loading">Mejorando...</span>
           ) : showUpscaled ? (
             <span className="indicator-success">
-              {isWebGPUSupported ? 'WebGPU' : 'Canvas HD'}
+              {isSupported ? 'WebGPU' : 'Canvas HD'}
             </span>
           ) : null}
         </div>

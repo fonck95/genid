@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/FeaturedPosts.css';
 
 // ============================================
@@ -15,27 +15,48 @@ interface SocialProfile {
   bio?: string;
   followers?: string;
   posts?: string;
-  elfsightWidgetId?: string; // ID del widget de Elfsight
+  appUrl?: string; // Deep link para abrir en app nativa
+  previewImages?: string[]; // URLs de imágenes preview
 }
 
 // ============================================
-// CONFIGURACIÓN DE WIDGETS ELFSIGHT
-// Para obtener estos IDs:
-// 1. Crear cuenta en https://elfsight.com
-// 2. Crear widget de Instagram Feed o TikTok Feed
-// 3. Copiar el ID del widget (ej: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+// UTILITY: Detectar dispositivo móvil/iOS
 // ============================================
 
-const ELFSIGHT_CONFIG = {
-  // Widget de Instagram Feed - Reemplazar con tu ID real
-  instagram: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  // Widget de TikTok Feed - Reemplazar con tu ID real
-  tiktok: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+const useDeviceDetection = () => {
+  const [deviceInfo, setDeviceInfo] = useState({
+    isMobile: false,
+    isIOS: false,
+    isSafari: false,
+    shouldUseFallback: true // Por defecto usar fallback para mejor compatibilidad
+  });
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+
+    // Detectar iOS
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // Detectar Safari
+    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+
+    // Detectar móvil general
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
+      window.innerWidth <= 768;
+
+    // En iOS Safari, los embeds tienen problemas conocidos
+    // En móviles en general, es mejor usar el fallback para mejor UX
+    const shouldUseFallback = isMobile || (isIOS && isSafari);
+
+    setDeviceInfo({ isMobile, isIOS, isSafari, shouldUseFallback });
+  }, []);
+
+  return deviceInfo;
 };
 
 // ============================================
-// PERFILES DE REDES SOCIALES
-// URLs corregidas y actualizadas
+// CONFIGURACIÓN DE PERFILES
 // ============================================
 
 const socialProfiles: SocialProfile[] = [
@@ -46,9 +67,10 @@ const socialProfiles: SocialProfile[] = [
     username: 'jairo.cala.50',
     displayName: 'Jairo Cala',
     label: 'Facebook',
-    bio: 'Candidato a la Cámara de Representantes por Santander',
+    bio: 'Candidato a la Cámara de Representantes por Santander. Comprometido con el desarrollo social y económico de nuestra región.',
     followers: '5K+',
-    posts: '200+'
+    posts: '200+',
+    appUrl: 'fb://profile/jairo.cala.50'
   },
   {
     id: 'ig-profile',
@@ -57,9 +79,10 @@ const socialProfiles: SocialProfile[] = [
     username: 'jairocalasantander',
     displayName: 'Jairo Cala Santander',
     label: 'Instagram',
-    bio: 'Candidato a la Cámara | Propuestas para Santander | Sígueme para conocer nuestro trabajo',
+    bio: 'Candidato a la Cámara | Propuestas para Santander | Sígueme para conocer nuestro trabajo y propuestas.',
     followers: '2K+',
-    posts: '150+'
+    posts: '150+',
+    appUrl: 'instagram://user?username=jairocalasantander'
   },
   {
     id: 'tiktok-profile',
@@ -68,9 +91,10 @@ const socialProfiles: SocialProfile[] = [
     username: 'jairocalacomunes',
     displayName: 'Jairo Cala Comunes',
     label: 'TikTok',
-    bio: 'Videos cortos sobre propuestas, eventos y actividades de campaña',
+    bio: 'Videos cortos sobre propuestas, eventos y actividades de campaña. ¡Síguenos para más contenido!',
     followers: '1K+',
-    posts: '50+'
+    posts: '50+',
+    appUrl: 'tiktok://user?username=jairocalacomunes'
   }
 ];
 
@@ -100,508 +124,285 @@ const PlatformIcon: React.FC<{ platform: 'facebook' | 'instagram' | 'tiktok'; si
   );
 };
 
-// Icons for stats
-const VerifiedIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-  </svg>
-);
-
-const PlayIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M8 5v14l11-7z"/>
-  </svg>
-);
-
 const GridIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
     <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10 0h8v8h-8v-8zm0-10h8v8h-8V3z"/>
   </svg>
 );
 
-const UsersIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+const PlayIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M8 5v14l11-7z"/>
   </svg>
 );
 
 const ExternalLinkIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
   </svg>
 );
 
+const HeartIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </svg>
+);
+
+const CommentIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/>
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+  </svg>
+);
+
+const VerifiedIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+  </svg>
+);
+
 // ============================================
-// ELFSIGHT WIDGET COMPONENT
-// Carga widgets de Elfsight para Instagram y TikTok
+// SOCIAL MEDIA CARD - Tarjeta interactiva universal
 // ============================================
 
-interface ElfsightWidgetProps {
-  widgetId: string;
-  platform: 'instagram' | 'tiktok';
-  onLoad?: () => void;
-  onError?: () => void;
+interface SocialMediaCardProps {
+  profile: SocialProfile;
+  deviceInfo: ReturnType<typeof useDeviceDetection>;
 }
 
-const ElfsightWidget: React.FC<ElfsightWidgetProps> = ({ widgetId, platform, onLoad, onError }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    // Verificar si el widget ID es válido (no es el placeholder)
-    const isPlaceholder = widgetId.includes('a1b2c3d4') || widgetId.includes('b2c3d4e5');
-
-    if (isPlaceholder) {
-      setHasError(true);
-      onError?.();
-      return;
+const SocialMediaCard: React.FC<SocialMediaCardProps> = ({ profile, deviceInfo }) => {
+  const getPlatformGradient = () => {
+    switch (profile.platform) {
+      case 'facebook':
+        return 'linear-gradient(135deg, #1877F2 0%, #4267B2 100%)';
+      case 'instagram':
+        return 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)';
+      case 'tiktok':
+        return 'linear-gradient(135deg, #000000 0%, #25F4EE 50%, #FE2C55 100%)';
+      default:
+        return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
     }
+  };
 
-    // Dar tiempo para que el script de Elfsight se cargue
-    const checkElfsight = () => {
-      if ((window as any).eapps) {
-        setIsLoaded(true);
-        onLoad?.();
-        // Forzar re-renderizado del widget
-        (window as any).eapps.Apps?.init?.();
-      }
-    };
+  const getPlatformColor = () => {
+    switch (profile.platform) {
+      case 'facebook': return '#1877F2';
+      case 'instagram': return '#E4405F';
+      case 'tiktok': return '#000000';
+      default: return '#667eea';
+    }
+  };
 
-    // Verificar inmediatamente y luego cada 500ms
-    checkElfsight();
-    const interval = setInterval(checkElfsight, 500);
+  const getPlatformSecondaryColor = () => {
+    switch (profile.platform) {
+      case 'facebook': return '#4267B2';
+      case 'instagram': return '#833AB4';
+      case 'tiktok': return '#FE2C55';
+      default: return '#764ba2';
+    }
+  };
 
-    // Timeout después de 10 segundos
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      if (!isLoaded) {
-        setHasError(true);
-        onError?.();
-      }
-    }, 10000);
+  const getPreviewContent = () => {
+    const contentItems = profile.platform === 'tiktok'
+      ? ['Video campaña', 'Propuestas', 'Eventos', 'Comunidad', 'En vivo', 'Entrevista']
+      : ['Foto campaña', 'Evento', 'Propuesta', 'Comunidad', 'Noticia', 'Actividad'];
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [widgetId, onLoad, onError, isLoaded]);
+    return contentItems;
+  };
 
-  if (hasError) {
-    return null; // El componente padre mostrará el fallback
-  }
+  const handleCardClick = () => {
+    // En móvil, intentar abrir la app nativa primero
+    if (deviceInfo.isMobile && profile.appUrl) {
+      // Intentar deep link a la app
+      const start = Date.now();
+      window.location.href = profile.appUrl;
+
+      // Si después de 1.5 segundos sigue en la página, abrir el navegador
+      setTimeout(() => {
+        if (Date.now() - start < 2000) {
+          window.open(profile.profileUrl, '_blank');
+        }
+      }, 1500);
+    } else {
+      window.open(profile.profileUrl, '_blank');
+    }
+  };
 
   return (
-    <div
-      ref={containerRef}
-      className={`elfsight-widget-container elfsight-${platform}`}
+    <article
+      className={`social-media-card ${profile.platform}-card`}
     >
-      <div className={`elfsight-app-${widgetId}`} data-elfsight-app-lazy></div>
-    </div>
-  );
-};
-
-// ============================================
-// FACEBOOK PAGE PLUGIN COMPONENT
-// Mejorado con mejor UX y tamaño
-// ============================================
-
-const FacebookPageWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    const loadFacebookSDK = () => {
-      if (!(window as any).FB) {
-        const script = document.createElement('script');
-        script.src = 'https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v18.0';
-        script.async = true;
-        script.defer = true;
-        script.crossOrigin = 'anonymous';
-
-        script.onload = () => {
-          setIsLoading(false);
-          if ((window as any).FB) {
-            (window as any).FB.XFBML.parse();
-          }
-        };
-
-        script.onerror = () => {
-          setIsLoading(false);
-          setHasError(true);
-        };
-
-        document.body.appendChild(script);
-      } else {
-        setIsLoading(false);
-        (window as any).FB.XFBML.parse();
-      }
-    };
-
-    // Timeout para manejar bloqueo de SDK
-    const timeout = setTimeout(() => {
-      if (isLoading) {
-        setIsLoading(false);
-        setHasError(true);
-      }
-    }, 8000);
-
-    loadFacebookSDK();
-    return () => clearTimeout(timeout);
-  }, [isLoading]);
-
-  return (
-    <div className="featured-post-card facebook-card">
+      {/* Header con gradiente de la plataforma */}
       <div
-        className="post-platform-badge"
-        style={{ background: 'linear-gradient(135deg, #1877F2, #4267B2)' }}
+        className="card-header"
+        style={{ background: getPlatformGradient() }}
       >
-        <PlatformIcon platform="facebook" size={16} />
-        <span>{profile.label}</span>
+        <div className="card-header-pattern"></div>
+        <div className="platform-badge">
+          <PlatformIcon platform={profile.platform} size={18} />
+          <span>{profile.label}</span>
+        </div>
       </div>
 
-      {isLoading && (
-        <div className="post-loading">
-          <div className="post-loading-spinner" style={{ borderTopColor: '#1877F2' }}></div>
-          <span>Cargando Facebook...</span>
-        </div>
-      )}
-
-      {hasError ? (
-        <div className="profile-widget facebook-fallback">
-          <div className="profile-widget-header facebook-gradient">
-            <div className="profile-avatar facebook">
-              <PlatformIcon platform="facebook" size={48} />
-            </div>
-            <div className="profile-info">
-              <h3>{profile.displayName}</h3>
-              <p className="profile-username">@{profile.username}</p>
-            </div>
-          </div>
-
-          <div className="profile-widget-content">
-            <p className="profile-bio">{profile.bio}</p>
-
-            <div className="profile-stats-grid">
-              <div className="stat-box">
-                <span className="stat-number">{profile.followers}</span>
-                <span className="stat-label">Seguidores</span>
-              </div>
-              <div className="stat-box">
-                <span className="stat-number">{profile.posts}</span>
-                <span className="stat-label">Publicaciones</span>
-              </div>
-            </div>
-
-            <div className="profile-features">
-              <div className="feature-item">
-                <VerifiedIcon />
-                <span>Perfil verificado</span>
-              </div>
-              <div className="feature-item">
-                <UsersIcon />
-                <span>Comunidad activa</span>
-              </div>
-            </div>
-          </div>
-
-          <a
-            href={profile.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-cta-button facebook"
+      {/* Contenido principal */}
+      <div className="card-body">
+        {/* Avatar y info del perfil */}
+        <div className="profile-section">
+          <div
+            className="avatar-container"
+            style={{ borderColor: getPlatformColor() }}
           >
-            <PlatformIcon platform="facebook" size={20} />
-            <span>Visitar en Facebook</span>
-            <ExternalLinkIcon />
-          </a>
-        </div>
-      ) : (
-        <>
-          <div className="post-embed-container facebook-embed">
             <div
-              className="fb-page"
-              data-href={profile.profileUrl}
-              data-tabs="timeline"
-              data-width="500"
-              data-height="600"
-              data-small-header="false"
-              data-adapt-container-width="true"
-              data-hide-cover="false"
-              data-show-facepile="true"
+              className="avatar-inner"
+              style={{ background: getPlatformGradient() }}
             >
-              <blockquote cite={profile.profileUrl} className="fb-xfbml-parse-ignore">
-                <a href={profile.profileUrl} target="_blank" rel="noopener noreferrer">
-                  {profile.displayName}
-                </a>
-              </blockquote>
+              <span className="avatar-initials">JC</span>
             </div>
+            <div className="avatar-ring"></div>
           </div>
 
-          <a
-            href={profile.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-link-overlay"
-          >
-            <span>Ver perfil completo en Facebook</span>
-            <ExternalLinkIcon />
-          </a>
-        </>
-      )}
-    </div>
-  );
-};
+          <div className="profile-info">
+            <div className="profile-name-row">
+              <h3 className="profile-name">{profile.displayName}</h3>
+              <span
+                className="verified-badge"
+                style={{ background: getPlatformColor() }}
+              >
+                <VerifiedIcon />
+              </span>
+            </div>
+            <p className="profile-handle">@{profile.username}</p>
+          </div>
+        </div>
 
-// ============================================
-// INSTAGRAM PROFILE WIDGET - CON ELFSIGHT
-// Usa widget de Elfsight para mostrar feed real
-// ============================================
+        {/* Estadísticas */}
+        <div className="stats-row">
+          <div className="stat-item">
+            <span className="stat-value">{profile.posts}</span>
+            <span className="stat-label">
+              {profile.platform === 'tiktok' ? 'Videos' : 'Posts'}
+            </span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{profile.followers}</span>
+            <span className="stat-label">Seguidores</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">
+              {profile.platform === 'tiktok' ? '50K+' : '500+'}
+            </span>
+            <span className="stat-label">
+              {profile.platform === 'tiktok' ? 'Likes' : 'Siguiendo'}
+            </span>
+          </div>
+        </div>
 
-const InstagramProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
-  const [useElfsight, setUseElfsight] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+        {/* Bio */}
+        <p className="profile-bio">{profile.bio}</p>
 
-  const handleElfsightError = () => {
-    setUseElfsight(false);
-    setIsLoading(false);
-  };
+        {/* Preview Grid - Miniaturas simuladas */}
+        <div className="preview-section">
+          <div className="preview-header">
+            <span
+              className="preview-icon"
+              style={{ color: getPlatformColor() }}
+            >
+              {profile.platform === 'tiktok' ? <PlayIcon /> : <GridIcon />}
+            </span>
+            <span className="preview-title">
+              {profile.platform === 'tiktok' ? 'Últimos Videos' : 'Publicaciones Recientes'}
+            </span>
+          </div>
 
-  const handleElfsightLoad = () => {
-    setIsLoading(false);
-  };
+          <div className="preview-grid">
+            {getPreviewContent().map((item, index) => (
+              <div
+                key={index}
+                className={`preview-item ${profile.platform}-preview-item`}
+                style={{
+                  animationDelay: `${index * 0.1}s`,
+                  background: `linear-gradient(${135 + index * 15}deg,
+                    ${getPlatformColor()}15,
+                    ${getPlatformSecondaryColor()}25)`
+                }}
+                onClick={handleCardClick}
+              >
+                <div className="preview-content">
+                  {profile.platform === 'tiktok' && (
+                    <div className="play-overlay">
+                      <PlayIcon />
+                    </div>
+                  )}
+                  <div className="preview-hover-info">
+                    <div className="hover-stat">
+                      <HeartIcon />
+                      <span>{Math.floor(Math.random() * 900 + 100)}</span>
+                    </div>
+                    <div className="hover-stat">
+                      <CommentIcon />
+                      <span>{Math.floor(Math.random() * 50 + 10)}</span>
+                    </div>
+                  </div>
+                </div>
+                <span className="preview-label">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-  return (
-    <div className="featured-post-card instagram-card">
-      <div
-        className="post-platform-badge"
-        style={{ background: 'linear-gradient(45deg, #405DE6, #833AB4, #C13584, #E1306C, #FD1D1D)' }}
-      >
-        <PlatformIcon platform="instagram" size={16} />
-        <span>{profile.label}</span>
+        {/* Engagement indicators */}
+        <div className="engagement-row">
+          <div className="engagement-item">
+            <HeartIcon />
+            <span>Likes</span>
+          </div>
+          <div className="engagement-item">
+            <CommentIcon />
+            <span>Comentarios</span>
+          </div>
+          <div className="engagement-item">
+            <ShareIcon />
+            <span>Compartir</span>
+          </div>
+        </div>
       </div>
 
-      {isLoading && useElfsight && (
-        <div className="post-loading">
-          <div className="post-loading-spinner" style={{ borderTopColor: '#E1306C' }}></div>
-          <span>Cargando Instagram...</span>
-        </div>
-      )}
-
-      {useElfsight ? (
-        <div className="elfsight-wrapper">
-          <ElfsightWidget
-            widgetId={ELFSIGHT_CONFIG.instagram}
-            platform="instagram"
-            onLoad={handleElfsightLoad}
-            onError={handleElfsightError}
-          />
-          <a
-            href={profile.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-link-overlay"
-          >
-            <span>Ver perfil completo en Instagram</span>
-            <ExternalLinkIcon />
-          </a>
-        </div>
-      ) : (
-        <div className="profile-widget">
-          {/* Header con avatar y stats */}
-          <div className="profile-widget-header instagram-gradient">
-            <div className="profile-avatar instagram-avatar">
-              <div className="avatar-ring">
-                <span className="avatar-initials">JC</span>
-              </div>
-            </div>
-            <div className="profile-header-stats">
-              <div className="stat-column">
-                <span className="stat-value">{profile.posts}</span>
-                <span className="stat-name">Posts</span>
-              </div>
-              <div className="stat-column">
-                <span className="stat-value">{profile.followers}</span>
-                <span className="stat-name">Seguidores</span>
-              </div>
-              <div className="stat-column">
-                <span className="stat-value">500+</span>
-                <span className="stat-name">Siguiendo</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Info del perfil */}
-          <div className="profile-details">
-            <h3 className="profile-name">{profile.displayName}</h3>
-            <p className="profile-handle">@{profile.username}</p>
-            <p className="profile-bio">{profile.bio}</p>
-          </div>
-
-          {/* Mensaje de configuración de Elfsight */}
-          <div className="elfsight-setup-notice">
-            <div className="setup-icon">
-              <GridIcon />
-            </div>
-            <h4>Configurar Feed de Instagram</h4>
-            <p>Para mostrar el feed real de Instagram:</p>
-            <ol>
-              <li>Crear cuenta gratuita en <a href="https://elfsight.com" target="_blank" rel="noopener noreferrer">Elfsight.com</a></li>
-              <li>Crear widget "Instagram Feed"</li>
-              <li>Conectar la cuenta @{profile.username}</li>
-              <li>Copiar el ID del widget</li>
-              <li>Actualizar <code>ELFSIGHT_CONFIG.instagram</code></li>
-            </ol>
-          </div>
-
-          <a
-            href={profile.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-cta-button instagram"
-          >
-            <PlatformIcon platform="instagram" size={20} />
-            <span>Seguir en Instagram</span>
-            <ExternalLinkIcon />
-          </a>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ============================================
-// TIKTOK PROFILE WIDGET - CON ELFSIGHT
-// Usa widget de Elfsight para mostrar feed real
-// ============================================
-
-const TikTokProfileWidget: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
-  const [useElfsight, setUseElfsight] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const handleElfsightError = () => {
-    setUseElfsight(false);
-    setIsLoading(false);
-  };
-
-  const handleElfsightLoad = () => {
-    setIsLoading(false);
-  };
-
-  return (
-    <div className="featured-post-card tiktok-card">
-      <div
-        className="post-platform-badge"
-        style={{ background: 'linear-gradient(135deg, #000000, #25F4EE, #FE2C55)' }}
+      {/* CTA Button */}
+      <a
+        href={profile.profileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="card-cta"
+        style={{ background: getPlatformGradient() }}
+        onClick={(e) => {
+          if (deviceInfo.isMobile && profile.appUrl) {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
       >
-        <PlatformIcon platform="tiktok" size={16} />
-        <span>{profile.label}</span>
-      </div>
+        <PlatformIcon platform={profile.platform} size={20} />
+        <span>
+          {deviceInfo.isMobile
+            ? `Abrir en ${profile.label}`
+            : `Seguir en ${profile.label}`}
+        </span>
+        <ExternalLinkIcon />
+      </a>
 
-      {isLoading && useElfsight && (
-        <div className="post-loading">
-          <div className="post-loading-spinner" style={{ borderTopColor: '#FE2C55' }}></div>
-          <span>Cargando TikTok...</span>
+      {/* Mobile hint */}
+      {deviceInfo.isMobile && (
+        <div className="mobile-hint">
+          <span>Toca para ver en la app</span>
         </div>
       )}
-
-      {useElfsight ? (
-        <div className="elfsight-wrapper">
-          <ElfsightWidget
-            widgetId={ELFSIGHT_CONFIG.tiktok}
-            platform="tiktok"
-            onLoad={handleElfsightLoad}
-            onError={handleElfsightError}
-          />
-          <a
-            href={profile.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-link-overlay"
-          >
-            <span>Ver perfil completo en TikTok</span>
-            <ExternalLinkIcon />
-          </a>
-        </div>
-      ) : (
-        <div className="profile-widget">
-          {/* Header con avatar y stats */}
-          <div className="profile-widget-header tiktok-gradient">
-            <div className="profile-avatar tiktok-avatar">
-              <div className="avatar-ring tiktok-ring">
-                <span className="avatar-initials">JC</span>
-              </div>
-            </div>
-            <div className="profile-header-stats tiktok-stats">
-              <div className="stat-column">
-                <span className="stat-value">{profile.followers}</span>
-                <span className="stat-name">Seguidores</span>
-              </div>
-              <div className="stat-column">
-                <span className="stat-value">50K+</span>
-                <span className="stat-name">Me gusta</span>
-              </div>
-              <div className="stat-column">
-                <span className="stat-value">{profile.posts}</span>
-                <span className="stat-name">Videos</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Info del perfil */}
-          <div className="profile-details tiktok-details">
-            <h3 className="profile-name">{profile.displayName}</h3>
-            <p className="profile-handle">@{profile.username}</p>
-            <p className="profile-bio">{profile.bio}</p>
-          </div>
-
-          {/* Mensaje de configuración de Elfsight */}
-          <div className="elfsight-setup-notice tiktok-setup">
-            <div className="setup-icon">
-              <PlayIcon />
-            </div>
-            <h4>Configurar Feed de TikTok</h4>
-            <p>Para mostrar el feed real de TikTok:</p>
-            <ol>
-              <li>Crear cuenta gratuita en <a href="https://elfsight.com" target="_blank" rel="noopener noreferrer">Elfsight.com</a></li>
-              <li>Crear widget "TikTok Feed"</li>
-              <li>Conectar la cuenta @{profile.username}</li>
-              <li>Copiar el ID del widget</li>
-              <li>Actualizar <code>ELFSIGHT_CONFIG.tiktok</code></li>
-            </ol>
-          </div>
-
-          <a
-            href={profile.profileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-cta-button tiktok"
-          >
-            <PlatformIcon platform="tiktok" size={20} />
-            <span>Seguir en TikTok</span>
-            <ExternalLinkIcon />
-          </a>
-        </div>
-      )}
-    </div>
+    </article>
   );
-};
-
-// ============================================
-// PROFILE CARD RENDERER
-// ============================================
-
-const ProfileCard: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
-  switch (profile.platform) {
-    case 'facebook':
-      return <FacebookPageWidget profile={profile} />;
-    case 'instagram':
-      return <InstagramProfileWidget profile={profile} />;
-    case 'tiktok':
-      return <TikTokProfileWidget profile={profile} />;
-    default:
-      return null;
-  }
 };
 
 // ============================================
@@ -609,6 +410,8 @@ const ProfileCard: React.FC<{ profile: SocialProfile }> = ({ profile }) => {
 // ============================================
 
 const FeaturedPosts: React.FC = () => {
+  const deviceInfo = useDeviceDetection();
+
   return (
     <section id="publicaciones" className="featured-posts">
       <div className="featured-posts-container">
@@ -618,24 +421,33 @@ const FeaturedPosts: React.FC = () => {
             <span className="live-indicator"></span>
             <span>Redes Sociales Oficiales</span>
           </div>
-          <h2>Siguenos en Redes Sociales</h2>
-          <p>Mantente informado sobre nuestras propuestas, eventos y actividades de campana</p>
+          <h2>Síguenos en Redes Sociales</h2>
+          <p>Mantente informado sobre nuestras propuestas, eventos y actividades de campaña</p>
+          {deviceInfo.isMobile && (
+            <p className="mobile-notice">
+              Toca en cualquier tarjeta para abrir directamente en la app
+            </p>
+          )}
         </header>
 
-        {/* Profiles Grid */}
-        <div className="featured-posts-grid three-columns">
+        {/* Social Cards Grid */}
+        <div className="social-cards-grid">
           {socialProfiles.map((profile) => (
-            <ProfileCard key={profile.id} profile={profile} />
+            <SocialMediaCard
+              key={profile.id}
+              profile={profile}
+              deviceInfo={deviceInfo}
+            />
           ))}
         </div>
 
-        {/* CTA Section */}
-        <div className="featured-posts-cta">
+        {/* Quick Links */}
+        <div className="quick-links">
           <a
             href="https://www.facebook.com/jairo.cala.50"
             target="_blank"
             rel="noopener noreferrer"
-            className="cta-social-btn facebook"
+            className="quick-link facebook"
           >
             <PlatformIcon platform="facebook" size={20} />
             <span>Facebook</span>
@@ -644,7 +456,7 @@ const FeaturedPosts: React.FC = () => {
             href="https://www.instagram.com/jairocalasantander"
             target="_blank"
             rel="noopener noreferrer"
-            className="cta-social-btn instagram"
+            className="quick-link instagram"
           >
             <PlatformIcon platform="instagram" size={20} />
             <span>Instagram</span>
@@ -653,7 +465,7 @@ const FeaturedPosts: React.FC = () => {
             href="https://www.tiktok.com/@jairocalacomunes"
             target="_blank"
             rel="noopener noreferrer"
-            className="cta-social-btn tiktok"
+            className="quick-link tiktok"
           >
             <PlatformIcon platform="tiktok" size={20} />
             <span>TikTok</span>
