@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6600;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF8C00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#CC5500;stop-opacity:1" />
+    </linearGradient>
+    <pattern id="pattern" patternUnits="userSpaceOnUse" width="100" height="100">
+      <circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#heroGrad)"/>
+  <rect width="100%" height="100%" fill="url(#pattern)"/>
+  <!-- Silhouette placeholder for candidate photo -->
+  <g transform="translate(960, 540)">
+    <circle cx="0" cy="-200" r="150" fill="rgba(255,255,255,0.15)"/>
+    <ellipse cx="0" cy="100" rx="200" ry="250" fill="rgba(255,255,255,0.1)"/>
+  </g>
+  <!-- Decorative elements -->
+  <circle cx="200" cy="200" r="300" fill="rgba(255,255,255,0.05)"/>
+  <circle cx="1700" cy="800" r="400" fill="rgba(255,255,255,0.03)"/>
+</svg>
