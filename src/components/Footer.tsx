@@ -48,9 +48,12 @@ const Footer: React.FC = () => {
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-content">
-          <div className="footer-section">
-            <h3>FUERZA CIUDADANA</h3>
-            <p>La Fuerza del Cambio</p>
+          <div className="footer-section footer-brand">
+            <img src="/fclogo.jpg" alt="Logo Fuerza Ciudadana" className="footer-logo" />
+            <div>
+              <h3>FUERZA CIUDADANA</h3>
+              <p>La Fuerza del Cambio</p>
+            </div>
           </div>
           <div className="footer-section">
             <h4>Jairo Reinaldo Cala Suárez</h4>

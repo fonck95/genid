@@ -95,6 +95,7 @@ const Header: React.FC = () => {
               className="logo-button"
               aria-label="Ir al inicio"
             >
+              <img src="/logomarca.png" alt="Fuerza Ciudadana" className="logo-image" />
               <h1>FUERZA CIUDADANA</h1>
             </button>
           </div>
