@@ -56,6 +56,17 @@
   outline-offset: 2px;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-image {
+  height: 45px;
+  width: auto;
+}
+
 .logo h1 {
   color: #FF6600;
   font-size: 1.25rem;
@@ -397,5 +408,9 @@
   .nav-mobile-link:hover {
     background-color: #FF6600;
     color: #FFFFFF;
+  }
+
+  .logo-image {
+    height: 35px;
   }
 }
