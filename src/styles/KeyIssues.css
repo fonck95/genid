@@ -56,6 +56,60 @@
   line-height: 1.7;
 }
 
+.subsection-title {
+  font-size: 1.8rem;
+  color: #FF6600;
+  text-align: center;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.ponencias-section {
+  background: linear-gradient(135deg, #FF6600 0%, #FF8C00 100%);
+  padding: 2.5rem;
+  border-radius: 15px;
+  margin: 3rem 0;
+  text-align: center;
+}
+
+.ponencias-text {
+  font-size: 1.2rem;
+  color: #FFFFFF;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.ponencias-text.recognition {
+  font-size: 1.4rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.issues-grid.compact {
+  margin-top: 2rem;
+}
+
+.issue-card.compact {
+  padding: 1.5rem;
+}
+
+.issue-card.compact .issue-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.issue-card.compact .issue-title {
+  font-size: 1.2rem;
+}
+
+.issue-card.compact .issue-description {
+  font-size: 1rem;
+}
+
 @media (max-width: 768px) {
   .key-issues {
     padding: 4rem 1.5rem;

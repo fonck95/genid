@@ -15,11 +15,6 @@
   margin-top: 3rem;
 }
 
-.contact-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
 
 .contact-item {
   display: flex;
@@ -46,6 +41,29 @@
   font-size: 1.1rem;
   color: #333333;
   margin: 0;
+}
+
+.contact-item p a {
+  color: #FF6600;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-item p a:hover {
+  color: #FF8C00;
+  text-decoration: underline;
+}
+
+.contact-subtext {
+  font-size: 0.95rem !important;
+  color: #666666 !important;
+  margin-top: 0.3rem !important;
+}
+
+.contact-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .contact-cta {

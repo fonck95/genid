@@ -14,8 +14,37 @@ const Contact: React.FC = () => {
             <div className="contact-item">
               <div className="contact-icon">📍</div>
               <div>
-                <h3>Ubicación</h3>
-                <p>Santander, Colombia</p>
+                <h3>Oficina</h3>
+                <p>Carrera 18 # 36-24, piso último</p>
+                <p className="contact-subtext">Bucaramanga, Santander</p>
+              </div>
+            </div>
+            <div className="contact-item">
+              <div className="contact-icon">📧</div>
+              <div>
+                <h3>Correo Oficial</h3>
+                <p><a href="mailto:jairo.cala@camara.gov.co">jairo.cala@camara.gov.co</a></p>
+              </div>
+            </div>
+            <div className="contact-item">
+              <div className="contact-icon">📨</div>
+              <div>
+                <h3>Prensa</h3>
+                <p><a href="mailto:prensajairocalaquintero@gmail.com">prensajairocalaquintero@gmail.com</a></p>
+              </div>
+            </div>
+            <div className="contact-item">
+              <div className="contact-icon">📞</div>
+              <div>
+                <h3>Teléfono</h3>
+                <p><a href="tel:+573232257591">323 225 7591</a></p>
+              </div>
+            </div>
+            <div className="contact-item">
+              <div className="contact-icon">🌐</div>
+              <div>
+                <h3>Sitio Web</h3>
+                <p><a href="https://jairocala.co/" target="_blank" rel="noopener noreferrer">jairocala.co</a></p>
               </div>
             </div>
             <div className="contact-item">
