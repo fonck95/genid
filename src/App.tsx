@@ -1,10 +1,9 @@
 import Header from './components/Header';
 import Hero from './components/Hero';
-import FeaturedPosts from './components/FeaturedPosts';
+import SocialFeedEmbed from './components/SocialFeedEmbed';
 import About from './components/About';
 import KeyIssues from './components/KeyIssues';
 import CampaignGallery from './components/CampaignGallery';
-import SocialFeed from './components/SocialFeed';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import './App.css';
@@ -15,11 +14,10 @@ function App() {
       <Header />
       <main>
         <Hero />
-        <FeaturedPosts />
+        <SocialFeedEmbed />
         <About />
         <KeyIssues />
         <CampaignGallery />
-        <SocialFeed />
         <Contact />
       </main>
       <Footer />
