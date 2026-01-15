@@ -67,6 +67,7 @@
 }
 
 .hero-overlay {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -152,6 +153,7 @@
   margin: 0 0 0.5rem 0;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  opacity: 0.95;
 }
 
 .hero-district {
@@ -225,6 +227,14 @@
   box-shadow: 0 8px 25px rgba(255, 102, 0, 0.5);
 }
 
+.cta-button.primary svg {
+  transition: transform 0.3s ease;
+}
+
+.cta-button.primary:hover svg {
+  transform: translateX(5px);
+}
+
 .cta-button.secondary {
   background: transparent;
   color: #FFFFFF;
@@ -237,6 +247,41 @@
   border-color: #FF6600;
   color: #FF8C00;
   transform: translateY(-3px);
+}
+
+/* Scroll indicator */
+.hero-scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  opacity: 0.8;
+  z-index: 10;
+  animation: bounce 2s infinite;
+}
+
+.hero-scroll-indicator span {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.scroll-arrow {
+  animation: scrollBounce 1.5s infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
 }
 
 @keyframes fadeInUp {
@@ -261,7 +306,7 @@
   }
 
   .hero-subtitle {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
   .hero-slogan {
