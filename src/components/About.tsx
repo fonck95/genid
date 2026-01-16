@@ -1,4 +1,5 @@
 import React from 'react';
+import OptimizedImage from './OptimizedImage';
 import '../styles/About.css';
 
 const About: React.FC = () => {
@@ -7,15 +8,39 @@ const About: React.FC = () => {
       <div className="about-container">
         <h2 className="section-title">Presentación</h2>
         <div className="about-content">
-          {/* Photo Gallery */}
+          {/* Photo Gallery - Imagenes optimizadas con WebGPU upscaling */}
           <div className="about-gallery">
             <div className="gallery-main">
-              <img src="/jairo1.png" alt="Jairo Cala en campaña" className="gallery-image main" />
+              <OptimizedImage
+                src="/jairo1.png"
+                alt="Jairo Cala en campana"
+                className="gallery-image-container main"
+                scaleFactor={2}
+                objectFit="cover"
+              />
             </div>
             <div className="gallery-secondary">
-              <img src="/jairo2.png" alt="Jairo Cala con la comunidad" className="gallery-image" />
-              <img src="/jairo3.png" alt="Jairo Cala en evento" className="gallery-image" />
-              <img src="/caricatura.png" alt="Caricatura de Jairo Cala" className="gallery-image caricatura" />
+              <OptimizedImage
+                src="/jairo2.png"
+                alt="Jairo Cala con la comunidad"
+                className="gallery-image-container"
+                scaleFactor={2}
+                objectFit="cover"
+              />
+              <OptimizedImage
+                src="/jairo3.png"
+                alt="Jairo Cala en evento"
+                className="gallery-image-container"
+                scaleFactor={2}
+                objectFit="cover"
+              />
+              <OptimizedImage
+                src="/caricatura.png"
+                alt="Caricatura de Jairo Cala"
+                className="gallery-image-container caricatura"
+                scaleFactor={2}
+                objectFit="cover"
+              />
             </div>
           </div>
 

@@ -10,7 +10,14 @@ interface OptimizedImageProps {
   objectFit?: 'cover' | 'contain' | 'fill' | 'none';
   priority?: boolean;
   showUpscaleIndicator?: boolean;
+  useWebP?: boolean;
 }
+
+// Helper to get WebP version of an image
+const getWebPSrc = (src: string): string => {
+  if (src.endsWith('.webp')) return src;
+  return src.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+};
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
@@ -20,11 +27,16 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   objectFit = 'cover',
   priority = false,
   showUpscaleIndicator = false,
+  useWebP = true,
 }) => {
   const [originalLoaded, setOriginalLoaded] = useState(false);
   const [showUpscaled, setShowUpscaled] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Usar WebP si está disponible
+  const imageSrc = useWebP ? getWebPSrc(src) : src;
+  const fallbackSrc = src;
 
   // Intersection Observer para lazy loading
   useEffect(() => {
@@ -49,7 +61,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Solo iniciar upscaling cuando la imagen esté en vista
   const { canvasRef, isLoading, isSupported, error } = useWebGPUUpscale(
-    isInView ? src : '',
+    isInView ? imageSrc : '',
     { scaleFactor, sharpness: 0.5 }
   );
 
@@ -85,13 +97,16 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
       {/* Imagen original (comprimida) - se mantiene visible para evitar flickering */}
       {isInView && (
-        <img
-          src={src}
-          alt={alt}
-          className={`optimized-image-original ${originalLoaded ? 'loaded' : ''}`}
-          onLoad={handleOriginalLoad}
-          loading={priority ? 'eager' : 'lazy'}
-        />
+        <picture>
+          {useWebP && <source srcSet={imageSrc} type="image/webp" />}
+          <img
+            src={fallbackSrc}
+            alt={alt}
+            className={`optimized-image-original ${originalLoaded ? 'loaded' : ''}`}
+            onLoad={handleOriginalLoad}
+            loading={priority ? 'eager' : 'lazy'}
+          />
+        </picture>
       )}
 
       {/* Canvas con imagen upscaled usando WebGPU/Canvas2D */}

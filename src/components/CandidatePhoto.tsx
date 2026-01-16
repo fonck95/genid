@@ -6,6 +6,12 @@ interface CandidatePhotoProps {
   alt: string;
 }
 
+// Helper to get WebP version of an image
+const getWebPSrc = (src: string): string => {
+  if (src.endsWith('.webp')) return src;
+  return src.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+};
+
 const CandidatePhoto: React.FC<CandidatePhotoProps> = ({ src, alt }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -29,15 +35,18 @@ const CandidatePhoto: React.FC<CandidatePhotoProps> = ({ src, alt }) => {
         )}
 
         {!hasError ? (
-          <img
-            src={src}
-            alt={alt}
-            className={`candidate-photo ${isLoaded ? 'visible' : ''}`}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-            loading="eager"
-            draggable={false}
-          />
+          <picture>
+            <source srcSet={getWebPSrc(src)} type="image/webp" />
+            <img
+              src={src}
+              alt={alt}
+              className={`candidate-photo ${isLoaded ? 'visible' : ''}`}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              loading="eager"
+              draggable={false}
+            />
+          </picture>
         ) : (
           <div className="candidate-photo-error">
             <span className="error-icon">📷</span>
