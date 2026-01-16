@@ -9,8 +9,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'publicaciones', label: 'Publicaciones' },
-  { id: 'biografia', label: 'Biografía' },
-  { id: 'propuestas', label: 'Propuestas' },
+  { id: 'biografia', label: 'Presentación' },
+  { id: 'propuestas', label: 'Iniciativas' },
   { id: 'galeria', label: 'Galería' },
   { id: 'contacto', label: 'Contacto' },
 ];
