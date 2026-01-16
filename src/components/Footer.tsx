@@ -49,7 +49,10 @@ const Footer: React.FC = () => {
       <div className="footer-container">
         <div className="footer-content">
           <div className="footer-section footer-brand">
-            <img src="/fclogo.jpg" alt="Logo Fuerza Ciudadana" className="footer-logo" />
+            <picture>
+              <source srcSet="/fclogo.webp" type="image/webp" />
+              <img src="/fclogo.jpg" alt="Logo Fuerza Ciudadana" className="footer-logo" />
+            </picture>
             <div>
               <h3>FUERZA CIUDADANA</h3>
               <p>La Fuerza del Cambio</p>
