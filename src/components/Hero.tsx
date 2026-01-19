@@ -1,60 +1,53 @@
-import React from 'react';
+import { noticias } from '../data/noticias';
 import OptimizedImage from './OptimizedImage';
-import CandidatePhoto from './CandidatePhoto';
 import '../styles/Hero.css';
 
-const Hero: React.FC = () => {
+const Hero = () => {
+  const noticiasDestacadas = noticias.filter(n => n.destacada).slice(0, 3);
+  const noticiasPrincipal = noticiasDestacadas[0];
+  const noticiasSecundarias = noticiasDestacadas.slice(1, 3);
+
   return (
     <section id="inicio" className="hero">
-      {/* Imagen de fondo optimizada con WebGPU upscaling */}
-      <div className="hero-background">
-        <OptimizedImage
-          src="/jairo2.png"
-          alt="Jairo Reinaldo Cala Suárez en campaña"
-          scaleFactor={2.5}
-          objectFit="cover"
-          priority={true}
-        />
-      </div>
-
-      <div className="hero-overlay">
-        <div className="hero-content">
-          <div className="hero-photo-section">
-            <CandidatePhoto
-              src="/jairoprofile.png"
-              alt="Jairo Reinaldo Cala Suárez - Candidato a la Cámara de Representantes"
-            />
-          </div>
-          <div className="hero-text-section">
-            <h1 className="hero-title">JAIRO REINALDO CALA SUÁREZ</h1>
-            <h2 className="hero-subtitle">Candidato a la Cámara de Representantes</h2>
-            <p className="hero-district">Santander 101</p>
-            <p className="hero-slogan">La Fuerza del Cambio</p>
-            <div className="hero-cta">
-              <button
-                className="cta-button primary"
-                onClick={() => document.getElementById('propuestas')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                Conoce mis Propuestas
-              </button>
-              <button
-                className="cta-button secondary"
-                onClick={() => document.getElementById('biografia')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                Mi Trayectoria
-              </button>
+      <div className="hero-container">
+        <div className="hero-main">
+          <article className="hero-featured">
+            <div className="hero-featured-image">
+              <OptimizedImage
+                src={noticiasPrincipal.imagen}
+                alt={noticiasPrincipal.titulo}
+                scaleFactor={2}
+                objectFit="cover"
+                priority={true}
+              />
+              <div className="hero-featured-overlay">
+                <span className="badge badge-red">{noticiasPrincipal.categoria}</span>
+                <h1 className="hero-featured-title">{noticiasPrincipal.titulo}</h1>
+                <p className="hero-featured-subtitle">{noticiasPrincipal.subtitulo}</p>
+                <span className="hero-featured-date">{noticiasPrincipal.fecha}</span>
+              </div>
             </div>
-          </div>
+          </article>
         </div>
-      </div>
 
-      {/* Scroll indicator */}
-      <div className="hero-scroll-indicator">
-        <span>Descubre más</span>
-        <div className="scroll-arrow">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-          </svg>
+        <div className="hero-sidebar">
+          {noticiasSecundarias.map((noticia) => (
+            <article key={noticia.id} className="hero-secondary">
+              <div className="hero-secondary-image">
+                <OptimizedImage
+                  src={noticia.imagen}
+                  alt={noticia.titulo}
+                  scaleFactor={1.5}
+                  objectFit="cover"
+                />
+              </div>
+              <div className="hero-secondary-content">
+                <span className="badge badge-blue">{noticia.categoria}</span>
+                <h2 className="hero-secondary-title">{noticia.titulo}</h2>
+                <span className="hero-secondary-date">{noticia.fecha}</span>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
