@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Berraquera Santandereana</title>
+    <link>https://www.berraquera.co</link>
+    <description>Medio digital de noticias de Bucaramanga, el Área Metropolitana y todo el departamento de Santander, Colombia. Información veraz, oportuna e independiente.</description>
+    <language>es-co</language>
+    <copyright>Copyright 2026 Berraquera Santandereana. Todos los derechos reservados.</copyright>
+    <managingEditor>contacto@berraquera.co (Berraquera Santandereana)</managingEditor>
+    <webMaster>contacto@berraquera.co (Berraquera Santandereana)</webMaster>
+    <pubDate>Sun, 19 Jan 2026 00:00:00 -0500</pubDate>
+    <lastBuildDate>Sun, 19 Jan 2026 00:00:00 -0500</lastBuildDate>
+    <category>News</category>
+    <category>Regional News</category>
+    <category>Colombia</category>
+    <category>Santander</category>
+    <generator>Berraquera Santandereana CMS</generator>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <ttl>60</ttl>
+    <image>
+      <url>https://www.berraquera.co/logo.png</url>
+      <title>Berraquera Santandereana</title>
+      <link>https://www.berraquera.co</link>
+      <width>144</width>
+      <height>40</height>
+    </image>
+    <atom:link href="https://www.berraquera.co/rss.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Crisis de gobernabilidad electoral marcó a Girón</title>
+      <link>https://www.berraquera.co/#noticia-1</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-1</guid>
+      <description>Elecciones atípicas tras anulación del mandato por doble militancia política. 131.355 ciudadanos habilitados participaron en 357 mesas electorales.</description>
+      <content:encoded><![CDATA[<p>El 18 de enero de 2026, los habitantes de Girón acudieron a las urnas en unas elecciones atípicas convocadas tras la anulación del mandato de Campo Elías Ramírez por el Consejo de Estado. La causal: doble militancia política, al haber obtenido el aval de la Liga de Gobernantes Anticorrupción mientras apoyaba públicamente candidatos al Concejo por el partido MAIS.</p><p>Un total de 131.355 ciudadanos habilitados pudieron ejercer su derecho al voto en 357 mesas electorales distribuidas en 39 puestos de votación. Seis candidatos disputaron la alcaldía, entre ellos Óscar Enrique Álvarez Ascanio, propietario del Atlético Bucaramanga, quien se presentó con el aval del Nuevo Liberalismo.</p>]]></content:encoded>
+      <category>Política</category>
+      <pubDate>Sat, 18 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/eleccions.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/eleccions.webp"/>
+    </item>
+
+    <item>
+      <title>Contratos de megacolegios en Girón generan denuncias por $192.000 millones</title>
+      <link>https://www.berraquera.co/#noticia-2</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-2</guid>
+      <description>Sindicato de Educadores denuncia irregularidades en adjudicación a corporación sin experiencia.</description>
+      <content:encoded><![CDATA[<p>El Sindicato de Educadores de Santander formalizó denuncias ante la Contraloría General, la Fiscalía General de la Nación y la Procuraduría por presuntas irregularidades en la adjudicación de tres contratos que entregan por 12 años la operación de los megacolegios Mario Morales Delgado, Gabriel García Márquez y Nuestra Señora de Belén a la Corporación Crecer Educados, entidad privada con sede en Cúcuta. El monto total de los contratos supera los 192.000 millones de pesos.</p>]]></content:encoded>
+      <category>Educación</category>
+      <pubDate>Fri, 17 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/megacolegio.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/megacolegio.webp"/>
+    </item>
+
+    <item>
+      <title>César Loza: primer obrero en la junta directiva de Ecopetrol en 74 años</title>
+      <link>https://www.berraquera.co/#noticia-3</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-3</guid>
+      <description>Presidente de la USO fue elegido representante de los trabajadores con 1.724 votos.</description>
+      <content:encoded><![CDATA[<p>En un hecho sin precedentes para el sindicalismo colombiano, César Eduardo Loza, presidente de la Unión Sindical Obrera (USO), fue elegido representante de los trabajadores en la Junta Directiva de Ecopetrol. Loza obtuvo 1.724 votos, equivalentes al 28.6% de la participación, superando a 15 candidatos en una votación que contó con más de 6.000 sindicalizados habilitados.</p>]]></content:encoded>
+      <category>Economía</category>
+      <pubDate>Thu, 16 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/uso.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/uso.webp"/>
+    </item>
+
+    <item>
+      <title>Clan Aguilar busca reposicionamiento en el liberalismo hacia 2026</title>
+      <link>https://www.berraquera.co/#noticia-4</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-4</guid>
+      <description>Richard Aguilar aspira al Senado tras haber sido liberado por vencimiento de términos.</description>
+      <content:encoded><![CDATA[<p>Los hermanos Aguilar, figuras históricas del poder político santandereano, buscan recuperar su presencia en el Congreso. Richard Aguilar, quien fue capturado en 2021 por presunto peculado y concierto para delinquir y posteriormente liberado en 2022 por vencimiento de términos procesales, aspira ahora al Senado de la República con el aval del Partido Liberal.</p>]]></content:encoded>
+      <category>Política</category>
+      <pubDate>Fri, 17 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/aguilar.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/aguilar.webp"/>
+    </item>
+
+    <item>
+      <title>Sismo de magnitud 5.0 se sintió en el centro del país</title>
+      <link>https://www.berraquera.co/#noticia-5</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-5</guid>
+      <description>Epicentro localizado entre Los Santos y Piedecuesta, sin víctimas reportadas.</description>
+      <content:encoded><![CDATA[<p>A las 2:05 de la madrugada del 16 de enero de 2026, un movimiento telúrico de magnitud 5.0 en la escala de Richter sacudió el departamento de Santander. El epicentro fue localizado en la zona limítrofe entre los municipios de Los Santos y Piedecuesta, con una profundidad registrada de 149 kilómetros.</p>]]></content:encoded>
+      <category>Sucesos</category>
+      <pubDate>Thu, 16 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/sismo.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/sismo.webp"/>
+    </item>
+
+    <item>
+      <title>Bucaramanga invertirá $15.000 millones en sistema de seguridad con inteligencia artificial</title>
+      <link>https://www.berraquera.co/#noticia-6</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-6</guid>
+      <description>Plan incluye cámaras con IA, reconocimiento facial y lectores de placas.</description>
+      <content:encoded><![CDATA[<p>La Alcaldía de Bucaramanga, bajo la administración de Cristian Portilla, anunció la implementación de un plan tecnológico de seguridad urbana que contempla la instalación de cámaras equipadas con inteligencia artificial, sistemas de reconocimiento facial y lectores automáticos de placas vehiculares. La inversión proyectada asciende a 15.000 millones de pesos.</p>]]></content:encoded>
+      <category>Tecnología</category>
+      <pubDate>Fri, 17 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/IA.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/IA.webp"/>
+    </item>
+
+    <item>
+      <title>Santurbán: ausencia mediática en un contexto de conflicto latente</title>
+      <link>https://www.berraquera.co/#noticia-7</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-7</guid>
+      <description>Niveles de mercurio en el río Suratá superan 40 veces los límites internacionales.</description>
+      <content:encoded><![CDATA[<p>Aris Mining, empresa operadora del proyecto Soto Norte, tenía previsto presentar su solicitud de licencia ambiental ante la ANLA a inicios de 2026. Estudios técnicos han documentado que los niveles de mercurio en el río Suratá superan hasta 40 veces los límites establecidos por estándares internacionales como consecuencia de la minería ilegal.</p>]]></content:encoded>
+      <category>Ambiente</category>
+      <pubDate>Sat, 18 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/paramo.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/paramo.webp"/>
+    </item>
+
+    <item>
+      <title>Cuatro homicidios sacudieron a Santander en una sola noche</title>
+      <link>https://www.berraquera.co/#noticia-8</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-8</guid>
+      <description>Gobierno duplica recompensa por información sobre asesinos de patrullero.</description>
+      <content:encoded><![CDATA[<p>La jornada comprendida entre el 17 y el 18 de enero de 2026 registró un saldo de cuatro homicidios en diferentes puntos del departamento, configurando una de las noches más violentas del inicio del año. En Barrancabermeja, la Gobernación de Santander duplicó a 30 millones de pesos la recompensa por información sobre el asesinato del patrullero Hammer Guisseppe Martínez Sarmiento.</p>]]></content:encoded>
+      <category>Seguridad</category>
+      <pubDate>Sat, 18 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/4enunanoche.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/4enunanoche.webp"/>
+    </item>
+
+    <item>
+      <title>Emergencia ambiental: 15 manatíes muertos en la Ciénaga El Llanito</title>
+      <link>https://www.berraquera.co/#noticia-9</link>
+      <guid isPermaLink="true">https://www.berraquera.co/#noticia-9</guid>
+      <description>Contaminación por hidrocarburos amenaza especie en vía de extinción.</description>
+      <content:encoded><![CDATA[<p>Una de las noticias ambientales de mayor gravedad fue la detección de contaminación por hidrocarburos en la Ciénaga El Llanito, Barrancabermeja. Pescadores alertaron sobre la presencia de residuos petroleros y la muerte de al menos 15 manatíes antillanos (Trichechus manatus), especie en vía de extinción. Se convocó mesa técnica interinstitucional para el 20 de enero de 2026.</p>]]></content:encoded>
+      <category>Ambiente</category>
+      <pubDate>Sat, 18 Jan 2026 00:00:00 -0500</pubDate>
+      <dc:creator>Berraquera Santandereana</dc:creator>
+      <media:content url="https://www.berraquera.co/optimized/manati.webp" type="image/webp" medium="image"/>
+      <media:thumbnail url="https://www.berraquera.co/optimized/manati.webp"/>
+    </item>
+
+  </channel>
+</rss>

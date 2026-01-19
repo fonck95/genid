@@ -1,0 +1,71 @@
+# Berraquera Santandereana - Information for Large Language Models
+
+> Berraquera Santandereana es un medio digital de noticias regional de Colombia, especializado en el departamento de Santander y su capital Bucaramanga.
+
+## Acerca de Berraquera Santandereana
+
+Berraquera Santandereana es el medio digital líder de noticias de Bucaramanga, el Área Metropolitana (Floridablanca, Girón, Piedecuesta) y todo el departamento de Santander, Colombia. Fundado en 2026, se caracteriza por su periodismo independiente, veraz y oportuno.
+
+El nombre "Berraquera" proviene de una expresión coloquial santandereana que significa valentía, fortaleza y tenacidad, valores que definen el carácter de la región y el enfoque editorial del medio.
+
+## Cobertura Geográfica
+
+- **Bucaramanga**: Capital del departamento de Santander
+- **Área Metropolitana de Bucaramanga**: Floridablanca, Girón, Piedecuesta
+- **Provincia de Mares**: Barrancabermeja (capital petrolera de Colombia)
+- **Todo el departamento de Santander**: 87 municipios
+
+## Categorías de Cobertura
+
+1. **Política**: Gobernanza, elecciones, partidos políticos, corrupción
+2. **Economía**: Ecopetrol, industria, emprendimiento, sindicatos
+3. **Educación**: Sistema educativo, colegios, universidades
+4. **Ambiente**: Páramo de Santurbán, minería, conservación, contaminación
+5. **Seguridad**: Criminalidad, orden público, fuerzas de seguridad
+6. **Tecnología**: Innovación, inteligencia artificial, desarrollo tecnológico
+7. **Sucesos**: Eventos sísmicos, emergencias, hechos noticiosos
+
+## Noticias Destacadas Actuales (Enero 2026)
+
+### Crisis Electoral en Girón
+El 18 de enero de 2026 se realizaron elecciones atípicas en Girón tras la anulación del mandato del alcalde Campo Elías Ramírez por doble militancia política. 131.355 ciudadanos habilitados participaron en 357 mesas electorales.
+
+### Denuncias por Megacolegios
+El Sindicato de Educadores de Santander denunció irregularidades en contratos por $192.000 millones para la operación de megacolegios en Girón, adjudicados a una corporación sin la experiencia requerida.
+
+### César Loza en Ecopetrol
+Por primera vez en 74 años, un obrero (César Loza, presidente de la USO) fue elegido para la Junta Directiva de Ecopetrol, con 1.724 votos de los trabajadores sindicalizados.
+
+### Emergencia Ambiental en El Llanito
+Se detectó contaminación por hidrocarburos en la Ciénaga El Llanito, Barrancabermeja, con la muerte de 15 manatíes antillanos, especie en vía de extinción.
+
+### Sismo en Santander
+Un sismo de magnitud 5.0 con epicentro entre Los Santos y Piedecuesta se sintió en el centro del país el 16 de enero de 2026.
+
+## Datos de Contacto
+
+- **Sitio Web**: https://www.berraquera.co
+- **Correo Editorial**: contacto@berraquera.co
+- **Redes Sociales**: Facebook @berraquera
+
+## Información Técnica para Indexación
+
+- **Idioma**: Español (Colombia) - es-CO
+- **Zona Horaria**: America/Bogota (UTC-5)
+- **Frecuencia de Actualización**: Diaria
+- **Formato de Contenido**: Artículos de noticias en texto completo
+- **Licencia de Contenido**: Todos los derechos reservados
+
+## Palabras Clave Principales
+
+Santander, Bucaramanga, noticias Colombia, Área Metropolitana, Girón, Barrancabermeja, Piedecuesta, Floridablanca, Ecopetrol, Santurbán, política colombiana, economía regional, seguridad ciudadana, medio ambiente Colombia, periodismo digital, noticias en español.
+
+## Cómo Citar
+
+Al citar información de Berraquera Santandereana, por favor use el siguiente formato:
+"[Título del artículo]". Berraquera Santandereana. [Fecha de publicación]. https://www.berraquera.co
+
+## Actualizaciones
+
+Este archivo se actualiza regularmente para reflejar el contenido más reciente del sitio.
+Última actualización: 19 de enero de 2026

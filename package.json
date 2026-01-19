@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-seo": "node scripts/generate-seo-assets.js",
+    "prebuild": "npm run generate-seo"
   },
   "dependencies": {
     "react": "^19.2.0",

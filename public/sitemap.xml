@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://www.berraquera.co/</loc>
+    <lastmod>2026-01-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- News Section -->
+  <url>
+    <loc>https://www.berraquera.co/#noticias</loc>
+    <lastmod>2026-01-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Gallery Section -->
+  <url>
+    <loc>https://www.berraquera.co/#galeria</loc>
+    <lastmod>2026-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Social Section -->
+  <url>
+    <loc>https://www.berraquera.co/#redes</loc>
+    <lastmod>2026-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- News Articles with Google News Extension -->
+  <url>
+    <loc>https://www.berraquera.co/#noticia-1</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-18</news:publication_date>
+      <news:title>Crisis de gobernabilidad electoral marcó a Girón</news:title>
+      <news:keywords>Girón, elecciones, política, Santander, Colombia</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/eleccions.webp</image:loc>
+      <image:title>Elecciones atípicas en Girón</image:title>
+      <image:caption>Crisis de gobernabilidad electoral en Girón, Santander</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-2</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-17</news:publication_date>
+      <news:title>Contratos de megacolegios en Girón generan denuncias por $192.000 millones</news:title>
+      <news:keywords>megacolegios, educación, Girón, corrupción, Santander</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/megacolegio.webp</image:loc>
+      <image:title>Megacolegios en Girón</image:title>
+      <image:caption>Denuncias por contratos de megacolegios en Girón</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-3</loc>
+    <lastmod>2026-01-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-16</news:publication_date>
+      <news:title>César Loza: primer obrero en la junta directiva de Ecopetrol en 74 años</news:title>
+      <news:keywords>Ecopetrol, USO, sindicalismo, César Loza, Barrancabermeja</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/uso.webp</image:loc>
+      <image:title>César Loza en Ecopetrol</image:title>
+      <image:caption>Primer obrero en junta directiva de Ecopetrol</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-4</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-17</news:publication_date>
+      <news:title>Clan Aguilar busca reposicionamiento en el liberalismo hacia 2026</news:title>
+      <news:keywords>Clan Aguilar, política, Santander, liberalismo, Richard Aguilar</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/aguilar.webp</image:loc>
+      <image:title>Clan Aguilar</image:title>
+      <image:caption>Reposicionamiento político del Clan Aguilar</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-5</loc>
+    <lastmod>2026-01-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-16</news:publication_date>
+      <news:title>Sismo de magnitud 5.0 se sintió en el centro del país</news:title>
+      <news:keywords>sismo, terremoto, Santander, Los Santos, Piedecuesta</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/sismo.webp</image:loc>
+      <image:title>Sismo en Santander</image:title>
+      <image:caption>Sismo de magnitud 5.0 con epicentro en Santander</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-6</loc>
+    <lastmod>2026-01-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-17</news:publication_date>
+      <news:title>Bucaramanga invertirá $15.000 millones en sistema de seguridad con inteligencia artificial</news:title>
+      <news:keywords>inteligencia artificial, seguridad, Bucaramanga, cámaras, tecnología</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/IA.webp</image:loc>
+      <image:title>Sistema de seguridad con IA</image:title>
+      <image:caption>Plan de seguridad con IA en Bucaramanga</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-7</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-18</news:publication_date>
+      <news:title>Santurbán: ausencia mediática en un contexto de conflicto latente</news:title>
+      <news:keywords>Santurbán, páramo, minería, ambiente, mercurio</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/paramo.webp</image:loc>
+      <image:title>Páramo de Santurbán</image:title>
+      <image:caption>Conflicto ambiental en el Páramo de Santurbán</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-8</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-18</news:publication_date>
+      <news:title>Cuatro homicidios sacudieron a Santander en una sola noche</news:title>
+      <news:keywords>homicidios, seguridad, Bucaramanga, Barrancabermeja, violencia</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/4enunanoche.webp</image:loc>
+      <image:title>Homicidios en Santander</image:title>
+      <image:caption>Cuatro homicidios en una noche en Santander</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://www.berraquera.co/#noticia-9</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Berraquera Santandereana</news:name>
+        <news:language>es</news:language>
+      </news:publication>
+      <news:publication_date>2026-01-18</news:publication_date>
+      <news:title>Emergencia ambiental: 15 manatíes muertos en la Ciénaga El Llanito</news:title>
+      <news:keywords>manatíes, ambiente, Barrancabermeja, Ecopetrol, contaminación</news:keywords>
+    </news:news>
+    <image:image>
+      <image:loc>https://www.berraquera.co/optimized/manati.webp</image:loc>
+      <image:title>Manatíes muertos</image:title>
+      <image:caption>Emergencia ambiental en Ciénaga El Llanito</image:caption>
+    </image:image>
+  </url>
+
+</urlset>
