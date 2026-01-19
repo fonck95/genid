@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import '../styles/Header.css';
 
 interface NavItem {
@@ -8,18 +8,15 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'inicio', label: 'Inicio' },
-  { id: 'publicaciones', label: 'Publicaciones' },
-  { id: 'biografia', label: 'Presentación' },
-  { id: 'propuestas', label: 'Iniciativas' },
+  { id: 'noticias', label: 'Noticias' },
   { id: 'galeria', label: 'Galería' },
-  { id: 'contacto', label: 'Contacto' },
+  { id: 'redes', label: 'Redes' },
 ];
 
-const Header: React.FC = () => {
+const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Handle scroll effect for header shadow
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -29,7 +26,6 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Lock body scroll when menu is open
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -42,7 +38,6 @@ const Header: React.FC = () => {
     };
   }, [isMenuOpen]);
 
-  // Close menu on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isMenuOpen) {
@@ -54,7 +49,6 @@ const Header: React.FC = () => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isMenuOpen]);
 
-  // Close menu on window resize (when transitioning to desktop)
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768 && isMenuOpen) {
@@ -85,8 +79,33 @@ const Header: React.FC = () => {
     setIsMenuOpen(prev => !prev);
   }, []);
 
+  const currentDate = new Date().toLocaleDateString('es-CO', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
     <>
+      <div className="top-bar">
+        <div className="top-bar-container">
+          <span className="current-date">{currentDate}</span>
+          <div className="top-bar-links">
+            <a
+              href="https://www.facebook.com/profile.php?id=61586532852672"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
       <header className={`header ${isScrolled ? 'header--scrolled' : ''}`}>
         <div className="header-container">
           <div className="logo">
@@ -95,15 +114,13 @@ const Header: React.FC = () => {
               className="logo-button"
               aria-label="Ir al inicio"
             >
-              <picture>
-                <source srcSet="/logomarca.webp" type="image/webp" />
-                <img src="/logomarca.png" alt="Fuerza Ciudadana" className="logo-image" />
-              </picture>
-              <h1>FUERZA CIUDADANA</h1>
+              <div className="logo-text">
+                <span className="logo-main">Periódico</span>
+                <span className="logo-accent">Santander</span>
+              </div>
             </button>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="nav nav--desktop" aria-label="Navegación principal">
             {NAV_ITEMS.map((item) => (
               <button
@@ -116,7 +133,6 @@ const Header: React.FC = () => {
             ))}
           </nav>
 
-          {/* Mobile Menu Toggle */}
           <button
             className={`hamburger ${isMenuOpen ? 'hamburger--active' : ''}`}
             onClick={toggleMenu}
@@ -131,14 +147,12 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* Mobile Navigation Overlay */}
       <div
         className={`mobile-overlay ${isMenuOpen ? 'mobile-overlay--visible' : ''}`}
         onClick={() => setIsMenuOpen(false)}
         aria-hidden="true"
       />
 
-      {/* Mobile Navigation Menu */}
       <nav
         id="mobile-menu"
         className={`nav-mobile ${isMenuOpen ? 'nav-mobile--open' : ''}`}
