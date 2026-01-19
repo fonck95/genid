@@ -1,0 +1,141 @@
+/* ==========================================================================
+   Facebook Embed - Berraquera Santandereana
+   ========================================================================== */
+
+.facebook-section {
+  padding: 3rem 0;
+  background: var(--gray-50);
+}
+
+.facebook-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.facebook-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.facebook-info {
+  padding: 2rem 0;
+}
+
+.facebook-info p {
+  font-size: 1.1rem;
+  color: var(--gray-600);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.facebook-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: #1877f2;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.facebook-cta:hover {
+  background: #166fe5;
+  color: white;
+}
+
+/* Embed Wrapper */
+.facebook-embed-wrapper {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading */
+.facebook-loading {
+  text-align: center;
+  padding: 3rem;
+}
+
+.facebook-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--gray-200);
+  border-top-color: #1877f2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.facebook-loading p {
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}
+
+/* Fallback */
+.facebook-fallback {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray-600);
+}
+
+.facebook-fallback svg {
+  color: #1877f2;
+  margin-bottom: 1rem;
+}
+
+.facebook-fallback h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--gray-900);
+}
+
+.facebook-fallback p {
+  margin-bottom: 1.5rem;
+}
+
+.facebook-fallback-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #1877f2;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.facebook-fallback-btn:hover {
+  background: #166fe5;
+  color: white;
+}
+
+/* FB Page Plugin */
+.fb-page {
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .facebook-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .facebook-info {
+    padding: 0;
+  }
+}
