@@ -1,55 +1,20 @@
 /* ==========================================================================
-   Header Component Styles - Portal de Noticias Santander
+   Header Component Styles
+   Professional mobile-first responsive navigation
    ========================================================================== */
-
-/* Top Bar */
-.top-bar {
-  background: var(--gray-900);
-  color: var(--gray-300);
-  padding: 0.5rem 0;
-  font-size: 0.8rem;
-}
-
-.top-bar-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.current-date {
-  text-transform: capitalize;
-}
-
-.top-bar-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.top-bar-links a {
-  color: var(--gray-300);
-  transition: color 0.2s ease;
-  display: flex;
-  align-items: center;
-}
-
-.top-bar-links a:hover {
-  color: var(--white);
-}
 
 /* Header Base */
 .header {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background-color: var(--white);
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 1000;
   padding: 0.75rem 0;
   transition: box-shadow 0.3s ease, padding 0.3s ease;
-  border-bottom: 1px solid var(--gray-200);
 }
 
 .header--scrolled {
@@ -59,7 +24,7 @@
 
 /* Header Container */
 .header-container {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -87,30 +52,28 @@
 }
 
 .logo-button:focus-visible {
-  outline: 2px solid var(--primary-blue);
+  outline: 2px solid var(--primary-orange);
   outline-offset: 2px;
 }
 
-.logo-text {
+.logo {
   display: flex;
-  flex-direction: column;
-  line-height: 1;
-  text-align: left;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.logo-main {
-  font-size: 1.75rem;
+.logo-image {
+  height: 45px;
+  width: auto;
+}
+
+.logo h1 {
+  color: #FF6600;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--primary-blue);
-  letter-spacing: -0.02em;
-}
-
-.logo-accent {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--accent-red);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 /* Desktop Navigation */
@@ -122,14 +85,14 @@
 .nav-link {
   background: none;
   border: none;
-  color: var(--gray-700);
-  font-size: 0.95rem;
-  font-weight: 500;
+  color: #333333;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   transition: color 0.2s ease, background-color 0.2s ease;
-  font-family: inherit;
+  font-family: 'Montserrat', sans-serif;
   position: relative;
 }
 
@@ -141,14 +104,14 @@
   transform: translateX(-50%);
   width: 0;
   height: 2px;
-  background-color: var(--accent-red);
+  background-color: #FF6600;
   transition: width 0.2s ease;
   border-radius: 1px;
 }
 
 .nav-link:hover {
-  color: var(--primary-blue);
-  background-color: var(--gray-100);
+  color: #FF6600;
+  background-color: rgba(255, 102, 0, 0.05);
 }
 
 .nav-link:hover::after {
@@ -156,7 +119,7 @@
 }
 
 .nav-link:focus-visible {
-  outline: 2px solid var(--primary-blue);
+  outline: 2px solid #FF6600;
   outline-offset: 2px;
 }
 
@@ -181,18 +144,18 @@
 }
 
 .hamburger:hover {
-  background-color: var(--gray-100);
+  background-color: rgba(255, 102, 0, 0.1);
 }
 
 .hamburger:focus-visible {
-  outline: 2px solid var(--primary-blue);
+  outline: 2px solid #FF6600;
   outline-offset: 2px;
 }
 
 .hamburger-line {
   width: 24px;
   height: 2.5px;
-  background-color: var(--gray-700);
+  background-color: #333333;
   border-radius: 2px;
   transition: all 0.3s cubic-bezier(0.68, -0.6, 0.32, 1.6);
   transform-origin: center;
@@ -206,9 +169,9 @@
   margin-top: 5px;
 }
 
-/* Hamburger Active State */
+/* Hamburger Active State - X Animation */
 .hamburger--active .hamburger-line {
-  background-color: var(--accent-red);
+  background-color: #FF6600;
 }
 
 .hamburger--active .hamburger-line:nth-child(1) {
@@ -259,7 +222,7 @@
   width: min(300px, 85vw);
   height: 100vh;
   height: 100dvh;
-  background: var(--white);
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF9F5 100%);
   z-index: 999;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -282,14 +245,14 @@
 .nav-mobile-link {
   background: none;
   border: none;
-  color: var(--gray-700);
+  color: #333333;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   padding: 1rem 1.25rem;
   border-radius: 12px;
   text-align: left;
-  font-family: inherit;
+  font-family: 'Montserrat', sans-serif;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -316,15 +279,15 @@
   transform: translateY(-50%);
   width: 4px;
   height: 0;
-  background-color: var(--accent-red);
+  background-color: #FF6600;
   border-radius: 2px;
   transition: height 0.2s ease;
 }
 
 .nav-mobile-link:hover,
 .nav-mobile-link:focus {
-  background-color: var(--gray-100);
-  color: var(--primary-blue);
+  background-color: rgba(255, 102, 0, 0.08);
+  color: #FF6600;
   transform: translateX(8px);
 }
 
@@ -334,25 +297,27 @@
 }
 
 .nav-mobile-link:focus-visible {
-  outline: 2px solid var(--primary-blue);
+  outline: 2px solid #FF6600;
   outline-offset: 2px;
+}
+
+.nav-mobile-link:active {
+  transform: scale(0.98) translateX(8px);
 }
 
 /* ==========================================================================
    Responsive Breakpoints
    ========================================================================== */
 
+/* Tablet and up */
 @media (min-width: 769px) {
   .header-container {
     padding: 0 2rem;
   }
 
-  .logo-main {
-    font-size: 2rem;
-  }
-
-  .logo-accent {
-    font-size: 1rem;
+  .logo h1 {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
   }
 
   .nav--desktop {
@@ -369,6 +334,7 @@
   }
 }
 
+/* Large screens */
 @media (min-width: 1024px) {
   .nav-link {
     font-size: 1rem;
@@ -376,23 +342,14 @@
   }
 }
 
-@media (max-width: 768px) {
-  .top-bar {
-    display: none;
-  }
-}
-
+/* Small mobile devices */
 @media (max-width: 360px) {
   .header-container {
     padding: 0 1rem;
   }
 
-  .logo-main {
-    font-size: 1.4rem;
-  }
-
-  .logo-accent {
-    font-size: 0.7rem;
+  .logo h1 {
+    font-size: 1rem;
   }
 
   .nav-mobile {
@@ -404,6 +361,23 @@
     padding: 0.875rem 1rem;
   }
 }
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .nav-mobile-content {
+    padding-top: 70px;
+    gap: 0.25rem;
+  }
+
+  .nav-mobile-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* ==========================================================================
+   Accessibility & Reduced Motion
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .header,
@@ -420,5 +394,23 @@
     animation: none;
     opacity: 1;
     transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .header {
+    background-color: #FFFFFF;
+    border-bottom: 2px solid #333333;
+  }
+
+  .nav-link:hover,
+  .nav-mobile-link:hover {
+    background-color: #FF6600;
+    color: #FFFFFF;
+  }
+
+  .logo-image {
+    height: 35px;
   }
 }
