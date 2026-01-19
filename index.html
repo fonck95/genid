@@ -1,19 +1,266 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CO">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Berraquera Santandereana - Medio digital de noticias de Bucaramanga, el Área Metropolitana y todo el departamento de Santander. Información veraz y oportuna." />
-    <meta name="keywords" content="Santander, Bucaramanga, noticias, berraquera santandereana, Colombia, Girón, Barrancabermeja, política, economía, medio digital" />
+
+    <!-- Primary Meta Tags -->
+    <title>Berraquera Santandereana - Noticias de Santander, Bucaramanga y el Área Metropolitana</title>
+    <meta name="title" content="Berraquera Santandereana - Noticias de Santander, Bucaramanga y el Área Metropolitana" />
+    <meta name="description" content="Berraquera Santandereana es el medio digital líder de noticias de Bucaramanga, el Área Metropolitana y todo el departamento de Santander, Colombia. Cobertura de política, economía, seguridad, ambiente y sucesos con información veraz, oportuna e independiente." />
+    <meta name="keywords" content="Santander, Bucaramanga, noticias Santander, noticias Bucaramanga, berraquera santandereana, Colombia, Girón, Barrancabermeja, Piedecuesta, Floridablanca, política Santander, economía Santander, medio digital, periódico digital, noticias hoy, actualidad Santander, área metropolitana Bucaramanga" />
     <meta name="author" content="Berraquera Santandereana" />
-    <meta property="og:title" content="Berraquera Santandereana - Noticias de Santander" />
-    <meta property="og:description" content="Medio digital de noticias de Bucaramanga, el Área Metropolitana y todo el departamento de Santander." />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
+    <link rel="canonical" href="https://www.berraquera.co/" />
+
+    <!-- Geographic Meta Tags -->
+    <meta name="geo.region" content="CO-SAN" />
+    <meta name="geo.placename" content="Bucaramanga, Santander" />
+    <meta name="geo.position" content="7.119349;-73.122742" />
+    <meta name="ICBM" content="7.119349, -73.122742" />
+
+    <!-- Language and Locale -->
+    <meta http-equiv="content-language" content="es-CO" />
+    <meta name="language" content="Spanish" />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <title>Berraquera Santandereana - Noticias de Santander</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta property="og:url" content="https://www.berraquera.co/" />
+    <meta property="og:title" content="Berraquera Santandereana - Noticias de Santander" />
+    <meta property="og:description" content="Medio digital líder de noticias de Bucaramanga, el Área Metropolitana y todo el departamento de Santander, Colombia. Información veraz, oportuna e independiente." />
+    <meta property="og:image" content="https://www.berraquera.co/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Berraquera Santandereana - Noticias de Santander" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:site_name" content="Berraquera Santandereana" />
+    <meta property="fb:app_id" content="" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://www.berraquera.co/" />
+    <meta name="twitter:title" content="Berraquera Santandereana - Noticias de Santander" />
+    <meta name="twitter:description" content="Medio digital líder de noticias de Bucaramanga, el Área Metropolitana y todo el departamento de Santander, Colombia." />
+    <meta name="twitter:image" content="https://www.berraquera.co/og-image.jpg" />
+    <meta name="twitter:image:alt" content="Berraquera Santandereana - Noticias de Santander" />
+    <meta name="twitter:site" content="@berraquera" />
+    <meta name="twitter:creator" content="@berraquera" />
+
+    <!-- Theme and App Configuration -->
+    <meta name="theme-color" content="#1a365d" />
+    <meta name="msapplication-TileColor" content="#1a365d" />
+    <meta name="msapplication-navbutton-color" content="#1a365d" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Berraquera" />
+    <meta name="application-name" content="Berraquera Santandereana" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Favicons and Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#1a365d" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.facebook.com" />
+    <link rel="preconnect" href="https://connect.facebook.net" />
+    <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Berraquera Santandereana - RSS Feed" href="https://www.berraquera.co/rss.xml" />
+
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsMediaOrganization",
+      "@id": "https://www.berraquera.co/#organization",
+      "name": "Berraquera Santandereana",
+      "alternateName": "Berraquera",
+      "url": "https://www.berraquera.co",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.berraquera.co/logo.png",
+        "width": 600,
+        "height": 60
+      },
+      "description": "Medio digital líder de noticias de Bucaramanga, el Área Metropolitana y todo el departamento de Santander, Colombia",
+      "foundingDate": "2026",
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "Santander",
+        "containedIn": {
+          "@type": "Country",
+          "name": "Colombia"
+        }
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Bucaramanga",
+        "addressRegion": "Santander",
+        "addressCountry": "CO"
+      },
+      "sameAs": [
+        "https://www.facebook.com/berraquera",
+        "https://twitter.com/berraquera"
+      ],
+      "publishingPrinciples": "https://www.berraquera.co/#about",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "editorial",
+        "email": "contacto@berraquera.co"
+      }
+    }
+    </script>
+
+    <!-- Structured Data - WebSite with SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://www.berraquera.co/#website",
+      "url": "https://www.berraquera.co",
+      "name": "Berraquera Santandereana",
+      "description": "Noticias de Santander, Bucaramanga y el Área Metropolitana",
+      "publisher": {
+        "@id": "https://www.berraquera.co/#organization"
+      },
+      "inLanguage": "es-CO",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.berraquera.co/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Structured Data - BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Inicio",
+          "item": "https://www.berraquera.co/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Noticias",
+          "item": "https://www.berraquera.co/#noticias"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Galería",
+          "item": "https://www.berraquera.co/#galeria"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Structured Data - ItemList for News Articles -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "item": {
+            "@type": "NewsArticle",
+            "headline": "Crisis de gobernabilidad electoral marcó a Girón",
+            "description": "Elecciones atípicas tras anulación del mandato por doble militancia política",
+            "datePublished": "2026-01-18",
+            "author": {"@type": "Organization", "name": "Berraquera Santandereana"},
+            "publisher": {"@id": "https://www.berraquera.co/#organization"},
+            "image": "https://www.berraquera.co/optimized/eleccions.webp",
+            "articleSection": "Política",
+            "inLanguage": "es-CO"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "item": {
+            "@type": "NewsArticle",
+            "headline": "Contratos de megacolegios en Girón generan denuncias por $192.000 millones",
+            "description": "Sindicato de Educadores denuncia irregularidades en adjudicación a corporación sin experiencia",
+            "datePublished": "2026-01-17",
+            "author": {"@type": "Organization", "name": "Berraquera Santandereana"},
+            "publisher": {"@id": "https://www.berraquera.co/#organization"},
+            "image": "https://www.berraquera.co/optimized/megacolegio.webp",
+            "articleSection": "Educación",
+            "inLanguage": "es-CO"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "item": {
+            "@type": "NewsArticle",
+            "headline": "César Loza: primer obrero en la junta directiva de Ecopetrol en 74 años",
+            "description": "Presidente de la USO fue elegido representante de los trabajadores con 1.724 votos",
+            "datePublished": "2026-01-16",
+            "author": {"@type": "Organization", "name": "Berraquera Santandereana"},
+            "publisher": {"@id": "https://www.berraquera.co/#organization"},
+            "image": "https://www.berraquera.co/optimized/uso.webp",
+            "articleSection": "Economía",
+            "inLanguage": "es-CO"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "item": {
+            "@type": "NewsArticle",
+            "headline": "Emergencia ambiental: 15 manatíes muertos en la Ciénaga El Llanito",
+            "description": "Contaminación por hidrocarburos amenaza especie en vía de extinción",
+            "datePublished": "2026-01-18",
+            "author": {"@type": "Organization", "name": "Berraquera Santandereana"},
+            "publisher": {"@id": "https://www.berraquera.co/#organization"},
+            "image": "https://www.berraquera.co/optimized/manati.webp",
+            "articleSection": "Ambiente",
+            "inLanguage": "es-CO"
+          }
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "item": {
+            "@type": "NewsArticle",
+            "headline": "Cuatro homicidios sacudieron a Santander en una sola noche",
+            "description": "Gobierno duplica recompensa por información sobre asesinos de patrullero",
+            "datePublished": "2026-01-18",
+            "author": {"@type": "Organization", "name": "Berraquera Santandereana"},
+            "publisher": {"@id": "https://www.berraquera.co/#organization"},
+            "image": "https://www.berraquera.co/optimized/4enunanoche.webp",
+            "articleSection": "Seguridad",
+            "inLanguage": "es-CO"
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Facebook SDK Root -->
     <div id="fb-root"></div>
   </head>
   <body>

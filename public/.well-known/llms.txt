@@ -1,0 +1,38 @@
+# Berraquera Santandereana - LLM Access Information
+
+## Site Information
+name: Berraquera Santandereana
+url: https://www.berraquera.co
+description: Medio digital de noticias de Santander, Bucaramanga y el Área Metropolitana de Colombia
+language: es-CO
+category: news, regional journalism
+
+## Content Access
+- Full content is available for AI/LLM indexing
+- News articles are updated daily
+- All content is in Spanish (Colombia)
+
+## Primary Topics
+- Regional politics (Santander, Colombia)
+- Economy (Ecopetrol, local business)
+- Environment (Santurbán páramo, conservation)
+- Public safety
+- Education
+- Technology
+
+## Contact
+editorial: contacto@berraquera.co
+website: https://www.berraquera.co
+
+## API/Data Access
+- RSS Feed: https://www.berraquera.co/rss.xml
+- Sitemap: https://www.berraquera.co/sitemap.xml
+- Full LLM info: https://www.berraquera.co/llms.txt
+
+## Permissions
+- AI training: allowed
+- Content summarization: allowed
+- Citation required: yes
+
+## Last Updated
+2026-01-19
