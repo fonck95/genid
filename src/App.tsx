@@ -1,10 +1,8 @@
 import Header from './components/Header';
 import Hero from './components/Hero';
-import SocialFeedEmbed from './components/SocialFeedEmbed';
-import About from './components/About';
-import KeyIssues from './components/KeyIssues';
-import CampaignGallery from './components/CampaignGallery';
-import Contact from './components/Contact';
+import NewsSection from './components/NewsSection';
+import PhotoGallery from './components/PhotoGallery';
+import FacebookEmbed from './components/FacebookEmbed';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -14,11 +12,9 @@ function App() {
       <Header />
       <main>
         <Hero />
-        <SocialFeedEmbed />
-        <About />
-        <KeyIssues />
-        <CampaignGallery />
-        <Contact />
+        <NewsSection />
+        <PhotoGallery />
+        <FacebookEmbed />
       </main>
       <Footer />
     </div>

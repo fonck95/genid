@@ -1,30 +1,60 @@
 /* ==========================================================================
-   Header Component Styles
-   Professional mobile-first responsive navigation
+   Header - Berraquera Santandereana
    ========================================================================== */
+
+/* Top Bar */
+.top-bar {
+  background: var(--gray-900);
+  color: var(--gray-300);
+  padding: 0.5rem 0;
+  font-size: 0.8rem;
+}
+
+.top-bar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-bar-date {
+  text-transform: capitalize;
+}
+
+.top-bar-social {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--gray-300);
+  transition: color 0.2s;
+}
+
+.top-bar-social:hover {
+  color: white;
+}
 
 /* Header Base */
 .header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
   background-color: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   z-index: 1000;
   padding: 0.75rem 0;
-  transition: box-shadow 0.3s ease, padding 0.3s ease;
+  transition: box-shadow 0.3s ease;
+  border-bottom: 3px solid var(--accent-red);
 }
 
 .header--scrolled {
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem 0;
 }
 
-/* Header Container */
 .header-container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -42,38 +72,27 @@
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  margin: -0.25rem;
-  border-radius: 4px;
-  transition: opacity 0.2s ease;
 }
 
-.logo-button:hover {
-  opacity: 0.8;
-}
-
-.logo-button:focus-visible {
-  outline: 2px solid var(--primary-orange);
-  outline-offset: 2px;
-}
-
-.logo {
+.logo-text {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  line-height: 1;
 }
 
-.logo-image {
-  height: 45px;
-  width: auto;
-}
-
-.logo h1 {
-  color: #FF6600;
-  font-size: 1.25rem;
+.logo-main {
+  font-size: 1.5rem;
   font-weight: 800;
-  margin: 0;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
+  color: var(--primary-blue);
+  letter-spacing: -0.5px;
+}
+
+.logo-accent {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-red);
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 /* Desktop Navigation */
@@ -85,14 +104,13 @@
 .nav-link {
   background: none;
   border: none;
-  color: #333333;
-  font-size: 0.9rem;
+  color: var(--gray-700);
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 4px;
   transition: color 0.2s ease, background-color 0.2s ease;
-  font-family: 'Montserrat', sans-serif;
   position: relative;
 }
 
@@ -104,29 +122,20 @@
   transform: translateX(-50%);
   width: 0;
   height: 2px;
-  background-color: #FF6600;
+  background-color: var(--accent-red);
   transition: width 0.2s ease;
-  border-radius: 1px;
 }
 
 .nav-link:hover {
-  color: #FF6600;
-  background-color: rgba(255, 102, 0, 0.05);
+  color: var(--primary-blue);
+  background-color: var(--gray-100);
 }
 
 .nav-link:hover::after {
   width: 60%;
 }
 
-.nav-link:focus-visible {
-  outline: 2px solid #FF6600;
-  outline-offset: 2px;
-}
-
-/* ==========================================================================
-   Hamburger Menu Button
-   ========================================================================== */
-
+/* Hamburger Menu */
 .hamburger {
   display: flex;
   flex-direction: column;
@@ -144,34 +153,22 @@
 }
 
 .hamburger:hover {
-  background-color: rgba(255, 102, 0, 0.1);
-}
-
-.hamburger:focus-visible {
-  outline: 2px solid #FF6600;
-  outline-offset: 2px;
+  background-color: var(--gray-100);
 }
 
 .hamburger-line {
   width: 24px;
   height: 2.5px;
-  background-color: #333333;
+  background-color: var(--gray-700);
   border-radius: 2px;
   transition: all 0.3s cubic-bezier(0.68, -0.6, 0.32, 1.6);
-  transform-origin: center;
 }
 
-.hamburger-line:nth-child(1) {
-  margin-bottom: 5px;
-}
+.hamburger-line:nth-child(1) { margin-bottom: 5px; }
+.hamburger-line:nth-child(3) { margin-top: 5px; }
 
-.hamburger-line:nth-child(3) {
-  margin-top: 5px;
-}
-
-/* Hamburger Active State - X Animation */
 .hamburger--active .hamburger-line {
-  background-color: #FF6600;
+  background-color: var(--accent-red);
 }
 
 .hamburger--active .hamburger-line:nth-child(1) {
@@ -189,10 +186,7 @@
   margin-top: 0;
 }
 
-/* ==========================================================================
-   Mobile Menu Overlay
-   ========================================================================== */
-
+/* Mobile Overlay */
 .mobile-overlay {
   position: fixed;
   top: 0;
@@ -211,24 +205,19 @@
   visibility: visible;
 }
 
-/* ==========================================================================
-   Mobile Navigation Menu
-   ========================================================================== */
-
+/* Mobile Navigation */
 .nav-mobile {
   position: fixed;
   top: 0;
   right: 0;
   width: min(300px, 85vw);
   height: 100vh;
-  height: 100dvh;
-  background: linear-gradient(135deg, #FFFFFF 0%, #FFF9F5 100%);
+  background: white;
   z-index: 999;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .nav-mobile--open {
@@ -245,17 +234,15 @@
 .nav-mobile-link {
   background: none;
   border: none;
-  color: #333333;
+  color: var(--gray-700);
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   padding: 1rem 1.25rem;
-  border-radius: 12px;
+  border-radius: 8px;
   text-align: left;
-  font-family: 'Montserrat', sans-serif;
   transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
   opacity: 0;
   transform: translateX(20px);
 }
@@ -271,146 +258,34 @@
   }
 }
 
-.nav-mobile-link::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 0;
-  background-color: #FF6600;
-  border-radius: 2px;
-  transition: height 0.2s ease;
+.nav-mobile-link:hover {
+  background-color: var(--gray-100);
+  color: var(--primary-blue);
 }
 
-.nav-mobile-link:hover,
-.nav-mobile-link:focus {
-  background-color: rgba(255, 102, 0, 0.08);
-  color: #FF6600;
-  transform: translateX(8px);
-}
-
-.nav-mobile-link:hover::before,
-.nav-mobile-link:focus::before {
-  height: 60%;
-}
-
-.nav-mobile-link:focus-visible {
-  outline: 2px solid #FF6600;
-  outline-offset: 2px;
-}
-
-.nav-mobile-link:active {
-  transform: scale(0.98) translateX(8px);
-}
-
-/* ==========================================================================
-   Responsive Breakpoints
-   ========================================================================== */
-
-/* Tablet and up */
+/* Responsive */
 @media (min-width: 769px) {
-  .header-container {
-    padding: 0 2rem;
-  }
-
-  .logo h1 {
-    font-size: 1.5rem;
-    letter-spacing: 1px;
-  }
-
   .nav--desktop {
     display: flex;
   }
 
-  .hamburger {
-    display: none;
-  }
-
+  .hamburger,
   .mobile-overlay,
   .nav-mobile {
     display: none;
   }
 }
 
-/* Large screens */
-@media (min-width: 1024px) {
-  .nav-link {
-    font-size: 1rem;
-    padding: 0.5rem 1.25rem;
-  }
-}
-
-/* Small mobile devices */
-@media (max-width: 360px) {
-  .header-container {
-    padding: 0 1rem;
+@media (max-width: 480px) {
+  .top-bar-social span {
+    display: none;
   }
 
-  .logo h1 {
-    font-size: 1rem;
+  .logo-main {
+    font-size: 1.25rem;
   }
 
-  .nav-mobile {
-    width: 100vw;
-  }
-
-  .nav-mobile-link {
-    font-size: 1rem;
-    padding: 0.875rem 1rem;
-  }
-}
-
-/* Landscape mobile */
-@media (max-height: 500px) and (orientation: landscape) {
-  .nav-mobile-content {
-    padding-top: 70px;
-    gap: 0.25rem;
-  }
-
-  .nav-mobile-link {
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-  }
-}
-
-/* ==========================================================================
-   Accessibility & Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .header,
-  .hamburger-line,
-  .nav-link,
-  .nav-link::after,
-  .mobile-overlay,
-  .nav-mobile,
-  .nav-mobile-link {
-    transition: none;
-  }
-
-  .nav-mobile--open .nav-mobile-link {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .header {
-    background-color: #FFFFFF;
-    border-bottom: 2px solid #333333;
-  }
-
-  .nav-link:hover,
-  .nav-mobile-link:hover {
-    background-color: #FF6600;
-    color: #FFFFFF;
-  }
-
-  .logo-image {
-    height: 35px;
+  .logo-accent {
+    font-size: 0.75rem;
   }
 }
