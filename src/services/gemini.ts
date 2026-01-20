@@ -3,8 +3,8 @@ import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
 // API Key desde variable de entorno
 const GEMINI_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
 
-// Modelo de texto para análisis de rostro (Flash es más rápido y económico para esta tarea)
-const GEMINI_TEXT_MODEL = 'gemini-2.5-flash-preview-05-20';
+// Modelo de visión para análisis de rostro (2.0 Flash soporta imagen -> texto)
+const GEMINI_VISION_MODEL = 'gemini-2.0-flash';
 
 // System prompt para análisis antropométrico de rostros
 const FACE_ANALYSIS_SYSTEM_PROMPT = `[ROL]
@@ -376,7 +376,7 @@ export async function analyzeFaceForConsistency(imageUrl: string): Promise<strin
   };
 
   const response = await fetch(
-    `${getApiUrl(GEMINI_TEXT_MODEL)}?key=${GEMINI_API_KEY}`,
+    `${getApiUrl(GEMINI_VISION_MODEL)}?key=${GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: {
