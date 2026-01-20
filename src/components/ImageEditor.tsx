@@ -7,7 +7,8 @@ import {
   finalizeEditingThread,
   deleteEditingThread,
   revertThreadToStep,
-  createEditingThread
+  createEditingThread,
+  getIdentity
 } from '../services/identityStore';
 import { generateWithAttachedImages } from '../services/gemini';
 import { isWebGPUAvailable } from '../services/webgpu';
@@ -24,7 +25,7 @@ interface Props {
 
 export function ImageEditor({
   deviceId,
-  identities,
+  identities: _identities, // No se usa directamente - obtenemos la identidad de IndexedDB
   activeThreadId,
   onThreadChange,
   onImageSaved
@@ -124,15 +125,22 @@ export function ImageEditor({
 
     setIsProcessing(true);
     setError(null);
-    setProcessingStatus('Aplicando edición con IA...');
+    setProcessingStatus('Cargando identidad y fotos de referencia...');
 
     try {
       const currentStep = currentThread.steps[selectedStepIndex];
-      const identity = currentThread.identityId
-        ? identities.find(i => i.id === currentThread.identityId)
-        : undefined;
+
+      // Obtener la identidad directamente de IndexedDB para tener los datos más actualizados
+      // incluyendo todas las fotos de referencia y sus descripciones faciales (faceDescription)
+      let identity: Identity | null = null;
+      if (currentThread.identityId) {
+        identity = await getIdentity(currentThread.identityId);
+      }
+
+      setProcessingStatus('Aplicando edición con IA...');
 
       // Generar nueva imagen usando la imagen actual como referencia
+      // Se pasan las fotos de referencia de la identidad con sus descripciones faciales
       let newImageUrl = await generateWithAttachedImages(
         editPrompt,
         [{

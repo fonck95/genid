@@ -476,23 +476,39 @@ export async function generateImageWithIdentity(
     ? `\n\nANÁLISIS ANTROPOMÉTRICO FACIAL (usar para consistencia absoluta):\n${faceDescriptions}`
     : '';
 
-  // Añadir instrucciones del sistema con realismo e integración
-  parts.push({
-    text: `Eres un generador de imágenes profesional especializado en mantener consistencia facial y crear composiciones FOTORREALISTAS. Vas a generar una imagen basada en la identidad de "${identityName}".${descriptionContext}${faceDescriptionContext}
-
-INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL:
+  // Construir instrucciones de consistencia facial según la información disponible
+  const faceConsistencyInstructions = faceDescriptions
+    ? `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (CON ANÁLISIS ANTROPOMÉTRICO):
 - Mantén EXACTAMENTE la identidad facial y características físicas descritas en el análisis antropométrico
 - La persona debe ser claramente reconocible como la misma de las fotos de referencia
 - Presta especial atención a: morfología craneal, estructura mandibular, forma de ojos, nariz y labios
 - Respeta el fototipo de Fitzpatrick y cualquier marca distintiva mencionada
-${faceDescriptions ? '- IMPORTANTE: El análisis antropométrico es tu guía principal para la consistencia facial' : ''}
+- IMPORTANTE: El análisis antropométrico es tu guía principal para la consistencia facial`
+    : `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (ANÁLISIS VISUAL DE FOTOS):
+- ANALIZA CUIDADOSAMENTE las fotos de referencia de "${identityName}" adjuntas a continuación
+- EXTRAE Y PRESERVA la identidad facial observada en esas fotos:
+  * Forma del rostro y estructura ósea (mandíbula, pómulos, frente, mentón)
+  * Forma, tamaño, color y separación de los ojos
+  * Forma y características de la nariz (puente, punta, alas)
+  * Forma, grosor y color de los labios
+  * Cejas: forma, grosor, arqueo y posición
+  * Tono de piel y cualquier marca distintiva (lunares, pecas, cicatrices)
+  * Forma del cabello, color, textura y estilo
+- La persona debe ser INMEDIATAMENTE RECONOCIBLE como la misma de las fotos de referencia
+- CRÍTICO: Usa las fotos de referencia como tu guía PRINCIPAL para la identidad facial`;
+
+  // Añadir instrucciones del sistema con realismo e integración
+  parts.push({
+    text: `Eres un generador de imágenes profesional especializado en mantener consistencia facial y crear composiciones FOTORREALISTAS. Vas a generar una imagen basada en la identidad de "${identityName}".${descriptionContext}${faceDescriptionContext}
+
+${faceConsistencyInstructions}
 
 ${SCENE_INTEGRATION_REALISM_PROMPT}
 
 OBJETIVO FINAL:
-Genera una imagen donde "${identityName}" aparezca NATURALMENTE INTEGRADO/A en el escenario, como si realmente hubiera estado físicamente presente durante la captura fotográfica. La imagen debe ser indistinguible de una fotografía real.
+Genera una imagen donde "${identityName}" aparezca NATURALMENTE INTEGRADO/A en el escenario, como si realmente hubiera estado físicamente presente durante la captura fotográfica. La imagen debe ser indistinguible de una fotografía real. LA IDENTIDAD FACIAL ES SAGRADA - NO DEBE CAMBIAR.
 
-Fotos de referencia de "${identityName}" adjuntas a continuación:`
+Fotos de referencia de "${identityName}" (USAR COMO GUÍA PRINCIPAL DE IDENTIDAD):`
   });
 
   // Añadir fotos de referencia (máximo 5 para no sobrecargar)
@@ -513,14 +529,21 @@ SITUACIÓN/ESCENARIO A GENERAR:
 ${prompt}
 
 REQUISITOS DE GENERACIÓN:
-1. Mantén la identidad visual exacta de "${identityName}" de las fotos de referencia${faceDescriptions ? ' siguiendo estrictamente el análisis antropométrico proporcionado' : ''}
-2. Integra a la persona de forma FOTORREALISTA en el escenario:
+1. IDENTIDAD FACIAL (CRÍTICO):
+   - Mantén la identidad visual EXACTA de "${identityName}" basándote en las fotos de referencia${faceDescriptions ? ' y el análisis antropométrico proporcionado' : ''}
+   - La persona debe ser INMEDIATAMENTE RECONOCIBLE como "${identityName}"
+   - NO alteres los rasgos faciales característicos bajo ninguna circunstancia
+
+2. INTEGRACIÓN FOTORREALISTA:
    - Iluminación coherente entre persona y ambiente
    - Sombras proyectadas correctas sobre el suelo/superficies
    - Perspectiva y escala apropiadas
    - Color grading uniforme (la piel debe reflejar los tonos de luz ambiente)
    - Interacción natural con elementos del entorno (viento, reflejos, clima)
-3. El resultado debe ser INDISTINGUIBLE de una fotografía real donde la persona estuvo presente.`
+
+3. RESULTADO FINAL:
+   - El resultado debe ser INDISTINGUIBLE de una fotografía real donde la persona estuvo presente
+   - "${identityName}" debe mantener su identidad facial exacta de las fotos de referencia`
   });
 
   const requestBody = {
@@ -667,6 +690,34 @@ CONTEXTO:
 - El usuario ha adjuntado ${attachedImages.length} imagen(es) para que las analices, edites o uses como referencia.
 - También tienes fotos de referencia de "${identityName}" para mantener la identidad si es necesario.`;
 
+    // Construir instrucciones de consistencia facial según la información disponible
+    const faceConsistencyInstructions = faceDescriptions
+      ? `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (CON ANÁLISIS ANTROPOMÉTRICO):
+- PRESERVA EXACTAMENTE la identidad facial de "${identityName}" en la composición final
+- Si el usuario pide editar o modificar las imágenes, hazlo manteniendo la identidad intacta
+- IMPORTANTE: Sigue estrictamente el análisis antropométrico para la consistencia facial:
+  * Morfología craneal y estructura mandibular
+  * Forma exacta de ojos, cejas y párpados
+  * Perfil nasal y forma de la nariz
+  * Forma y grosor de labios
+  * Tono de piel (fototipo de Fitzpatrick) y cualquier marca distintiva
+- Los catchlights en los ojos deben reflejar las fuentes de luz del escenario final
+- La persona debe ser INMEDIATAMENTE RECONOCIBLE como la misma de las fotos de referencia`
+      : `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (ANÁLISIS VISUAL DE FOTOS):
+- ANALIZA CUIDADOSAMENTE las fotos de referencia de "${identityName}" adjuntas a continuación
+- PRESERVA EXACTAMENTE la identidad facial observada en esas fotos:
+  * Forma del rostro y estructura ósea (mandíbula, pómulos, mentón)
+  * Forma, tamaño y color exacto de los ojos
+  * Forma y características de la nariz
+  * Forma, grosor y color de los labios
+  * Cejas: forma, grosor y posición
+  * Tono de piel y cualquier marca distintiva (lunares, pecas, cicatrices)
+  * Forma del cabello, color y textura
+- Si el usuario pide editar o modificar las imágenes, hazlo manteniendo la identidad INTACTA
+- Los catchlights en los ojos deben reflejar las fuentes de luz del escenario final
+- La persona debe ser INMEDIATAMENTE RECONOCIBLE como la misma de las fotos de referencia
+- CRÍTICO: Usa las fotos de referencia como tu guía PRINCIPAL para la identidad facial`;
+
     parts.push({
       text: `Eres un COMPOSITOR DE IMÁGENES FOTORREALISTAS de nivel profesional, especializado en:
 - Mantener consistencia facial absoluta
@@ -676,12 +727,7 @@ CONTEXTO:
 
 ${attachedImagesContext}${descriptionContext}${faceDescriptionContext}
 
-INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL:
-- PRESERVA EXACTAMENTE la identidad facial de "${identityName}" en la composición final
-- Si el usuario pide editar o modificar las imágenes, hazlo manteniendo la identidad intacta
-${faceDescriptions ? '- IMPORTANTE: Sigue estrictamente el análisis antropométrico para la consistencia facial (morfología craneal, estructura mandibular, forma de ojos, nariz y labios)' : ''}
-- Respeta el fototipo de Fitzpatrick y cualquier marca distintiva mencionada
-- Los catchlights en los ojos deben reflejar las fuentes de luz del escenario final
+${faceConsistencyInstructions}
 
 ${compositionPrompt}
 
@@ -690,8 +736,9 @@ OBJETIVO FINAL:
 - "${identityName}" debe aparecer NATURALMENTE INTEGRADO/A en el escenario
 - NINGÚN elemento debe parecer "pegado" o "insertado" - debe verse como una fotografía real
 - Aplica todas las técnicas de inpainting para sombras de contacto, harmonización de luz y fusión de bordes
+- LA IDENTIDAD FACIAL DE "${identityName}" ES SAGRADA - NO DEBE CAMBIAR
 
-Fotos de referencia de "${identityName}":`
+Fotos de referencia de "${identityName}" (USAR COMO GUÍA PRINCIPAL DE IDENTIDAD):`
     });
 
     // Añadir fotos de referencia de identidad (optimizadas)
@@ -805,6 +852,12 @@ REQUISITOS DE INTEGRACIÓN FOTORREALISTA:
 - Aplica el mismo color grading y tonos de luz ambiente a la piel
 - Mantén perspectiva, escala y profundidad de campo consistentes
 - La persona debe interactuar naturalmente con el entorno (viento, reflejos, clima si aplica)
+${identityName ? `
+RECORDATORIO CRÍTICO DE IDENTIDAD:
+- MANTÉN la identidad facial EXACTA de "${identityName}" según las fotos de referencia
+- La persona debe ser RECONOCIBLE como la misma de las fotos de referencia
+- Cualquier modificación solicitada NO DEBE alterar los rasgos faciales característicos
+- Usa las fotos de referencia como tu guía principal para la identidad facial` : ''}
 
 Genera una imagen donde la persona aparezca como si REALMENTE hubiera estado en ese lugar.`;
 
