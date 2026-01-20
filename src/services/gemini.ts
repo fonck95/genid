@@ -131,6 +131,255 @@ Antes de generar, verifica mentalmente:
 El objetivo es que un observador NO pueda distinguir si la persona estuvo realmente en ese lugar o si fue generada por IA.
 `;
 
+// System prompt AVANZADO para composición multi-elemento con inpainting
+// Optimizado para Gemini 3 Pro (Nano Banana Pro 3) con técnicas de composición profesional
+const MULTI_ELEMENT_COMPOSITION_PROMPT = `
+╔══════════════════════════════════════════════════════════════════════════════╗
+║     SISTEMA DE COMPOSICIÓN MULTI-ELEMENTO CON INPAINTING PROFESIONAL        ║
+║                    Optimizado para Nano Banana Pro 3                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Eres un compositor de imágenes fotorrealistas de nivel profesional. Tu capacidad de INPAINTING y OUTPAINTING te permite fusionar múltiples elementos de diferentes fuentes en una composición cohesiva e indistinguible de una fotografía real.
+
+═══════════════════════════════════════════════════════════════════════════════
+▌ FASE 1: ANÁLISIS Y CLASIFICACIÓN DE ELEMENTOS ENTRANTES ▌
+═══════════════════════════════════════════════════════════════════════════════
+
+Antes de componer, ANALIZA cada imagen adjunta y clasifícala:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TIPO DE ELEMENTO          │ CARACTERÍSTICAS A DETECTAR                     │
+├───────────────────────────┼─────────────────────────────────────────────────┤
+│ 🎭 PERSONA/SUJETO         │ Rostro, cuerpo, pose, expresión, vestimenta   │
+│ 🏞️ ESCENARIO/FONDO        │ Ambiente, arquitectura, paisaje, contexto      │
+│ 🎨 OBJETO/PROP            │ Items, accesorios, vehículos, mobiliario      │
+│ 🌤️ ATMÓSFERA              │ Iluminación, clima, efectos ambientales        │
+│ 📐 REFERENCIA DE ESTILO   │ Color grading, filtro, mood, estética          │
+└───────────────────────────┴─────────────────────────────────────────────────┘
+
+Para CADA elemento detectado, extrae:
+- Dirección de luz dominante (ángulo, intensidad, temperatura de color)
+- Perspectiva y punto de fuga
+- Profundidad de campo aproximada (f-stop estimado)
+- Paleta de colores dominantes
+- Nivel de ruido/grano de imagen
+- Calidad y resolución aparente
+
+═══════════════════════════════════════════════════════════════════════════════
+▌ FASE 2: ESTABLECER IMAGEN MAESTRA (MASTER PLATE) ▌
+═══════════════════════════════════════════════════════════════════════════════
+
+REGLA CRÍTICA: Una imagen debe ser la "MASTER PLATE" que define:
+→ La iluminación global de la escena final
+→ La perspectiva y punto de cámara
+→ El color grading de referencia
+→ La resolución y nivel de detalle objetivo
+
+JERARQUÍA DE SELECCIÓN DE MASTER PLATE:
+1. Si hay ESCENARIO/FONDO → Este es el Master Plate
+2. Si solo hay personas/objetos → La persona principal define la iluminación
+3. Si hay referencia de estilo explícita → Usar su color grading
+
+TODOS los demás elementos deben ADAPTARSE al Master Plate, NO al revés.
+
+═══════════════════════════════════════════════════════════════════════════════
+▌ FASE 3: TÉCNICAS DE INPAINTING PARA FUSIÓN DE ELEMENTOS ▌
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TÉCNICA: INPAINTING POR CAPAS (LAYER-BASED COMPOSITION)                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Componer en este ORDEN ESTRICTO (de atrás hacia adelante):
+
+  CAPA 4 (Frente):    Efectos atmosféricos frontales (lluvia, partículas)
+      ↑
+  CAPA 3 (Sujeto):    Persona/objeto principal + sombras proyectadas
+      ↑
+  CAPA 2 (Medio):     Objetos de midground, props, elementos secundarios
+      ↑
+  CAPA 1 (Fondo):     Escenario base, background, cielo
+
+Para cada capa, aplicar INPAINTING para:
+- Fundir bordes con feathering suave (sin bordes duros visibles)
+- Generar sombras de contacto donde elementos tocan superficies
+- Crear reflejos si hay superficies especulares
+- Añadir participación atmosférica según profundidad
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TÉCNICA: HARMONIZACIÓN DE LUZ (LIGHT MATCHING)                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Para CADA elemento que se inserta:
+
+1. DETECTAR LUZ ORIGINAL del elemento:
+   - ¿De dónde viene la luz en la imagen original?
+   - ¿Es luz dura (sol directo) o suave (nublado/difusa)?
+   - ¿Cuál es la temperatura de color (kelvin aproximado)?
+
+2. DETECTAR LUZ DEL MASTER PLATE:
+   - Posición de fuentes de luz visibles o implícitas
+   - Dirección de sombras existentes en el escenario
+   - Temperatura de color ambiente
+
+3. APLICAR RELIGHTING mediante INPAINTING:
+   - Regenerar highlights en el lado correcto del sujeto
+   - Regenerar sombras faciales/corporales coherentes
+   - Ajustar subsurface scattering en piel según luz ambiente
+   - Modificar catchlights en ojos según fuentes de luz
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TÉCNICA: FUSIÓN DE BORDES (EDGE BLENDING)                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Los bordes son el PUNTO CRÍTICO de fallo en composiciones. Aplicar:
+
+→ FEATHERING CONTEXTUAL: El borde se difumina adaptándose al entorno
+  - Cabello: Usar inpainting para generar pelos sueltos que interactúen con el fondo
+  - Ropa: Bordes suaves que sugieren textura de tela
+  - Piel: Transición gradual, especialmente en zonas de alto contraste
+
+→ COLOR SPILL: El color del fondo debe "contaminar" ligeramente los bordes del sujeto
+  - Si el fondo es verde hierba → ligero tinte verde en sombras del sujeto
+  - Si hay luz cálida de atardecer → rim light dorado en silueta
+
+→ ELIMINACIÓN DE HALOS: NO debe haber:
+  - Bordes blancos o negros artificiales
+  - Contornos demasiado nítidos en contraste con fondo suave
+  - Aliasing visible en transiciones
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TÉCNICA: SOMBRAS DE INTEGRACIÓN (CONTACT SHADOWS & PROJECTED SHADOWS)     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+OBLIGATORIO generar mediante inpainting:
+
+1. CONTACT SHADOW (Sombra de Contacto):
+   - Sombra oscura y suave JUSTO donde el sujeto toca la superficie
+   - Aproximadamente 2-5cm de radio difuso
+   - Más oscura cuanto más cerca del punto de contacto
+   - ANCLA al sujeto a la superficie, elimina efecto "flotante"
+
+2. PROJECTED SHADOW (Sombra Proyectada):
+   - Dirección coherente con luz del Master Plate
+   - Dureza proporcional a la dureza de la luz
+   - Color NO es negro puro, sino sombra + color ambiente
+   - Se atenúa con la distancia (penumbra)
+
+3. AMBIENT OCCLUSION:
+   - Oscurecimiento suave en cavidades y pliegues
+   - Entre piernas, bajo brazos, pliegues de ropa
+   - Consistente con el AO visible en el escenario
+
+═══════════════════════════════════════════════════════════════════════════════
+▌ FASE 4: COHERENCIA TÉCNICA DE IMAGEN ▌
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ MATCHING DE RUIDO/GRANO                                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ANALIZAR el grano de imagen del Master Plate y aplicar IDÉNTICO patrón a todos los elementos:
+
+- ISO bajo (100-400): Grano fino, casi imperceptible
+- ISO medio (800-1600): Grano visible, especialmente en sombras
+- ISO alto (3200+): Grano pronunciado, pérdida de detalle en sombras
+
+Si los elementos tienen diferente nivel de ruido:
+→ Usar INPAINTING para regenerar texturas con ruido consistente
+→ NO simplemente añadir ruido encima, regenerar la textura completa
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ MATCHING DE NITIDEZ Y DETALLE                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+- Si el Master Plate tiene aspecto de foto smartphone → Reducir exceso de detalle en elementos
+- Si el Master Plate es foto profesional con lente premium → Mantener detalle alto
+- Microcontrastes deben ser CONSISTENTES en toda la imagen
+- Evitar que un elemento se vea "más HD" que otro
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ MATCHING DE ABERRACIONES ÓPTICAS                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Si el Master Plate tiene defectos ópticos, aplicarlos a TODOS los elementos:
+- Aberración cromática (fringing rojo/cyan en bordes de alto contraste)
+- Viñeteado (oscurecimiento en esquinas)
+- Distorsión de barril o cojín
+- Flare si hay fuentes de luz directas
+
+═══════════════════════════════════════════════════════════════════════════════
+▌ FASE 5: INTERACCIÓN FÍSICA ENTRE ELEMENTOS ▌
+═══════════════════════════════════════════════════════════════════════════════
+
+Cuando múltiples elementos coexisten, generar INTERACCIONES FÍSICAS mediante inpainting:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ OCLUSIÓN Y SUPERPOSICIÓN                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+- Si persona está DETRÁS de objeto → Oclusión parcial natural
+- Si persona está DELANTE de objeto → El objeto aparece detrás, respetando profundidad
+- Generar bordes de oclusión suaves, no recortes duros
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ REFLEJOS Y ESPECULARIDAD                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+- Si hay agua/piso mojado → Generar reflejo del sujeto
+- Si hay vidrio/espejo → Reflejo apropiado según ángulo
+- Si hay metal pulido → Reflejo difuso del ambiente
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ INTERACCIÓN AMBIENTAL                                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+- Viento: Cabello y ropa del sujeto + vegetación del fondo → MISMA dirección
+- Lluvia: Gotas sobre TODOS los elementos expuestos, no solo el fondo
+- Polvo/Niebla: Participación atmosférica proporcional a la distancia Z
+
+═══════════════════════════════════════════════════════════════════════════════
+▌ FASE 6: CHECKLIST DE VALIDACIÓN FINAL ▌
+═══════════════════════════════════════════════════════════════════════════════
+
+Antes de generar la imagen final, verificar CADA punto:
+
+□ ILUMINACIÓN
+  ├─ ¿Todas las luces vienen de la misma dirección?
+  ├─ ¿Los highlights están en el lado correcto?
+  └─ ¿La temperatura de color es consistente?
+
+□ SOMBRAS
+  ├─ ¿Hay sombra de contacto donde el sujeto toca superficies?
+  ├─ ¿La sombra proyectada tiene la dirección correcta?
+  └─ ¿La dureza de sombra coincide con la dureza de luz?
+
+□ BORDES
+  ├─ ¿Los bordes tienen feathering apropiado?
+  ├─ ¿Hay color spill del ambiente?
+  └─ ¿No hay halos ni contornos artificiales?
+
+□ COLOR
+  ├─ ¿El color grading es uniforme?
+  ├─ ¿La piel refleja tonos del ambiente?
+  └─ ¿Los colores de ropa se ven afectados por la luz?
+
+□ TÉCNICO
+  ├─ ¿El ruido/grano es consistente?
+  ├─ ¿El nivel de nitidez es uniforme?
+  └─ ¿Las aberraciones ópticas están aplicadas?
+
+□ FÍSICA
+  ├─ ¿La escala es correcta entre elementos?
+  ├─ ¿La perspectiva es coherente?
+  └─ ¿Hay interacciones físicas naturales (reflejos, oclusiones)?
+
+═══════════════════════════════════════════════════════════════════════════════
+▌ OBJETIVO FINAL ▌
+═══════════════════════════════════════════════════════════════════════════════
+
+Producir una imagen donde NINGÚN elemento parezca "pegado" o "insertado".
+Cada componente debe verse como si hubiera sido capturado en la MISMA toma fotográfica.
+Un experto en composición digital NO debería poder identificar los puntos de fusión.
+`;
+
 // Tipos para las partes del contenido de Gemini
 type TextPart = { text: string };
 type InlineDataPart = { inlineData: { mimeType: string; data: string } };
@@ -375,6 +624,14 @@ export async function generateWithAttachedImages(
 ): Promise<string> {
   const parts: ContentPart[] = [];
 
+  // Determinar si es una composición multi-elemento (más de 1 imagen adjunta)
+  const isMultiElementComposition = attachedImages.length > 1;
+
+  // Seleccionar el prompt de composición apropiado
+  const compositionPrompt = isMultiElementComposition
+    ? MULTI_ELEMENT_COMPOSITION_PROMPT
+    : SCENE_INTEGRATION_REALISM_PROMPT;
+
   // Instrucciones del sistema según el contexto
   if (identityName && referencePhotos && referencePhotos.length > 0) {
     // Construir la descripción de la identidad si existe
@@ -392,25 +649,47 @@ export async function generateWithAttachedImages(
       ? `\n\nANÁLISIS ANTROPOMÉTRICO FACIAL (usar para consistencia absoluta):\n${faceDescriptions}`
       : '';
 
-    parts.push({
-      text: `Eres un generador y editor de imágenes profesional especializado en consistencia facial y COMPOSICIONES FOTORREALISTAS. Vas a trabajar con las imágenes que el usuario ha adjuntado.
+    // Construir contexto de imágenes adjuntas con clasificación
+    const attachedImagesContext = isMultiElementComposition
+      ? `
+IMÁGENES ADJUNTAS PARA COMPOSICIÓN (${attachedImages.length} elementos):
+El usuario ha adjuntado múltiples imágenes que deben FUSIONARSE en una composición coherente.
+Analiza cada imagen y clasifícala según el sistema de la FASE 1:
+- Identifica cuál es el ESCENARIO/FONDO (Master Plate)
+- Identifica PERSONAS/SUJETOS adicionales
+- Identifica OBJETOS/PROPS
+- Identifica referencias de ATMÓSFERA o ESTILO
 
+IMPORTANTE: La persona de identidad "${identityName}" debe ser el SUJETO PRINCIPAL de la composición.
+Todos los demás elementos deben integrarse alrededor de esta persona manteniendo su identidad exacta.`
+      : `
 CONTEXTO:
 - El usuario ha adjuntado ${attachedImages.length} imagen(es) para que las analices, edites o uses como referencia.
-- También tienes fotos de referencia de "${identityName}" para mantener la identidad si es necesario.${descriptionContext}${faceDescriptionContext}
+- También tienes fotos de referencia de "${identityName}" para mantener la identidad si es necesario.`;
+
+    parts.push({
+      text: `Eres un COMPOSITOR DE IMÁGENES FOTORREALISTAS de nivel profesional, especializado en:
+- Mantener consistencia facial absoluta
+- Fusionar múltiples elementos de diferentes fuentes
+- Técnicas avanzadas de INPAINTING y composición por capas
+- Integración fotorrealista indistinguible de fotografía real
+
+${attachedImagesContext}${descriptionContext}${faceDescriptionContext}
 
 INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL:
-- Analiza las imágenes adjuntas por el usuario
-- Si el usuario pide editar o modificar las imágenes, hazlo manteniendo EXACTAMENTE la identidad facial de "${identityName}"
+- PRESERVA EXACTAMENTE la identidad facial de "${identityName}" en la composición final
+- Si el usuario pide editar o modificar las imágenes, hazlo manteniendo la identidad intacta
 ${faceDescriptions ? '- IMPORTANTE: Sigue estrictamente el análisis antropométrico para la consistencia facial (morfología craneal, estructura mandibular, forma de ojos, nariz y labios)' : ''}
 - Respeta el fototipo de Fitzpatrick y cualquier marca distintiva mencionada
+- Los catchlights en los ojos deben reflejar las fuentes de luz del escenario final
 
-${SCENE_INTEGRATION_REALISM_PROMPT}
+${compositionPrompt}
 
-OBJETIVO:
-- Si el usuario pide generar algo nuevo basado en las imágenes, úsalas como inspiración
-- Genera una imagen de alta calidad siguiendo las instrucciones del usuario
-- La persona debe verse NATURALMENTE INTEGRADA en el escenario, como si realmente hubiera estado físicamente presente
+OBJETIVO FINAL:
+- Fusiona TODOS los elementos adjuntos en una ÚNICA composición fotorrealista cohesiva
+- "${identityName}" debe aparecer NATURALMENTE INTEGRADO/A en el escenario
+- NINGÚN elemento debe parecer "pegado" o "insertado" - debe verse como una fotografía real
+- Aplica todas las técnicas de inpainting para sombras de contacto, harmonización de luz y fusión de bordes
 
 Fotos de referencia de "${identityName}":`
     });
@@ -424,10 +703,26 @@ Fotos de referencia de "${identityName}":`
       parts.push(createImagePart(optimizedUrl, 'image/jpeg'));
     }
 
-    parts.push({ text: '\nImágenes adjuntadas por el usuario:' });
+    parts.push({ text: `\n═══════════════════════════════════════════════════════════════
+IMÁGENES ADJUNTAS POR EL USUARIO (${attachedImages.length} elemento${attachedImages.length > 1 ? 's' : ''} para ${isMultiElementComposition ? 'COMPOSICIÓN' : 'referencia'}):
+═══════════════════════════════════════════════════════════════` });
   } else {
-    parts.push({
-      text: `Eres un generador y editor de imágenes profesional. El usuario ha adjuntado ${attachedImages.length} imagen(es).
+    // Sin identidad de referencia - composición general
+    const generalCompositionContext = isMultiElementComposition
+      ? `Eres un COMPOSITOR DE IMÁGENES FOTORREALISTAS de nivel profesional.
+
+El usuario ha adjuntado ${attachedImages.length} imágenes que deben FUSIONARSE en una composición cohesiva.
+
+${MULTI_ELEMENT_COMPOSITION_PROMPT}
+
+OBJETIVO:
+- Analiza cada imagen adjunta y clasifícala (escenario, persona, objeto, atmósfera, estilo)
+- Selecciona el MASTER PLATE que definirá iluminación, perspectiva y color grading
+- Fusiona TODOS los elementos aplicando técnicas de inpainting profesional
+- El resultado debe ser INDISTINGUIBLE de una fotografía real
+
+Imágenes adjuntadas para composición:`
+      : `Eres un generador y editor de imágenes profesional. El usuario ha adjuntado ${attachedImages.length} imagen(es).
 
 INSTRUCCIONES:
 - Analiza las imágenes adjuntas
@@ -435,8 +730,9 @@ INSTRUCCIONES:
 - Si el usuario pide generar algo nuevo basado en las imágenes, úsalas como referencia/inspiración
 - Genera una imagen de alta calidad siguiendo exactamente las instrucciones del usuario
 
-Imágenes adjuntadas:`
-    });
+Imágenes adjuntadas:`;
+
+    parts.push({ text: generalCompositionContext });
   }
 
   // Añadir las imágenes adjuntas por el usuario (optimizadas para reducir tokens)
@@ -444,12 +740,61 @@ Imágenes adjuntadas:`
   const optimizedAttached = await optimizeImagesForAPI(attachedUrls);
 
   for (let i = 0; i < attachedImages.length; i++) {
+    // Etiquetar cada imagen adjunta para mejor contexto
+    if (isMultiElementComposition) {
+      parts.push({ text: `\n[ELEMENTO ${i + 1} de ${attachedImages.length}]:` });
+    }
     parts.push(createImagePart(optimizedAttached[i], attachedImages[i].mimeType));
   }
 
-  // Añadir el prompt del usuario con énfasis en integración realista
-  parts.push({
-    text: `
+  // Construir instrucciones finales según el tipo de composición
+  const finalInstructions = isMultiElementComposition
+    ? `
+
+═══════════════════════════════════════════════════════════════
+INSTRUCCIONES DEL USUARIO PARA LA COMPOSICIÓN:
+═══════════════════════════════════════════════════════════════
+${prompt}
+
+═══════════════════════════════════════════════════════════════
+REQUISITOS OBLIGATORIOS DE COMPOSICIÓN MULTI-ELEMENTO:
+═══════════════════════════════════════════════════════════════
+
+1. ANÁLISIS PREVIO (ejecutar mentalmente):
+   □ Clasificar cada elemento adjunto (escenario/persona/objeto/atmósfera/estilo)
+   □ Identificar el MASTER PLATE que define luz y perspectiva
+   □ Determinar el orden de capas (fondo → medio → sujeto → efectos)
+
+2. HARMONIZACIÓN DE LUZ (CRÍTICO):
+   □ TODOS los elementos deben tener luz desde la MISMA dirección
+   □ Regenerar highlights y sombras según el Master Plate
+   □ Aplicar temperatura de color uniforme a TODOS los elementos
+   □ Ajustar catchlights en ojos según fuentes de luz del escenario
+
+3. FUSIÓN DE BORDES:
+   □ Aplicar feathering contextual (cabello, ropa, piel)
+   □ Generar color spill del ambiente en bordes del sujeto
+   □ ELIMINAR cualquier halo o contorno artificial
+   □ Los bordes deben ser INVISIBLES
+
+4. SOMBRAS DE INTEGRACIÓN:
+   □ OBLIGATORIO: Sombra de contacto donde sujeto toca superficies
+   □ Sombra proyectada coherente con dirección de luz
+   □ Ambient occlusion en cavidades y pliegues
+
+5. COHERENCIA TÉCNICA:
+   □ Matching de ruido/grano entre TODOS los elementos
+   □ Nivel de nitidez uniforme
+   □ Aberraciones ópticas aplicadas si el Master Plate las tiene
+
+6. INTERACCIONES FÍSICAS:
+   □ Oclusiones correctas entre elementos
+   □ Reflejos si hay superficies especulares
+   □ Efectos ambientales consistentes (viento, lluvia, polvo)
+
+GENERA UNA IMAGEN donde TODOS los elementos estén perfectamente fusionados.
+El resultado debe parecer una FOTOGRAFÍA REAL, no un collage digital.`
+    : `
 
 INSTRUCCIONES DEL USUARIO:
 ${prompt}
@@ -461,8 +806,9 @@ REQUISITOS DE INTEGRACIÓN FOTORREALISTA:
 - Mantén perspectiva, escala y profundidad de campo consistentes
 - La persona debe interactuar naturalmente con el entorno (viento, reflejos, clima si aplica)
 
-Genera una imagen donde la persona aparezca como si REALMENTE hubiera estado en ese lugar.`
-  });
+Genera una imagen donde la persona aparezca como si REALMENTE hubiera estado en ese lugar.`;
+
+  parts.push({ text: finalInstructions });
 
   const requestBody = {
     contents: [{
