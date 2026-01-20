@@ -11,6 +11,7 @@ export interface IdentityPhoto {
   id: string;
   dataUrl: string;
   thumbnail: string;
+  cloudinaryId?: string;
   addedAt: number;
 }
 
@@ -20,6 +21,7 @@ export interface GeneratedImage {
   identityName: string;
   prompt: string;
   imageUrl: string;
+  cloudinaryId?: string;
   createdAt: number;
 }
 
