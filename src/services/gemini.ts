@@ -1,7 +1,11 @@
 import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
+import { downscaleImage, defaultOptimizationConfig, type ImageOptimizationConfig } from './imageOptimizer';
 
 // API Key desde variable de entorno
 const GEMINI_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
+
+// Configuración de optimización de imágenes (se puede modificar desde UI)
+let optimizationConfig: ImageOptimizationConfig = { ...defaultOptimizationConfig };
 
 // Modelo de texto para análisis de rostro (Flash es más rápido y económico para esta tarea)
 // Usando el modelo estable sin sufijo preview para evitar errores 404
@@ -44,6 +48,20 @@ type InlineDataPart = { inlineData: { mimeType: string; data: string } };
 type FileDataPart = { fileData: { mimeType: string; fileUri: string } };
 type ContentPart = TextPart | InlineDataPart | FileDataPart;
 
+/**
+ * Actualiza la configuración de optimización de imágenes
+ */
+export function setOptimizationConfig(config: Partial<ImageOptimizationConfig>): void {
+  optimizationConfig = { ...optimizationConfig, ...config };
+}
+
+/**
+ * Obtiene la configuración actual de optimización
+ */
+export function getOptimizationConfig(): ImageOptimizationConfig {
+  return { ...optimizationConfig };
+}
+
 // Helper para crear la parte de imagen según si es URL o base64
 function createImagePart(dataUrl: string, mimeType: string = 'image/jpeg'): InlineDataPart | FileDataPart {
   // Si es una URL (http/https), usar fileData
@@ -63,6 +81,29 @@ function createImagePart(dataUrl: string, mimeType: string = 'image/jpeg'): Inli
       data: base64Data
     }
   };
+}
+
+/**
+ * Comprime una imagen antes de enviarla a la API para ahorrar tokens
+ */
+async function optimizeImageForAPI(dataUrl: string): Promise<string> {
+  // Si es una URL externa, no podemos optimizarla localmente
+  if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) {
+    return dataUrl;
+  }
+
+  return await downscaleImage(
+    dataUrl,
+    optimizationConfig.maxInputDimension,
+    optimizationConfig.compressionQuality
+  );
+}
+
+/**
+ * Optimiza múltiples imágenes en paralelo
+ */
+async function optimizeImagesForAPI(images: string[]): Promise<string[]> {
+  return Promise.all(images.map(img => optimizeImageForAPI(img)));
 }
 
 // Modelos de imagen de Gemini (Nano Banana)
@@ -114,9 +155,13 @@ Fotos de referencia de "${identityName}" adjuntas a continuación:`
   });
 
   // Añadir fotos de referencia (máximo 5 para no sobrecargar)
+  // Optimizar imágenes para reducir tokens
   const photosToUse = referencePhotos.slice(0, 5);
-  for (const photo of photosToUse) {
-    parts.push(createImagePart(photo.dataUrl, 'image/jpeg'));
+  const photoUrls = photosToUse.map(p => p.dataUrl);
+  const optimizedPhotos = await optimizeImagesForAPI(photoUrls);
+
+  for (const optimizedUrl of optimizedPhotos) {
+    parts.push(createImagePart(optimizedUrl, 'image/jpeg'));
   }
 
   // Añadir el prompt del usuario
@@ -265,10 +310,13 @@ ${faceDescriptions ? '- IMPORTANTE: Sigue estrictamente el análisis antropomét
 Fotos de referencia de "${identityName}":`
     });
 
-    // Añadir fotos de referencia de identidad
+    // Añadir fotos de referencia de identidad (optimizadas)
     const photosToUse = referencePhotos.slice(0, 3);
-    for (const photo of photosToUse) {
-      parts.push(createImagePart(photo.dataUrl, 'image/jpeg'));
+    const refPhotoUrls = photosToUse.map(p => p.dataUrl);
+    const optimizedRefPhotos = await optimizeImagesForAPI(refPhotoUrls);
+
+    for (const optimizedUrl of optimizedRefPhotos) {
+      parts.push(createImagePart(optimizedUrl, 'image/jpeg'));
     }
 
     parts.push({ text: '\nImágenes adjuntadas por el usuario:' });
@@ -286,9 +334,12 @@ Imágenes adjuntadas:`
     });
   }
 
-  // Añadir las imágenes adjuntas por el usuario
-  for (const image of attachedImages) {
-    parts.push(createImagePart(image.dataUrl, image.mimeType));
+  // Añadir las imágenes adjuntas por el usuario (optimizadas para reducir tokens)
+  const attachedUrls = attachedImages.map(img => img.dataUrl);
+  const optimizedAttached = await optimizeImagesForAPI(attachedUrls);
+
+  for (let i = 0; i < attachedImages.length; i++) {
+    parts.push(createImagePart(optimizedAttached[i], attachedImages[i].mimeType));
   }
 
   // Añadir el prompt del usuario
@@ -358,8 +409,11 @@ export async function analyzeFaceForConsistency(imageUrl: string): Promise<strin
     text: FACE_ANALYSIS_SYSTEM_PROMPT + '\n\nAnaliza el siguiente rostro:'
   });
 
+  // Optimizar la imagen antes de enviar (reduce tokens)
+  const optimizedImageUrl = await optimizeImageForAPI(imageUrl);
+
   // Añadir la imagen del rostro
-  parts.push(createImagePart(imageUrl, 'image/jpeg'));
+  parts.push(createImagePart(optimizedImageUrl, 'image/jpeg'));
 
   // Solicitar el análisis
   parts.push({
