@@ -1,4 +1,5 @@
 import type { Identity, IdentityPhoto, GeneratedImage } from '../types';
+import { uploadFileToCloudinary, uploadToCloudinary, getThumbnailUrl } from './cloudinary';
 
 const DB_NAME = 'GenID_IdentityStore';
 const DB_VERSION = 1;
@@ -120,48 +121,20 @@ export async function deleteIdentity(id: string): Promise<void> {
   });
 }
 
-// === FOTOS DE IDENTIDAD ===
-
-async function createThumbnail(dataUrl: string, maxSize: number = 150): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
-
-      let { width, height } = img;
-      if (width > height) {
-        if (width > maxSize) {
-          height = (height * maxSize) / width;
-          width = maxSize;
-        }
-      } else {
-        if (height > maxSize) {
-          width = (width * maxSize) / height;
-          height = maxSize;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
-    };
-    img.src = dataUrl;
-  });
-}
+// === FOTOS DE IDENTIDAD (Con Cloudinary) ===
 
 export async function addPhotoToIdentity(identityId: string, imageFile: File): Promise<Identity> {
   const identity = await getIdentity(identityId);
   if (!identity) throw new Error('Identidad no encontrada');
 
-  const dataUrl = await fileToDataUrl(imageFile);
-  const thumbnail = await createThumbnail(dataUrl);
+  // Subir a Cloudinary
+  const uploadResult = await uploadFileToCloudinary(imageFile, `genid/identities/${identityId}`);
 
   const photo: IdentityPhoto = {
     id: generateId(),
-    dataUrl,
-    thumbnail,
+    dataUrl: uploadResult.secure_url, // URL completa de Cloudinary
+    thumbnail: getThumbnailUrl(uploadResult.public_id, 150),
+    cloudinaryId: uploadResult.public_id,
     addedAt: Date.now()
   };
 
@@ -177,31 +150,26 @@ export async function removePhotoFromIdentity(identityId: string, photoId: strin
   return updateIdentity(identity);
 }
 
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
-// === IMÁGENES GENERADAS ===
+// === IMÁGENES GENERADAS (Con Cloudinary) ===
 
 export async function saveGeneratedImage(
   identityId: string,
   identityName: string,
   prompt: string,
-  imageUrl: string
+  imageDataUrl: string
 ): Promise<GeneratedImage> {
   const database = await openDB();
+
+  // Subir imagen generada a Cloudinary
+  const uploadResult = await uploadToCloudinary(imageDataUrl, `genid/generated/${identityId}`);
 
   const generated: GeneratedImage = {
     id: generateId(),
     identityId,
     identityName,
     prompt,
-    imageUrl,
+    imageUrl: uploadResult.secure_url,
+    cloudinaryId: uploadResult.public_id,
     createdAt: Date.now()
   };
 
