@@ -2,7 +2,7 @@ import type { Identity, IdentityPhoto, GeneratedImage } from '../types';
 import { uploadFileToCloudinary, uploadToCloudinary, getThumbnailUrl } from './cloudinary';
 
 const DB_NAME = 'GenID_IdentityStore';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incrementar versión para migración
 const IDENTITIES_STORE = 'identities';
 const GENERATED_STORE = 'generated';
 
@@ -27,14 +27,37 @@ async function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const database = (event.target as IDBOpenDBRequest).result;
+      const oldVersion = event.oldVersion;
 
+      // Crear o actualizar store de identidades
       if (!database.objectStoreNames.contains(IDENTITIES_STORE)) {
-        database.createObjectStore(IDENTITIES_STORE, { keyPath: 'id' });
+        const identitiesStore = database.createObjectStore(IDENTITIES_STORE, { keyPath: 'id' });
+        identitiesStore.createIndex('deviceId', 'deviceId', { unique: false });
+      } else if (oldVersion < 2) {
+        // Migración: agregar índice deviceId al store existente
+        const transaction = (event.target as IDBOpenDBRequest).transaction;
+        if (transaction) {
+          const identitiesStore = transaction.objectStore(IDENTITIES_STORE);
+          if (!identitiesStore.indexNames.contains('deviceId')) {
+            identitiesStore.createIndex('deviceId', 'deviceId', { unique: false });
+          }
+        }
       }
 
+      // Crear o actualizar store de imágenes generadas
       if (!database.objectStoreNames.contains(GENERATED_STORE)) {
         const genStore = database.createObjectStore(GENERATED_STORE, { keyPath: 'id' });
         genStore.createIndex('identityId', 'identityId', { unique: false });
+        genStore.createIndex('deviceId', 'deviceId', { unique: false });
+      } else if (oldVersion < 2) {
+        // Migración: agregar índice deviceId al store existente
+        const transaction = (event.target as IDBOpenDBRequest).transaction;
+        if (transaction) {
+          const genStore = transaction.objectStore(GENERATED_STORE);
+          if (!genStore.indexNames.contains('deviceId')) {
+            genStore.createIndex('deviceId', 'deviceId', { unique: false });
+          }
+        }
       }
     };
   });
@@ -42,13 +65,22 @@ async function openDB(): Promise<IDBDatabase> {
 
 // === IDENTIDADES ===
 
-export async function getAllIdentities(): Promise<Identity[]> {
+export async function getAllIdentities(deviceId?: string): Promise<Identity[]> {
   const database = await openDB();
 
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(IDENTITIES_STORE, 'readonly');
     const store = transaction.objectStore(IDENTITIES_STORE);
-    const request = store.getAll();
+
+    let request: IDBRequest;
+
+    if (deviceId) {
+      // Filtrar por deviceId usando el índice
+      const index = store.index('deviceId');
+      request = index.getAll(deviceId);
+    } else {
+      request = store.getAll();
+    }
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -71,12 +103,13 @@ export async function getIdentity(id: string): Promise<Identity | null> {
   });
 }
 
-export async function createIdentity(name: string, description: string): Promise<Identity> {
+export async function createIdentity(deviceId: string, name: string, description: string): Promise<Identity> {
   const database = await openDB();
   const now = Date.now();
 
   const identity: Identity = {
     id: generateId(),
+    deviceId,
     name,
     description,
     photos: [],
@@ -153,6 +186,7 @@ export async function removePhotoFromIdentity(identityId: string, photoId: strin
 // === IMÁGENES GENERADAS (Con Cloudinary) ===
 
 export async function saveGeneratedImage(
+  deviceId: string,
   identityId: string,
   identityName: string,
   prompt: string,
@@ -165,6 +199,7 @@ export async function saveGeneratedImage(
 
   const generated: GeneratedImage = {
     id: generateId(),
+    deviceId,
     identityId,
     identityName,
     prompt,
@@ -183,13 +218,39 @@ export async function saveGeneratedImage(
   });
 }
 
-export async function getAllGeneratedImages(): Promise<GeneratedImage[]> {
+export async function getAllGeneratedImages(deviceId?: string): Promise<GeneratedImage[]> {
   const database = await openDB();
 
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(GENERATED_STORE, 'readonly');
     const store = transaction.objectStore(GENERATED_STORE);
-    const request = store.getAll();
+
+    let request: IDBRequest;
+
+    if (deviceId) {
+      // Filtrar por deviceId usando el índice
+      const index = store.index('deviceId');
+      request = index.getAll(deviceId);
+    } else {
+      request = store.getAll();
+    }
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const images = request.result as GeneratedImage[];
+      resolve(images.sort((a, b) => b.createdAt - a.createdAt));
+    };
+  });
+}
+
+export async function getGeneratedImagesByIdentity(identityId: string): Promise<GeneratedImage[]> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(GENERATED_STORE, 'readonly');
+    const store = transaction.objectStore(GENERATED_STORE);
+    const index = store.index('identityId');
+    const request = index.getAll(identityId);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -209,6 +270,25 @@ export async function deleteGeneratedImage(id: string): Promise<void> {
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve();
+  });
+}
+
+export async function deleteGeneratedImagesByIdentity(identityId: string): Promise<void> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(GENERATED_STORE, 'readwrite');
+    const store = transaction.objectStore(GENERATED_STORE);
+    const index = store.index('identityId');
+    const request = index.getAllKeys(identityId);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const keys = request.result;
+      keys.forEach(key => store.delete(key));
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    };
   });
 }
 

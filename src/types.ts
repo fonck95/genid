@@ -1,5 +1,6 @@
 export interface Identity {
   id: string;
+  deviceId: string;
   name: string;
   description: string;
   photos: IdentityPhoto[];
@@ -17,6 +18,7 @@ export interface IdentityPhoto {
 
 export interface GeneratedImage {
   id: string;
+  deviceId: string;
   identityId: string;
   identityName: string;
   prompt: string;
