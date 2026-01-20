@@ -42,6 +42,95 @@ Redacta un prompt optimizado para IA (como Nano Banana, SDXL o Midjourney) que r
 - El prompt final debe estar siempre en inglés para evitar errores de interpretación de la IA generativa.
 - Genera SOLO el análisis técnico, sin saludos ni explicaciones adicionales.`;
 
+// System prompt para integración realista de personas en escenarios
+// Este prompt asegura que la persona se vea naturalmente integrada en el fondo/ambiente
+const SCENE_INTEGRATION_REALISM_PROMPT = `
+[DIRECTIVAS DE INTEGRACIÓN FOTORREALISTA EN ESCENA]
+
+Tu objetivo principal es generar imágenes donde la persona aparezca NATURALMENTE INTEGRADA en el escenario, como si realmente hubiera estado físicamente presente en ese lugar durante la captura fotográfica.
+
+═══════════════════════════════════════════════════════════════
+1. COHERENCIA DE ILUMINACIÓN (CRÍTICO)
+═══════════════════════════════════════════════════════════════
+- La fuente de luz principal debe iluminar a la persona desde el MISMO ángulo y con la MISMA intensidad que el entorno
+- Las sombras en el rostro y cuerpo deben ser consistentes con las sombras del ambiente
+- Si el escenario tiene luz natural (sol, cielo nublado), aplica los mismos tonos de color (warmth/coolness) a la piel
+- En interiores, respeta las fuentes de luz artificiales visibles (lámparas, ventanas, neones)
+- Los highlights especulares en la piel/cabello deben reflejar las fuentes de luz del escenario
+- Evita iluminación "de estudio" cuando el escenario es exterior natural
+
+═══════════════════════════════════════════════════════════════
+2. PERSPECTIVA Y PUNTO DE VISTA
+═══════════════════════════════════════════════════════════════
+- La persona debe estar dibujada desde el MISMO ángulo de cámara que el fondo
+- Si el fondo tiene perspectiva de ojo de pez, contrapicado o picado, el sujeto debe reflejar esa misma distorsión
+- La línea del horizonte debe atravesar a la persona a la altura correcta según su posición en el plano
+- Respeta las líneas de fuga del escenario: la persona no debe "flotar" ni estar fuera de la grilla perspectiva
+
+═══════════════════════════════════════════════════════════════
+3. PROFUNDIDAD DE CAMPO Y ENFOQUE
+═══════════════════════════════════════════════════════════════
+- Si el fondo tiene bokeh (desenfoque), la persona debe tener el enfoque apropiado según su distancia a la cámara
+- Si el fondo está enfocado (paisaje con f/11+), la persona también debe estar nítida
+- Aplica desenfoque de movimiento si el escenario sugiere dinamismo
+- Los bordes de la persona deben fundirse naturalmente con el ambiente, sin "recortes" duros
+
+═══════════════════════════════════════════════════════════════
+4. COLOR GRADING Y ARMONÍA CROMÁTICA
+═══════════════════════════════════════════════════════════════
+- La piel de la persona debe adoptar los tonos ambientales del escenario (luz dorada al atardecer, azulada en sombra, etc.)
+- Aplica la misma curva de contraste y saturación del fondo al sujeto
+- Si el escenario tiene un color cast (tinte de color), la persona debe tenerlo también
+- Los colores de la ropa deben verse afectados por la luz ambiente igual que cualquier objeto del escenario
+
+═══════════════════════════════════════════════════════════════
+5. SOMBRAS PROYECTADAS Y CONTACTO CON EL SUELO
+═══════════════════════════════════════════════════════════════
+- La persona DEBE proyectar sombra sobre el suelo/superficies según las fuentes de luz del escenario
+- La sombra debe tener la dureza/suavidad correcta (sol directo = sombra dura, día nublado = sombra difusa)
+- El ángulo de la sombra debe ser coherente con la posición de la fuente de luz
+- Si la persona está sentada o apoyada, su cuerpo debe "interactuar" visualmente con las superficies
+
+═══════════════════════════════════════════════════════════════
+6. ESCALA Y PROPORCIONES ESPACIALES
+═══════════════════════════════════════════════════════════════
+- El tamaño de la persona debe ser correcto en relación con los objetos del escenario
+- Usa referencias de escala del ambiente (puertas, coches, muebles, árboles) para determinar el tamaño
+- Si hay otras personas en el escenario, respeta la proporción relativa
+- La distancia aparente debe ser consistente con la profundidad del plano
+
+═══════════════════════════════════════════════════════════════
+7. INTERACCIÓN AMBIENTAL
+═══════════════════════════════════════════════════════════════
+- Si hay viento, el cabello y ropa de la persona deben moverse en la dirección correcta
+- En lluvia, la persona debe mostrar gotas/humedad apropiada
+- En escenas con polvo/niebla/humo, debe haber participación atmosférica parcial sobre la persona
+- Si la persona está cerca de superficies reflectantes (agua, espejos, cristales), genera reflejos coherentes
+
+═══════════════════════════════════════════════════════════════
+8. MICRODETALLES DE REALISMO
+═══════════════════════════════════════════════════════════════
+- Añade ruido/grano de imagen consistente entre persona y fondo
+- La textura de la piel debe tener el mismo nivel de detalle/suavizado que el resto de la imagen
+- Evita que la persona se vea "demasiado perfecta" o renderizada si el fondo es fotográfico
+- Si el escenario tiene aberraciones cromáticas o viñeteado, aplícalas también a la persona
+
+═══════════════════════════════════════════════════════════════
+VERIFICACIÓN FINAL DE INTEGRACIÓN
+═══════════════════════════════════════════════════════════════
+Antes de generar, verifica mentalmente:
+✓ ¿La luz viene de la misma dirección para persona y escenario?
+✓ ¿Las sombras son consistentes?
+✓ ¿La perspectiva es correcta?
+✓ ¿La persona proyecta sombra sobre el suelo?
+✓ ¿Los colores de la piel reflejan la luz ambiente?
+✓ ¿El enfoque/desenfoque es coherente?
+✓ ¿La escala es realista comparada con objetos del entorno?
+✓ ¿Hay interacción con elementos ambientales (viento, lluvia, reflejos)?
+
+El objetivo es que un observador NO pueda distinguir si la persona estuvo realmente en ese lugar o si fue generada por IA.
+`;
+
 // Tipos para las partes del contenido de Gemini
 type TextPart = { text: string };
 type InlineDataPart = { inlineData: { mimeType: string; data: string } };
@@ -138,18 +227,21 @@ export async function generateImageWithIdentity(
     ? `\n\nANÁLISIS ANTROPOMÉTRICO FACIAL (usar para consistencia absoluta):\n${faceDescriptions}`
     : '';
 
-  // Añadir instrucciones del sistema
+  // Añadir instrucciones del sistema con realismo e integración
   parts.push({
-    text: `Eres un generador de imágenes profesional especializado en mantener consistencia facial. Vas a generar una imagen basada en la identidad de "${identityName}".${descriptionContext}${faceDescriptionContext}
+    text: `Eres un generador de imágenes profesional especializado en mantener consistencia facial y crear composiciones FOTORREALISTAS. Vas a generar una imagen basada en la identidad de "${identityName}".${descriptionContext}${faceDescriptionContext}
 
-INSTRUCCIONES CRÍTICAS DE CONSISTENCIA:
+INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL:
 - Mantén EXACTAMENTE la identidad facial y características físicas descritas en el análisis antropométrico
 - La persona debe ser claramente reconocible como la misma de las fotos de referencia
 - Presta especial atención a: morfología craneal, estructura mandibular, forma de ojos, nariz y labios
 - Respeta el fototipo de Fitzpatrick y cualquier marca distintiva mencionada
-- Genera la imagen siguiendo exactamente la situación/escenario descrito
-- Calidad profesional, alta resolución
 ${faceDescriptions ? '- IMPORTANTE: El análisis antropométrico es tu guía principal para la consistencia facial' : ''}
+
+${SCENE_INTEGRATION_REALISM_PROMPT}
+
+OBJETIVO FINAL:
+Genera una imagen donde "${identityName}" aparezca NATURALMENTE INTEGRADO/A en el escenario, como si realmente hubiera estado físicamente presente durante la captura fotográfica. La imagen debe ser indistinguible de una fotografía real.
 
 Fotos de referencia de "${identityName}" adjuntas a continuación:`
   });
@@ -164,14 +256,22 @@ Fotos de referencia de "${identityName}" adjuntas a continuación:`
     parts.push(createImagePart(optimizedUrl, 'image/jpeg'));
   }
 
-  // Añadir el prompt del usuario
+  // Añadir el prompt del usuario con énfasis en integración realista
   parts.push({
     text: `
 
-SITUACIÓN A GENERAR:
+SITUACIÓN/ESCENARIO A GENERAR:
 ${prompt}
 
-Genera una imagen de "${identityName}" en esta situación, manteniendo su identidad visual exacta de las fotos de referencia${faceDescriptions ? ' siguiendo estrictamente el análisis antropométrico proporcionado' : ''}.`
+REQUISITOS DE GENERACIÓN:
+1. Mantén la identidad visual exacta de "${identityName}" de las fotos de referencia${faceDescriptions ? ' siguiendo estrictamente el análisis antropométrico proporcionado' : ''}
+2. Integra a la persona de forma FOTORREALISTA en el escenario:
+   - Iluminación coherente entre persona y ambiente
+   - Sombras proyectadas correctas sobre el suelo/superficies
+   - Perspectiva y escala apropiadas
+   - Color grading uniforme (la piel debe reflejar los tonos de luz ambiente)
+   - Interacción natural con elementos del entorno (viento, reflejos, clima)
+3. El resultado debe ser INDISTINGUIBLE de una fotografía real donde la persona estuvo presente.`
   });
 
   const requestBody = {
@@ -293,19 +393,24 @@ export async function generateWithAttachedImages(
       : '';
 
     parts.push({
-      text: `Eres un generador y editor de imágenes profesional especializado en consistencia facial. Vas a trabajar con las imágenes que el usuario ha adjuntado.
+      text: `Eres un generador y editor de imágenes profesional especializado en consistencia facial y COMPOSICIONES FOTORREALISTAS. Vas a trabajar con las imágenes que el usuario ha adjuntado.
 
 CONTEXTO:
 - El usuario ha adjuntado ${attachedImages.length} imagen(es) para que las analices, edites o uses como referencia.
 - También tienes fotos de referencia de "${identityName}" para mantener la identidad si es necesario.${descriptionContext}${faceDescriptionContext}
 
-INSTRUCCIONES CRÍTICAS DE CONSISTENCIA:
+INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL:
 - Analiza las imágenes adjuntas por el usuario
 - Si el usuario pide editar o modificar las imágenes, hazlo manteniendo EXACTAMENTE la identidad facial de "${identityName}"
 ${faceDescriptions ? '- IMPORTANTE: Sigue estrictamente el análisis antropométrico para la consistencia facial (morfología craneal, estructura mandibular, forma de ojos, nariz y labios)' : ''}
+- Respeta el fototipo de Fitzpatrick y cualquier marca distintiva mencionada
+
+${SCENE_INTEGRATION_REALISM_PROMPT}
+
+OBJETIVO:
 - Si el usuario pide generar algo nuevo basado en las imágenes, úsalas como inspiración
 - Genera una imagen de alta calidad siguiendo las instrucciones del usuario
-- Respeta el fototipo de Fitzpatrick y cualquier marca distintiva mencionada
+- La persona debe verse NATURALMENTE INTEGRADA en el escenario, como si realmente hubiera estado físicamente presente
 
 Fotos de referencia de "${identityName}":`
     });
@@ -342,14 +447,21 @@ Imágenes adjuntadas:`
     parts.push(createImagePart(optimizedAttached[i], attachedImages[i].mimeType));
   }
 
-  // Añadir el prompt del usuario
+  // Añadir el prompt del usuario con énfasis en integración realista
   parts.push({
     text: `
 
 INSTRUCCIONES DEL USUARIO:
 ${prompt}
 
-Genera una imagen basándote en las instrucciones anteriores.`
+REQUISITOS DE INTEGRACIÓN FOTORREALISTA:
+- Asegura coherencia de iluminación entre la persona y el escenario/fondo
+- Genera sombras proyectadas correctas sobre superficies
+- Aplica el mismo color grading y tonos de luz ambiente a la piel
+- Mantén perspectiva, escala y profundidad de campo consistentes
+- La persona debe interactuar naturalmente con el entorno (viento, reflejos, clima si aplica)
+
+Genera una imagen donde la persona aparezca como si REALMENTE hubiera estado en ese lugar.`
   });
 
   const requestBody = {
