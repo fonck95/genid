@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Identity, AttachedImage } from '../types';
-import { generateImageWithIdentity, generateWithAttachedImages } from '../services/gemini';
+import { generateImageWithIdentity, generateWithAttachedImages, setOptimizationConfig, getOptimizationConfig } from '../services/gemini';
 import { saveGeneratedImage } from '../services/identityStore';
 import { processDataUrlWithWebGPU, initWebGPU, isWebGPUAvailable } from '../services/webgpu';
+import { upscaleImageWebGPU, estimateTokenSavings, getImageDimensions } from '../services/imageOptimizer';
 
 interface Props {
   deviceId: string;
@@ -24,8 +25,73 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
   const [webgpuSaturation, setWebgpuSaturation] = useState(1);
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
 
+  // Optimization settings
+  const [showOptimizationSettings, setShowOptimizationSettings] = useState(false);
+  const [maxInputDimension, setMaxInputDimension] = useState(getOptimizationConfig().maxInputDimension);
+  const [targetOutputDimension, setTargetOutputDimension] = useState(getOptimizationConfig().targetOutputDimension);
+  const [enableUpscaling, setEnableUpscaling] = useState(getOptimizationConfig().enableUpscaling);
+  const [tokenSavingsInfo, setTokenSavingsInfo] = useState<string | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<string>('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const promptAreaRef = useRef<HTMLDivElement>(null);
+
+  // Update optimization config when settings change
+  useEffect(() => {
+    setOptimizationConfig({
+      maxInputDimension,
+      targetOutputDimension,
+      enableUpscaling,
+    });
+  }, [maxInputDimension, targetOutputDimension, enableUpscaling]);
+
+  // Calculate token savings when attached images change
+  useEffect(() => {
+    async function calculateSavings() {
+      if (attachedImages.length === 0 && (!selectedIdentity || selectedIdentity.photos.length === 0)) {
+        setTokenSavingsInfo(null);
+        return;
+      }
+
+      let totalOriginal = 0;
+      let totalOptimized = 0;
+
+      // Calculate for attached images
+      for (const img of attachedImages) {
+        try {
+          const dims = await getImageDimensions(img.dataUrl);
+          const savings = estimateTokenSavings(dims.width, dims.height, maxInputDimension);
+          totalOriginal += savings.originalTokens;
+          totalOptimized += savings.optimizedTokens;
+        } catch {
+          // Ignore errors
+        }
+      }
+
+      // Calculate for identity photos
+      if (selectedIdentity) {
+        for (const photo of selectedIdentity.photos.slice(0, 5)) {
+          if (!photo.dataUrl.startsWith('http')) {
+            try {
+              const dims = await getImageDimensions(photo.dataUrl);
+              const savings = estimateTokenSavings(dims.width, dims.height, maxInputDimension);
+              totalOriginal += savings.originalTokens;
+              totalOptimized += savings.optimizedTokens;
+            } catch {
+              // Ignore errors
+            }
+          }
+        }
+      }
+
+      if (totalOriginal > 0) {
+        const savingsPercent = Math.round(((totalOriginal - totalOptimized) / totalOriginal) * 100);
+        setTokenSavingsInfo(`~${totalOptimized} tokens (ahorro: ${savingsPercent}%)`);
+      }
+    }
+
+    calculateSavings();
+  }, [attachedImages, selectedIdentity, maxInputDimension]);
 
   // Verificar WebGPU al montar
   useState(() => {
@@ -132,9 +198,12 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
     setIsGenerating(true);
     setError(null);
     setPreviewImage(null);
+    setProcessingStatus('Optimizando imagenes de entrada...');
 
     try {
       let imageUrl: string;
+
+      setProcessingStatus('Generando imagen con IA...');
 
       // Si hay imágenes adjuntas, usar la función con imágenes adjuntas
       if (attachedImages.length > 0) {
@@ -158,17 +227,32 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
         imageUrl = await generateWithAttachedImages(prompt, attachedImages);
       }
 
-      // Aplicar procesamiento WebGPU si está habilitado
-      if (useWebGPU && isWebGPUAvailable()) {
-        const processed = await processDataUrlWithWebGPU(imageUrl, {
-          brightness: webgpuBrightness,
-          contrast: webgpuContrast,
-          saturation: webgpuSaturation
-        });
-        if (processed) {
-          imageUrl = processed;
+      // Upscale con WebGPU si está habilitado
+      if (enableUpscaling && isWebGPUAvailable()) {
+        setProcessingStatus('Escalando imagen con WebGPU (bicubico)...');
+        const upscaled = await upscaleImageWebGPU(imageUrl, targetOutputDimension);
+        if (upscaled) {
+          imageUrl = upscaled;
         }
       }
+
+      // Aplicar procesamiento WebGPU de color si está habilitado
+      if (useWebGPU && isWebGPUAvailable()) {
+        const needsProcessing = webgpuBrightness !== 0 || webgpuContrast !== 1 || webgpuSaturation !== 1;
+        if (needsProcessing) {
+          setProcessingStatus('Aplicando ajustes de color...');
+          const processed = await processDataUrlWithWebGPU(imageUrl, {
+            brightness: webgpuBrightness,
+            contrast: webgpuContrast,
+            saturation: webgpuSaturation
+          });
+          if (processed) {
+            imageUrl = processed;
+          }
+        }
+      }
+
+      setProcessingStatus('Guardando imagen...');
 
       // Guardar en IndexedDB con deviceId e identityId
       await saveGeneratedImage(
@@ -181,9 +265,11 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
 
       setPreviewImage(imageUrl);
       setAttachedImages([]); // Limpiar imágenes adjuntas después de generar
+      setProcessingStatus('');
       onImageGenerated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
+      setProcessingStatus('');
     } finally {
       setIsGenerating(false);
     }
@@ -405,63 +491,137 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
         </div>
       </div>
 
-      {isWebGPUAvailable() && (
-        <div className="webgpu-controls">
-          <label className="webgpu-toggle">
-            <input
-              type="checkbox"
-              checked={useWebGPU}
-              onChange={(e) => setUseWebGPU(e.target.checked)}
-            />
-            Procesamiento WebGPU
-          </label>
+      {/* Optimization Settings Section */}
+      <div className="optimization-section">
+        <button
+          className="optimization-toggle"
+          onClick={() => setShowOptimizationSettings(!showOptimizationSettings)}
+        >
+          <span>Optimizacion WebGPU</span>
+          <span className={`toggle-arrow ${showOptimizationSettings ? 'open' : ''}`}>
+            {showOptimizationSettings ? '▼' : '▶'}
+          </span>
+        </button>
 
-          {useWebGPU && (
-            <div className="webgpu-sliders">
+        {tokenSavingsInfo && (
+          <div className="token-savings-info">
+            Tokens estimados: {tokenSavingsInfo}
+          </div>
+        )}
+
+        {showOptimizationSettings && (
+          <div className="optimization-settings">
+            <div className="optimization-info">
+              <strong>Ahorro de tokens:</strong> Las imagenes se comprimen antes de enviar al modelo.
+              <br />
+              <strong>Upscaling GPU:</strong> Las imagenes generadas se escalan localmente usando tu GPU.
+            </div>
+
+            <div className="optimization-sliders">
               <label>
-                Brillo: {webgpuBrightness.toFixed(2)}
+                Resolucion entrada (max): {maxInputDimension}px
                 <input
                   type="range"
-                  min="-0.5"
-                  max="0.5"
-                  step="0.05"
-                  value={webgpuBrightness}
-                  onChange={(e) => setWebgpuBrightness(parseFloat(e.target.value))}
+                  min="256"
+                  max="1024"
+                  step="64"
+                  value={maxInputDimension}
+                  onChange={(e) => setMaxInputDimension(parseInt(e.target.value))}
+                  disabled={isGenerating}
                 />
+                <span className="slider-hint">Menor = menos tokens</span>
               </label>
+
               <label>
-                Contraste: {webgpuContrast.toFixed(2)}
+                Resolucion salida (target): {targetOutputDimension}px
                 <input
                   type="range"
-                  min="0.5"
-                  max="1.5"
-                  step="0.05"
-                  value={webgpuContrast}
-                  onChange={(e) => setWebgpuContrast(parseFloat(e.target.value))}
+                  min="512"
+                  max="2048"
+                  step="128"
+                  value={targetOutputDimension}
+                  onChange={(e) => setTargetOutputDimension(parseInt(e.target.value))}
+                  disabled={isGenerating}
                 />
+                <span className="slider-hint">Mayor = mejor calidad final</span>
               </label>
-              <label>
-                Saturación: {webgpuSaturation.toFixed(2)}
+
+              <label className="checkbox-label">
                 <input
-                  type="range"
-                  min="0.5"
-                  max="1.5"
-                  step="0.05"
-                  value={webgpuSaturation}
-                  onChange={(e) => setWebgpuSaturation(parseFloat(e.target.value))}
+                  type="checkbox"
+                  checked={enableUpscaling}
+                  onChange={(e) => setEnableUpscaling(e.target.checked)}
+                  disabled={isGenerating}
                 />
+                Upscaling bicubico WebGPU
               </label>
             </div>
-          )}
-        </div>
-      )}
+
+            {isWebGPUAvailable() && (
+              <div className="color-adjustments">
+                <h4>Ajustes de color (post-proceso)</h4>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={useWebGPU}
+                    onChange={(e) => setUseWebGPU(e.target.checked)}
+                  />
+                  Habilitar ajustes de color
+                </label>
+
+                {useWebGPU && (
+                  <div className="webgpu-sliders">
+                    <label>
+                      Brillo: {webgpuBrightness.toFixed(2)}
+                      <input
+                        type="range"
+                        min="-0.5"
+                        max="0.5"
+                        step="0.05"
+                        value={webgpuBrightness}
+                        onChange={(e) => setWebgpuBrightness(parseFloat(e.target.value))}
+                      />
+                    </label>
+                    <label>
+                      Contraste: {webgpuContrast.toFixed(2)}
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="1.5"
+                        step="0.05"
+                        value={webgpuContrast}
+                        onChange={(e) => setWebgpuContrast(parseFloat(e.target.value))}
+                      />
+                    </label>
+                    <label>
+                      Saturacion: {webgpuSaturation.toFixed(2)}
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="1.5"
+                        step="0.05"
+                        value={webgpuSaturation}
+                        onChange={(e) => setWebgpuSaturation(parseFloat(e.target.value))}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <button
         className="btn-generate"
         onClick={handleGenerate}
         disabled={isGenerating || !canGenerate}
       >
-        {isGenerating ? 'Generando...' : attachedImages.length > 0 ? 'Procesar Imagenes' : 'Generar Imagen'}
+        {isGenerating
+          ? (processingStatus || 'Procesando...')
+          : attachedImages.length > 0
+            ? 'Procesar Imagenes'
+            : 'Generar Imagen'}
       </button>
 
       {error && (
