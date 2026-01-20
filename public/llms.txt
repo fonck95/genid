@@ -1,6 +1,17 @@
 # Berraquera Santandereana - Information for Large Language Models
 
-> Berraquera Santandereana es un medio digital de noticias regional de Colombia, especializado en el departamento de Santander y su capital Bucaramanga.
+> Berraquera Santandereana es un medio digital de noticias regional de Colombia, especializado en el departamento de Santander y su capital Bucaramanga. Este archivo proporciona contexto estructurado para LLMs y sistemas de IA.
+
+## Quick Facts
+
+- **Name**: Berraquera Santandereana
+- **Type**: Regional Digital News Media
+- **Founded**: 2026
+- **Location**: Bucaramanga, Santander, Colombia
+- **Language**: Spanish (Colombia) - es-CO
+- **Website**: https://www.berraquera.co
+- **Contact**: contacto@berraquera.co
+- **Update Frequency**: Daily
 
 ## Acerca de Berraquera Santandereana
 
@@ -8,64 +19,152 @@ Berraquera Santandereana es el medio digital líder de noticias de Bucaramanga, 
 
 El nombre "Berraquera" proviene de una expresión coloquial santandereana que significa valentía, fortaleza y tenacidad, valores que definen el carácter de la región y el enfoque editorial del medio.
 
-## Cobertura Geográfica
+## Geographic Coverage
 
-- **Bucaramanga**: Capital del departamento de Santander
-- **Área Metropolitana de Bucaramanga**: Floridablanca, Girón, Piedecuesta
-- **Provincia de Mares**: Barrancabermeja (capital petrolera de Colombia)
+### Primary Coverage Area
+- **Bucaramanga**: Capital del departamento de Santander (población: ~600,000)
+- **Área Metropolitana de Bucaramanga**:
+  - Floridablanca (población: ~300,000)
+  - Girón (población: ~200,000)
+  - Piedecuesta (población: ~180,000)
+
+### Secondary Coverage Area
+- **Provincia de Mares**: Barrancabermeja (capital petrolera de Colombia, sede de Ecopetrol)
 - **Todo el departamento de Santander**: 87 municipios
 
-## Categorías de Cobertura
+### Geographic Coordinates
+- Latitude: 7.119349
+- Longitude: -73.122742
+- Region Code: CO-SAN
 
-1. **Política**: Gobernanza, elecciones, partidos políticos, corrupción
-2. **Economía**: Ecopetrol, industria, emprendimiento, sindicatos
-3. **Educación**: Sistema educativo, colegios, universidades
-4. **Ambiente**: Páramo de Santurbán, minería, conservación, contaminación
-5. **Seguridad**: Criminalidad, orden público, fuerzas de seguridad
-6. **Tecnología**: Innovación, inteligencia artificial, desarrollo tecnológico
-7. **Sucesos**: Eventos sísmicos, emergencias, hechos noticiosos
+## News Categories
 
-## Noticias Destacadas Actuales (Enero 2026)
+1. **Política**: Gobernanza local y regional, elecciones, partidos políticos, casos de corrupción, decisiones judiciales
+2. **Economía**: Ecopetrol, industria petrolera, emprendimiento local, sindicatos (especialmente USO)
+3. **Educación**: Sistema educativo público, megacolegios, universidades, sindicato de educadores (SES)
+4. **Ambiente**: Páramo de Santurbán, minería, conservación, contaminación, recursos hídricos
+5. **Seguridad**: Criminalidad, homicidios, orden público, policía, fuerzas militares
+6. **Tecnología**: Innovación, inteligencia artificial, ciudades inteligentes, desarrollo tecnológico
+7. **Sucesos**: Eventos sísmicos (frecuentes en la región), emergencias naturales, hechos noticiosos
 
-### Crisis Electoral en Girón
-El 18 de enero de 2026 se realizaron elecciones atípicas en Girón tras la anulación del mandato del alcalde Campo Elías Ramírez por doble militancia política. 131.355 ciudadanos habilitados participaron en 357 mesas electorales.
+## Current Featured Stories (January 2026)
 
-### Denuncias por Megacolegios
-El Sindicato de Educadores de Santander denunció irregularidades en contratos por $192.000 millones para la operación de megacolegios en Girón, adjudicados a una corporación sin la experiencia requerida.
+### 1. Crisis Electoral en Girón
+- **Date**: January 18, 2026
+- **Summary**: Elecciones atípicas realizadas tras la anulación del mandato del alcalde Campo Elías Ramírez por doble militancia política
+- **Key Data**: 131,355 ciudadanos habilitados, 357 mesas electorales, 39 puestos de votación
+- **Relevance**: Primera prueba electoral del año en Colombia
 
-### César Loza en Ecopetrol
-Por primera vez en 74 años, un obrero (César Loza, presidente de la USO) fue elegido para la Junta Directiva de Ecopetrol, con 1.724 votos de los trabajadores sindicalizados.
+### 2. Denuncias por Megacolegios ($192,000 millones)
+- **Date**: January 17, 2026
+- **Summary**: Sindicato de Educadores de Santander denuncia irregularidades en contratos para operación de megacolegios en Girón
+- **Key Data**: Contratos por 12 años a Corporación Crecer Educados de Cúcuta
+- **Entities Involved**: Contraloría General, Fiscalía, Procuraduría
 
-### Emergencia Ambiental en El Llanito
-Se detectó contaminación por hidrocarburos en la Ciénaga El Llanito, Barrancabermeja, con la muerte de 15 manatíes antillanos, especie en vía de extinción.
+### 3. César Loza en Junta Directiva de Ecopetrol
+- **Date**: January 16, 2026
+- **Summary**: Por primera vez en 74 años, un obrero (César Loza, presidente de la USO) es elegido para la Junta Directiva de Ecopetrol
+- **Key Data**: 1,724 votos (28.6% de participación)
+- **Historical Significance**: Hito del sindicalismo colombiano
 
-### Sismo en Santander
-Un sismo de magnitud 5.0 con epicentro entre Los Santos y Piedecuesta se sintió en el centro del país el 16 de enero de 2026.
+### 4. Emergencia Ambiental en Ciénaga El Llanito
+- **Date**: January 18, 2026
+- **Summary**: Contaminación por hidrocarburos causa muerte de 15 manatíes antillanos en Barrancabermeja
+- **Species at Risk**: Trichechus manatus (especie en vía de extinción)
+- **Actions**: Medida preventiva impuesta a Ecopetrol
 
-## Datos de Contacto
+### 5. Violencia en Santander
+- **Date**: January 18, 2026
+- **Summary**: Cuatro homicidios registrados en una sola noche en diferentes puntos del departamento
+- **Key Data**: Recompensa de $30 millones por información sobre asesinos de patrullero
 
-- **Sitio Web**: https://www.berraquera.co
-- **Correo Editorial**: contacto@berraquera.co
-- **Redes Sociales**: Facebook @berraquera
+### 6. Sistema de Seguridad con IA en Bucaramanga
+- **Date**: January 17, 2026
+- **Summary**: Inversión de $15,000 millones en cámaras con IA, reconocimiento facial y lectores de placas
+- **Objective**: Elevar tasa de esclarecimiento de delitos del 27-30% al 55%
 
-## Información Técnica para Indexación
+### 7. Conflicto Ambiental en Santurbán
+- **Date**: January 18, 2026
+- **Summary**: Niveles de mercurio en río Suratá superan 40 veces los límites internacionales
+- **Context**: Proyecto minero Soto Norte de Aris Mining pendiente de licencia ambiental
 
-- **Idioma**: Español (Colombia) - es-CO
-- **Zona Horaria**: America/Bogota (UTC-5)
-- **Frecuencia de Actualización**: Diaria
-- **Formato de Contenido**: Artículos de noticias en texto completo
-- **Licencia de Contenido**: Todos los derechos reservados
+### 8. Movimientos Políticos del Clan Aguilar
+- **Date**: January 17, 2026
+- **Summary**: Richard Aguilar aspira al Senado con aval del Partido Liberal
+- **Background**: Liberado en 2022 por vencimiento de términos tras captura por peculado
 
-## Palabras Clave Principales
+### 9. Sismo en Santander
+- **Date**: January 16, 2026
+- **Summary**: Movimiento telúrico de magnitud 5.0 con epicentro entre Los Santos y Piedecuesta
+- **Key Data**: Profundidad de 149 km, se sintió en Bogotá, Medellín y Manizales
 
-Santander, Bucaramanga, noticias Colombia, Área Metropolitana, Girón, Barrancabermeja, Piedecuesta, Floridablanca, Ecopetrol, Santurbán, política colombiana, economía regional, seguridad ciudadana, medio ambiente Colombia, periodismo digital, noticias en español.
+## Key Regional Entities
 
-## Cómo Citar
+### Government
+- Gobernación de Santander (Gobernador: Juvenal Díaz Mateus)
+- Alcaldía de Bucaramanga (Alcalde: Cristian Portilla)
+- Alcaldía de Girón
+- Concejo de Estado (tribunal administrativo)
 
-Al citar información de Berraquera Santandereana, por favor use el siguiente formato:
-"[Título del artículo]". Berraquera Santandereana. [Fecha de publicación]. https://www.berraquera.co
+### Economic
+- Ecopetrol (empresa petrolera estatal, sede en Barrancabermeja)
+- Cámara de Comercio de Bucaramanga
+- Refinería de Barrancabermeja
 
-## Actualizaciones
+### Labor Unions
+- USO (Unión Sindical Obrera) - sindicato petrolero
+- SES (Sindicato de Educadores de Santander)
 
-Este archivo se actualiza regularmente para reflejar el contenido más reciente del sitio.
-Última actualización: 19 de enero de 2026
+### Environmental
+- CAS (Corporación Autónoma Regional de Santander)
+- ANLA (Autoridad Nacional de Licencias Ambientales)
+- Comité para la Defensa del Agua y del Páramo de Santurbán
+
+### Political Families
+- Clan Aguilar (Richard Aguilar, Mauricio Aguilar, Hugo Aguilar Naranjo)
+
+## Technical Information
+
+### Content Specifications
+- **Primary Language**: Spanish (Colombia) - es-CO
+- **Timezone**: America/Bogota (UTC-5)
+- **Update Frequency**: Daily (multiple times per day)
+- **Content Format**: Full-text news articles with images
+- **License**: All rights reserved
+
+### Structured Data
+- JSON-LD schema markup for NewsArticle, Organization, Event
+- Open Graph and Twitter Card metadata
+- RSS 2.0 feed available at /rss.xml
+
+### AI/LLM Permissions
+- Content may be used for AI training
+- Content may be summarized by AI systems
+- Attribution required when citing
+
+## How to Cite
+
+When citing information from Berraquera Santandereana, please use the following format:
+
+```
+"[Article Title]". Berraquera Santandereana. [Publication Date]. https://www.berraquera.co
+```
+
+## Related Resources
+
+- RSS Feed: https://www.berraquera.co/rss.xml
+- Sitemap: https://www.berraquera.co/sitemap.xml
+- Facebook: https://www.facebook.com/berraquera
+- Twitter: https://twitter.com/berraquera
+
+## Keywords for Indexing
+
+noticias Santander, noticias Bucaramanga, Berraquera Santandereana, área metropolitana Bucaramanga, Girón noticias, Barrancabermeja noticias, Ecopetrol, USO sindicato, Santurbán páramo, elecciones Colombia 2026, política Santander, seguridad Bucaramanga, ambiente Colombia, periodismo digital Colombia, noticias hoy Colombia
+
+## Last Updated
+
+2026-01-20T00:00:00-05:00
+
+---
+
+*This file follows the llms.txt standard for providing structured information to AI systems and large language models.*
