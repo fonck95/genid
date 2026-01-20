@@ -3,6 +3,33 @@ import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
 // API Key desde variable de entorno
 const GEMINI_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
 
+// Tipos para las partes del contenido de Gemini
+type TextPart = { text: string };
+type InlineDataPart = { inlineData: { mimeType: string; data: string } };
+type FileDataPart = { fileData: { mimeType: string; fileUri: string } };
+type ContentPart = TextPart | InlineDataPart | FileDataPart;
+
+// Helper para crear la parte de imagen según si es URL o base64
+function createImagePart(dataUrl: string, mimeType: string = 'image/jpeg'): InlineDataPart | FileDataPart {
+  // Si es una URL (http/https), usar fileData
+  if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) {
+    return {
+      fileData: {
+        mimeType,
+        fileUri: dataUrl
+      }
+    };
+  }
+  // Si es base64 data URL, extraer los datos y usar inlineData
+  const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+  return {
+    inlineData: {
+      mimeType,
+      data: base64Data
+    }
+  };
+}
+
 // Modelos de imagen de Gemini (Nano Banana)
 // - gemini-2.5-flash-image: Rápido, hasta 1K, ideal para generación simple
 // - gemini-3-pro-image-preview: Alta calidad, hasta 4K, razonamiento avanzado, mejor para edición con identidad
@@ -18,7 +45,7 @@ export async function generateImageWithIdentity(
   identityName: string,
   identityDescription?: string
 ): Promise<string> {
-  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+  const parts: ContentPart[] = [];
 
   // Construir la descripción de la identidad si existe
   const descriptionContext = identityDescription
@@ -42,13 +69,7 @@ Fotos de referencia de "${identityName}" adjuntas a continuación:`
   // Añadir fotos de referencia (máximo 5 para no sobrecargar)
   const photosToUse = referencePhotos.slice(0, 5);
   for (const photo of photosToUse) {
-    const base64Data = photo.dataUrl.replace(/^data:image\/\w+;base64,/, '');
-    parts.push({
-      inlineData: {
-        mimeType: 'image/jpeg',
-        data: base64Data
-      }
-    });
+    parts.push(createImagePart(photo.dataUrl, 'image/jpeg'));
   }
 
   // Añadir el prompt del usuario
@@ -160,7 +181,7 @@ export async function generateWithAttachedImages(
   identityName?: string,
   identityDescription?: string
 ): Promise<string> {
-  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+  const parts: ContentPart[] = [];
 
   // Instrucciones del sistema según el contexto
   if (identityName && referencePhotos && referencePhotos.length > 0) {
@@ -189,13 +210,7 @@ Fotos de referencia de "${identityName}":`
     // Añadir fotos de referencia de identidad
     const photosToUse = referencePhotos.slice(0, 3);
     for (const photo of photosToUse) {
-      const base64Data = photo.dataUrl.replace(/^data:image\/\w+;base64,/, '');
-      parts.push({
-        inlineData: {
-          mimeType: 'image/jpeg',
-          data: base64Data
-        }
-      });
+      parts.push(createImagePart(photo.dataUrl, 'image/jpeg'));
     }
 
     parts.push({ text: '\nImágenes adjuntadas por el usuario:' });
@@ -215,13 +230,7 @@ Imágenes adjuntadas:`
 
   // Añadir las imágenes adjuntas por el usuario
   for (const image of attachedImages) {
-    const base64Data = image.dataUrl.replace(/^data:image\/\w+;base64,/, '');
-    parts.push({
-      inlineData: {
-        mimeType: image.mimeType,
-        data: base64Data
-      }
-    });
+    parts.push(createImagePart(image.dataUrl, image.mimeType));
   }
 
   // Añadir el prompt del usuario
