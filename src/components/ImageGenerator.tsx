@@ -11,11 +11,13 @@ interface Props {
   identities: Identity[];
   onImageGenerated: () => void;
   onCreateIdentity: () => void;
+  onStartEditingThread?: (imageUrl: string, prompt: string, identityId?: string, identityName?: string) => void;
 }
 
-export function ImageGenerator({ deviceId, selectedIdentity, identities, onImageGenerated }: Props) {
+export function ImageGenerator({ deviceId, selectedIdentity, identities, onImageGenerated, onStartEditingThread }: Props) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [lastGeneratedPrompt, setLastGeneratedPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [webgpuStatus, setWebgpuStatus] = useState<string>('Verificando...');
@@ -264,6 +266,7 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
       );
 
       setPreviewImage(imageUrl);
+      setLastGeneratedPrompt(prompt); // Guardar el prompt usado
       setAttachedImages([]); // Limpiar imágenes adjuntas después de generar
       setProcessingStatus('');
       onImageGenerated();
@@ -633,9 +636,24 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
       {previewImage && (
         <div className="preview-section">
           <img src={previewImage} alt="Imagen generada" className="preview-image" />
-          <button className="btn-download" onClick={handleDownload}>
-            Descargar
-          </button>
+          <div className="preview-actions">
+            <button className="btn-download" onClick={handleDownload}>
+              Descargar
+            </button>
+            {onStartEditingThread && (
+              <button
+                className="btn-edit-thread"
+                onClick={() => onStartEditingThread(
+                  previewImage,
+                  lastGeneratedPrompt,
+                  selectedIdentity?.id,
+                  selectedIdentity?.name
+                )}
+              >
+                Editar en Hilo
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

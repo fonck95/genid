@@ -6,9 +6,10 @@ interface Props {
   images: GeneratedImage[];
   identities: Identity[];
   onRefresh: () => void;
+  onStartEditingThread?: (imageUrl: string, prompt: string, identityId?: string, identityName?: string) => void;
 }
 
-export function Gallery({ images, identities, onRefresh }: Props) {
+export function Gallery({ images, identities, onRefresh, onStartEditingThread }: Props) {
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [filter, setFilter] = useState<string>('all');
 
@@ -148,6 +149,22 @@ export function Gallery({ images, identities, onRefresh }: Props) {
                 >
                   Descargar
                 </button>
+                {onStartEditingThread && (
+                  <button
+                    className="btn-edit-thread"
+                    onClick={() => {
+                      onStartEditingThread(
+                        selectedImage.imageUrl,
+                        selectedImage.prompt,
+                        selectedImage.identityId,
+                        selectedImage.identityName
+                      );
+                      setSelectedImage(null);
+                    }}
+                  >
+                    Editar
+                  </button>
+                )}
                 <button
                   className="btn-danger"
                   onClick={() => handleDelete(selectedImage.id)}

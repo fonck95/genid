@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Identity, GeneratedImage } from './types';
-import { getAllIdentities, getAllGeneratedImages, getIdentity } from './services/identityStore';
+import { getAllIdentities, getAllGeneratedImages, getIdentity, createEditingThread, getActiveEditingThreads } from './services/identityStore';
 import { getDeviceId } from './services/deviceStore';
 import { IdentityManager } from './components/IdentityManager';
 import { ImageGenerator } from './components/ImageGenerator';
 import { Gallery } from './components/Gallery';
+import { ImageEditor } from './components/ImageEditor';
 
-type Tab = 'generate' | 'gallery';
+type Tab = 'generate' | 'gallery' | 'editor';
 
 function App() {
   const [deviceId, setDeviceId] = useState<string>('');
@@ -15,6 +16,8 @@ function App() {
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('generate');
   const [isLoading, setIsLoading] = useState(true);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [activeThreadsCount, setActiveThreadsCount] = useState(0);
 
   // Inicializar deviceId al montar
   useEffect(() => {
@@ -26,12 +29,14 @@ function App() {
     if (!deviceId) return;
 
     try {
-      const [ids, imgs] = await Promise.all([
+      const [ids, imgs, activeThreads] = await Promise.all([
         getAllIdentities(deviceId),
-        getAllGeneratedImages(deviceId)
+        getAllGeneratedImages(deviceId),
+        getActiveEditingThreads(deviceId)
       ]);
       setIdentities(ids);
       setGeneratedImages(imgs);
+      setActiveThreadsCount(activeThreads.length);
 
       // Actualizar identidad seleccionada si existe
       if (selectedIdentity) {
@@ -60,6 +65,34 @@ function App() {
   };
 
   const handleImageGenerated = () => {
+    loadData();
+  };
+
+  // Función para iniciar un hilo de edición desde una imagen generada
+  const handleStartEditingThread = async (
+    imageUrl: string,
+    prompt: string,
+    identityId?: string,
+    identityName?: string
+  ) => {
+    try {
+      const thread = await createEditingThread(
+        deviceId,
+        imageUrl,
+        prompt,
+        identityId,
+        identityName
+      );
+      setActiveThreadId(thread.id);
+      setActiveTab('editor');
+      loadData();
+    } catch (error) {
+      console.error('Error creando hilo de edición:', error);
+    }
+  };
+
+  const handleThreadChange = (threadId: string | null) => {
+    setActiveThreadId(threadId);
     loadData();
   };
 
@@ -104,22 +137,40 @@ function App() {
             >
               Galeria ({generatedImages.length})
             </button>
+            <button
+              className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
+              onClick={() => setActiveTab('editor')}
+            >
+              Editor {activeThreadsCount > 0 && `(${activeThreadsCount})`}
+            </button>
           </nav>
 
           <div className="tab-content">
-            {activeTab === 'generate' ? (
+            {activeTab === 'generate' && (
               <ImageGenerator
                 deviceId={deviceId}
                 selectedIdentity={selectedIdentity}
                 identities={identities}
                 onImageGenerated={handleImageGenerated}
                 onCreateIdentity={() => {}}
+                onStartEditingThread={handleStartEditingThread}
               />
-            ) : (
+            )}
+            {activeTab === 'gallery' && (
               <Gallery
                 images={generatedImages}
                 identities={identities}
                 onRefresh={loadData}
+                onStartEditingThread={handleStartEditingThread}
+              />
+            )}
+            {activeTab === 'editor' && (
+              <ImageEditor
+                deviceId={deviceId}
+                identities={identities}
+                activeThreadId={activeThreadId}
+                onThreadChange={handleThreadChange}
+                onImageSaved={loadData}
               />
             )}
           </div>
