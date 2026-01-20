@@ -1,7 +1,7 @@
 import type { GeminiResponse, IdentityPhoto } from '../types';
 
 // API Key hardcodeada (solo para pruebas)
-const GEMINI_API_KEY = 'AIzaSyCwgIAP66Y3h0Bims1rudXNXjPIkd25MZo';
+const GEMINI_API_KEY = 'AIzaSyCwglAP66Y3h0Bims1rudXNXjPlkd25MZo';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 export async function generateImageWithIdentity(
