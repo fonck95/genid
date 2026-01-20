@@ -1,21 +1,30 @@
 import { useState } from 'react';
-import type { GeneratedImage } from '../types';
+import type { GeneratedImage, Identity } from '../types';
 import { deleteGeneratedImage } from '../services/identityStore';
 
 interface Props {
   images: GeneratedImage[];
+  identities: Identity[];
   onRefresh: () => void;
 }
 
-export function Gallery({ images, onRefresh }: Props) {
+export function Gallery({ images, identities, onRefresh }: Props) {
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [filter, setFilter] = useState<string>('all');
 
-  const uniqueIdentities = [...new Set(images.map(img => img.identityName))];
+  // Obtener identidades únicas de las imágenes
+  const uniqueIdentityIds = [...new Set(images.map(img => img.identityId))];
+  const identityOptions = uniqueIdentityIds.map(id => {
+    const identity = identities.find(i => i.id === id);
+    return {
+      id,
+      name: identity?.name || images.find(img => img.identityId === id)?.identityName || 'Desconocido'
+    };
+  });
 
   const filteredImages = filter === 'all'
     ? images
-    : images.filter(img => img.identityName === filter);
+    : images.filter(img => img.identityId === filter);
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar esta imagen?')) return;
@@ -42,38 +51,84 @@ export function Gallery({ images, onRefresh }: Props) {
     });
   };
 
+  // Si no hay imágenes y no hay identidades
+  if (images.length === 0 && identities.length === 0) {
+    return (
+      <div className="gallery">
+        <div className="panel-header">
+          <h2>Galeria</h2>
+        </div>
+        <div className="gallery-empty">
+          <div className="gallery-empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </div>
+          <h3>Tu galeria esta vacia</h3>
+          <p>
+            Crea una identidad y genera tu primera imagen para verla aqui.
+            Las imagenes se guardan automaticamente en la galeria.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay imágenes pero hay identidades
+  if (images.length === 0) {
+    return (
+      <div className="gallery">
+        <div className="panel-header">
+          <h2>Galeria</h2>
+        </div>
+        <div className="gallery-empty">
+          <div className="gallery-empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </div>
+          <h3>No hay imagenes generadas</h3>
+          <p>
+            Selecciona una identidad y genera imagenes.
+            Todas las imagenes aparecerán aqui organizadas por identidad.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="gallery">
       <div className="panel-header">
-        <h2>Galería ({filteredImages.length})</h2>
-        {uniqueIdentities.length > 1 && (
+        <h2>Galeria ({filteredImages.length})</h2>
+        {identityOptions.length > 1 && (
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="all">Todas</option>
-            {uniqueIdentities.map(name => (
-              <option key={name} value={name}>{name}</option>
+            <option value="all">Todas las identidades</option>
+            {identityOptions.map(opt => (
+              <option key={opt.id} value={opt.id}>{opt.name}</option>
             ))}
           </select>
         )}
       </div>
 
-      {filteredImages.length === 0 ? (
-        <p className="empty-message">No hay imágenes generadas</p>
-      ) : (
-        <div className="gallery-grid">
-          {filteredImages.map((image) => (
-            <div
-              key={image.id}
-              className="gallery-item"
-              onClick={() => setSelectedImage(image)}
-            >
-              <img src={image.imageUrl} alt={image.prompt} />
-              <div className="gallery-item-overlay">
-                <span className="identity-label">{image.identityName}</span>
-              </div>
+      <div className="gallery-grid">
+        {filteredImages.map((image) => (
+          <div
+            key={image.id}
+            className="gallery-item"
+            onClick={() => setSelectedImage(image)}
+          >
+            <img src={image.imageUrl} alt={image.prompt} />
+            <div className="gallery-item-overlay">
+              <span className="identity-label">{image.identityName}</span>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
       {selectedImage && (
         <div className="lightbox" onClick={() => setSelectedImage(null)}>

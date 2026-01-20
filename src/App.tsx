@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Identity, GeneratedImage } from './types';
 import { getAllIdentities, getAllGeneratedImages, getIdentity } from './services/identityStore';
+import { getDeviceId } from './services/deviceStore';
 import { IdentityManager } from './components/IdentityManager';
 import { ImageGenerator } from './components/ImageGenerator';
 import { Gallery } from './components/Gallery';
@@ -8,17 +9,26 @@ import { Gallery } from './components/Gallery';
 type Tab = 'generate' | 'gallery';
 
 function App() {
+  const [deviceId, setDeviceId] = useState<string>('');
   const [identities, setIdentities] = useState<Identity[]>([]);
   const [selectedIdentity, setSelectedIdentity] = useState<Identity | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('generate');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Inicializar deviceId al montar
+  useEffect(() => {
+    const id = getDeviceId();
+    setDeviceId(id);
+  }, []);
+
   const loadData = useCallback(async () => {
+    if (!deviceId) return;
+
     try {
       const [ids, imgs] = await Promise.all([
-        getAllIdentities(),
-        getAllGeneratedImages()
+        getAllIdentities(deviceId),
+        getAllGeneratedImages(deviceId)
       ]);
       setIdentities(ids);
       setGeneratedImages(imgs);
@@ -26,18 +36,24 @@ function App() {
       // Actualizar identidad seleccionada si existe
       if (selectedIdentity) {
         const updated = await getIdentity(selectedIdentity.id);
-        setSelectedIdentity(updated);
+        if (updated && updated.deviceId === deviceId) {
+          setSelectedIdentity(updated);
+        } else {
+          setSelectedIdentity(null);
+        }
       }
     } catch (error) {
       console.error('Error cargando datos:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedIdentity]);
+  }, [deviceId, selectedIdentity]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (deviceId) {
+      loadData();
+    }
+  }, [deviceId]);
 
   const handleSelectIdentity = (identity: Identity | null) => {
     setSelectedIdentity(identity);
@@ -47,7 +63,7 @@ function App() {
     loadData();
   };
 
-  if (isLoading) {
+  if (isLoading || !deviceId) {
     return (
       <div className="app loading">
         <div className="loader"></div>
@@ -66,6 +82,7 @@ function App() {
       <main className="app-main">
         <aside className="sidebar">
           <IdentityManager
+            deviceId={deviceId}
             identities={identities}
             selectedIdentity={selectedIdentity}
             onSelectIdentity={handleSelectIdentity}
@@ -92,12 +109,16 @@ function App() {
           <div className="tab-content">
             {activeTab === 'generate' ? (
               <ImageGenerator
+                deviceId={deviceId}
                 selectedIdentity={selectedIdentity}
+                identities={identities}
                 onImageGenerated={handleImageGenerated}
+                onCreateIdentity={() => {}}
               />
             ) : (
               <Gallery
                 images={generatedImages}
+                identities={identities}
                 onRefresh={loadData}
               />
             )}

@@ -5,29 +5,32 @@ import {
   updateIdentity,
   deleteIdentity,
   addPhotoToIdentity,
-  removePhotoFromIdentity
+  removePhotoFromIdentity,
+  deleteGeneratedImagesByIdentity
 } from '../services/identityStore';
 
 interface Props {
+  deviceId: string;
   identities: Identity[];
   selectedIdentity: Identity | null;
   onSelectIdentity: (identity: Identity | null) => void;
   onRefresh: () => void;
 }
 
-export function IdentityManager({ identities, selectedIdentity, onSelectIdentity, onRefresh }: Props) {
+export function IdentityManager({ deviceId, identities, selectedIdentity, onSelectIdentity, onRefresh }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
 
-    await createIdentity(newName.trim(), newDescription.trim());
+    await createIdentity(deviceId, newName.trim(), newDescription.trim());
     setNewName('');
     setNewDescription('');
     setIsCreating(false);
@@ -35,9 +38,14 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar esta identidad y todas sus fotos?')) return;
+    const confirmMessage = '¿Eliminar esta identidad?\n\nTambien se eliminarán todas las imágenes generadas con esta identidad.';
+    if (!confirm(confirmMessage)) return;
 
+    // Eliminar imágenes asociadas a la identidad
+    await deleteGeneratedImagesByIdentity(id);
+    // Eliminar la identidad
     await deleteIdentity(id);
+
     if (selectedIdentity?.id === id) {
       onSelectIdentity(null);
     }
@@ -47,16 +55,21 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
   const handleAddPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedIdentity || !e.target.files?.length) return;
 
-    const files = Array.from(e.target.files);
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
-      await addPhotoToIdentity(selectedIdentity.id, file);
-    }
+    setIsUploading(true);
+    try {
+      const files = Array.from(e.target.files);
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue;
+        await addPhotoToIdentity(selectedIdentity.id, file);
+      }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      onRefresh();
+    } finally {
+      setIsUploading(false);
     }
-    onRefresh();
   };
 
   const handleRemovePhoto = async (photoId: string) => {
@@ -85,11 +98,23 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
     onRefresh();
   };
 
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditName('');
+    setEditDescription('');
+  };
+
+  const handleCancelCreate = () => {
+    setIsCreating(false);
+    setNewName('');
+    setNewDescription('');
+  };
+
   return (
     <div className="identity-manager">
       <div className="panel-header">
         <h2>Identidades</h2>
-        <button className="btn-primary" onClick={() => setIsCreating(true)}>
+        <button className="btn-primary" onClick={() => setIsCreating(true)} disabled={isCreating}>
           + Nueva
         </button>
       </div>
@@ -104,13 +129,13 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
             autoFocus
           />
           <textarea
-            placeholder="Descripción (opcional)"
+            placeholder="Descripcion (opcional)"
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
             rows={2}
           />
           <div className="form-actions">
-            <button className="btn-secondary" onClick={() => setIsCreating(false)}>
+            <button className="btn-secondary" onClick={handleCancelCreate}>
               Cancelar
             </button>
             <button className="btn-primary" onClick={handleCreate} disabled={!newName.trim()}>
@@ -122,7 +147,10 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
 
       <div className="identity-list">
         {identities.length === 0 ? (
-          <p className="empty-message">No hay identidades guardadas</p>
+          <div className="empty-identities">
+            <p className="empty-message">No hay identidades creadas</p>
+            <p className="empty-hint">Crea tu primera identidad para comenzar a generar imagenes</p>
+          </div>
         ) : (
           identities.map((identity) => (
             <div
@@ -147,6 +175,7 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
                   e.stopPropagation();
                   handleDelete(identity.id);
                 }}
+                title="Eliminar identidad"
               >
                 ×
               </button>
@@ -164,18 +193,19 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Nombre"
                 />
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   rows={2}
-                  placeholder="Descripción"
+                  placeholder="Descripcion"
                 />
                 <div className="form-actions">
-                  <button className="btn-secondary" onClick={() => setIsEditing(false)}>
+                  <button className="btn-secondary" onClick={handleCancelEdit}>
                     Cancelar
                   </button>
-                  <button className="btn-primary" onClick={handleSaveEdit}>
+                  <button className="btn-primary" onClick={handleSaveEdit} disabled={!editName.trim()}>
                     Guardar
                   </button>
                 </div>
@@ -196,8 +226,8 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
           <div className="photos-section">
             <div className="photos-header">
               <span>Fotos de referencia ({selectedIdentity.photos.length})</span>
-              <label className="btn-secondary btn-small">
-                + Añadir
+              <label className={`btn-secondary btn-small ${isUploading ? 'disabled' : ''}`}>
+                {isUploading ? 'Subiendo...' : '+ Añadir'}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -205,6 +235,7 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
                   multiple
                   onChange={handleAddPhoto}
                   style={{ display: 'none' }}
+                  disabled={isUploading}
                 />
               </label>
             </div>
@@ -222,7 +253,7 @@ export function IdentityManager({ identities, selectedIdentity, onSelectIdentity
                 </div>
               ))}
               {selectedIdentity.photos.length === 0 && (
-                <p className="empty-photos">Añade fotos para usar esta identidad</p>
+                <p className="empty-photos">Añade fotos de referencia para usar esta identidad en la generacion de imagenes</p>
               )}
             </div>
           </div>

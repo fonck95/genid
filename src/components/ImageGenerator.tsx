@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Identity, AttachedImage } from '../types';
-import { generateImageWithIdentity, generateSimpleImage, generateWithAttachedImages } from '../services/gemini';
+import { generateImageWithIdentity, generateWithAttachedImages } from '../services/gemini';
 import { saveGeneratedImage } from '../services/identityStore';
 import { processDataUrlWithWebGPU, initWebGPU, isWebGPUAvailable } from '../services/webgpu';
 
 interface Props {
+  deviceId: string;
   selectedIdentity: Identity | null;
+  identities: Identity[];
   onImageGenerated: () => void;
+  onCreateIdentity: () => void;
 }
 
-export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
+export function ImageGenerator({ deviceId, selectedIdentity, identities, onImageGenerated }: Props) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +37,9 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
   // Manejar pegado de imágenes desde el portapapeles
   useEffect(() => {
     const handlePaste = async (e: ClipboardEvent) => {
+      // Solo permitir pegado si hay una identidad seleccionada
+      if (!selectedIdentity) return;
+
       const items = e.clipboardData?.items;
       if (!items) return;
 
@@ -58,7 +64,7 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
 
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, []);
+  }, [selectedIdentity]);
 
   const addImageFromFile = async (file: File): Promise<void> => {
     return new Promise((resolve) => {
@@ -121,7 +127,7 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
   };
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || !selectedIdentity) return;
 
     setIsGenerating(true);
     setError(null);
@@ -130,45 +136,24 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
     try {
       let imageUrl: string;
 
-      // Si hay imágenes adjuntas, usar la nueva función
+      // Si hay imágenes adjuntas, usar la función con imágenes adjuntas
       if (attachedImages.length > 0) {
-        if (selectedIdentity && selectedIdentity.photos.length > 0) {
-          imageUrl = await generateWithAttachedImages(
-            prompt,
-            attachedImages,
-            selectedIdentity.photos,
-            selectedIdentity.name
-          );
-        } else {
-          imageUrl = await generateWithAttachedImages(prompt, attachedImages);
-        }
-
-        // Guardar en IndexedDB
-        await saveGeneratedImage(
-          selectedIdentity?.id || 'simple',
-          selectedIdentity?.name || 'Sin identidad',
+        imageUrl = await generateWithAttachedImages(
           prompt,
-          imageUrl
+          attachedImages,
+          selectedIdentity.photos,
+          selectedIdentity.name
         );
-      } else if (selectedIdentity && selectedIdentity.photos.length > 0) {
+      } else if (selectedIdentity.photos.length > 0) {
+        // Generar con identidad y fotos de referencia
         imageUrl = await generateImageWithIdentity(
           prompt,
           selectedIdentity.photos,
           selectedIdentity.name
         );
-
-        // Guardar en IndexedDB
-        await saveGeneratedImage(
-          selectedIdentity.id,
-          selectedIdentity.name,
-          prompt,
-          imageUrl
-        );
       } else {
-        imageUrl = await generateSimpleImage(prompt);
-
-        // Guardar como generación sin identidad
-        await saveGeneratedImage('simple', 'Sin identidad', prompt, imageUrl);
+        // Generar con imágenes adjuntas solamente
+        imageUrl = await generateWithAttachedImages(prompt, attachedImages);
       }
 
       // Aplicar procesamiento WebGPU si está habilitado
@@ -182,6 +167,15 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
           imageUrl = processed;
         }
       }
+
+      // Guardar en IndexedDB con deviceId e identityId
+      await saveGeneratedImage(
+        deviceId,
+        selectedIdentity.id,
+        selectedIdentity.name,
+        prompt,
+        imageUrl
+      );
 
       setPreviewImage(imageUrl);
       setAttachedImages([]); // Limpiar imágenes adjuntas después de generar
@@ -198,22 +192,95 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
 
     const link = document.createElement('a');
     link.href = previewImage;
-    link.download = `genid-${Date.now()}.png`;
+    link.download = `genid-${selectedIdentity?.name || 'imagen'}-${Date.now()}.png`;
     link.click();
   };
 
-  const promptSuggestions = selectedIdentity ? [
+  // Si no hay identidades, mostrar mensaje para crear una
+  if (identities.length === 0) {
+    return (
+      <div className="image-generator">
+        <div className="no-identity-prompt">
+          <div className="no-identity-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+              <line x1="12" y1="11" x2="12" y2="17"></line>
+              <line x1="9" y1="14" x2="15" y2="14"></line>
+            </svg>
+          </div>
+          <h3>Crea tu primera identidad</h3>
+          <p>
+            Para generar imagenes, primero necesitas crear una identidad.
+            Una identidad es un perfil con fotos de referencia que permite
+            generar imagenes manteniendo las caracteristicas faciales.
+          </p>
+          <div className="no-identity-steps">
+            <div className="step">
+              <span className="step-number">1</span>
+              <span>Haz clic en "+ Nueva" en el panel de identidades</span>
+            </div>
+            <div className="step">
+              <span className="step-number">2</span>
+              <span>Asigna un nombre a tu identidad</span>
+            </div>
+            <div className="step">
+              <span className="step-number">3</span>
+              <span>Sube fotos de referencia (rostro visible)</span>
+            </div>
+            <div className="step">
+              <span className="step-number">4</span>
+              <span>Genera imagenes con esa identidad</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si hay identidades pero ninguna seleccionada
+  if (!selectedIdentity) {
+    return (
+      <div className="image-generator">
+        <div className="no-identity-prompt">
+          <div className="no-identity-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <h3>Selecciona una identidad</h3>
+          <p>
+            Elige una identidad del panel lateral para comenzar a generar imagenes.
+            Las imagenes generadas se asociaran a la identidad seleccionada.
+          </p>
+          <div className="identity-preview-list">
+            {identities.slice(0, 3).map((identity) => (
+              <div key={identity.id} className="identity-preview-card">
+                {identity.photos[0] ? (
+                  <img src={identity.photos[0].thumbnail} alt={identity.name} />
+                ) : (
+                  <div className="no-photo-preview">?</div>
+                )}
+                <span>{identity.name}</span>
+              </div>
+            ))}
+            {identities.length > 3 && (
+              <span className="more-identities">+{identities.length - 3} mas</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const promptSuggestions = [
     `${selectedIdentity.name} en una playa tropical al atardecer`,
     `${selectedIdentity.name} como astronauta en el espacio`,
     `${selectedIdentity.name} en una oficina moderna trabajando`,
     `${selectedIdentity.name} cocinando en una cocina profesional`,
     `${selectedIdentity.name} practicando yoga en las montañas`,
     `${selectedIdentity.name} en un estudio de arte pintando`,
-  ] : [
-    'Un paisaje futurista de ciudad cyberpunk',
-    'Un gato samurai con armadura japonesa',
-    'Un bosque mágico con criaturas de luz',
-    'Un robot amigable sirviendo café',
   ];
 
   const attachedImagesSuggestions = attachedImages.length > 0 ? [
@@ -222,6 +289,10 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
     'Aplica un estilo de pintura al óleo a estas imágenes',
     'Genera una variación creativa de estas imágenes',
   ] : [];
+
+  const canGenerate = selectedIdentity &&
+    (selectedIdentity.photos.length > 0 || attachedImages.length > 0) &&
+    prompt.trim();
 
   return (
     <div className="image-generator">
@@ -232,29 +303,23 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
         </span>
       </div>
 
-      {selectedIdentity ? (
-        <div className="identity-selected">
-          <div className="selected-preview">
-            {selectedIdentity.photos[0] && (
-              <img src={selectedIdentity.photos[0].thumbnail} alt="" />
-            )}
-          </div>
-          <span>Generando para: <strong>{selectedIdentity.name}</strong></span>
-          {selectedIdentity.photos.length === 0 && (
-            <span className="warning">Añade fotos a esta identidad primero</span>
+      <div className="identity-selected">
+        <div className="selected-preview">
+          {selectedIdentity.photos[0] && (
+            <img src={selectedIdentity.photos[0].thumbnail} alt="" />
           )}
         </div>
-      ) : (
-        <div className="no-identity-info">
-          Selecciona una identidad o genera una imagen simple
-        </div>
-      )}
+        <span>Generando para: <strong>{selectedIdentity.name}</strong></span>
+        {selectedIdentity.photos.length === 0 && attachedImages.length === 0 && (
+          <span className="warning">Añade fotos a esta identidad o adjunta imagenes</span>
+        )}
+      </div>
 
       {/* Sección de imágenes adjuntas */}
       <div className="attached-images-section" ref={promptAreaRef}>
         <div className="attached-header">
           <span className="attached-label">
-            Imágenes adjuntas {attachedImages.length > 0 && `(${attachedImages.length})`}
+            Imagenes adjuntas {attachedImages.length > 0 && `(${attachedImages.length})`}
           </span>
           <div className="attached-actions">
             <button
@@ -305,7 +370,7 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
           </div>
         ) : (
           <div className="attached-placeholder">
-            <span>Ctrl+V para pegar imágenes del portapapeles</span>
+            <span>Ctrl+V para pegar imagenes del portapapeles</span>
             <span>o haz clic en "Adjuntar" para subir</span>
           </div>
         )}
@@ -316,9 +381,7 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
           placeholder={
             attachedImages.length > 0
               ? 'Describe qué quieres hacer con las imágenes adjuntas...'
-              : selectedIdentity
-                ? `Describe la situación para ${selectedIdentity.name}...`
-                : 'Describe la imagen que quieres generar...'
+              : `Describe la situación para ${selectedIdentity.name}...`
           }
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -394,9 +457,9 @@ export function ImageGenerator({ selectedIdentity, onImageGenerated }: Props) {
       <button
         className="btn-generate"
         onClick={handleGenerate}
-        disabled={isGenerating || !prompt.trim() || (selectedIdentity !== null && selectedIdentity.photos.length === 0 && attachedImages.length === 0)}
+        disabled={isGenerating || !canGenerate}
       >
-        {isGenerating ? 'Generando...' : attachedImages.length > 0 ? 'Procesar Imágenes' : 'Generar Imagen'}
+        {isGenerating ? 'Generando...' : attachedImages.length > 0 ? 'Procesar Imagenes' : 'Generar Imagen'}
       </button>
 
       {error && (
