@@ -142,14 +142,16 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
           prompt,
           attachedImages,
           selectedIdentity.photos,
-          selectedIdentity.name
+          selectedIdentity.name,
+          selectedIdentity.description
         );
       } else if (selectedIdentity.photos.length > 0) {
         // Generar con identidad y fotos de referencia
         imageUrl = await generateImageWithIdentity(
           prompt,
           selectedIdentity.photos,
-          selectedIdentity.name
+          selectedIdentity.name,
+          selectedIdentity.description
         );
       } else {
         // Generar con imágenes adjuntas solamente

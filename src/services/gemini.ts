@@ -15,19 +15,26 @@ const getApiUrl = (model: string) =>
 export async function generateImageWithIdentity(
   prompt: string,
   referencePhotos: IdentityPhoto[],
-  identityName: string
+  identityName: string,
+  identityDescription?: string
 ): Promise<string> {
   const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
 
+  // Construir la descripción de la identidad si existe
+  const descriptionContext = identityDescription
+    ? `\n\nDESCRIPCIÓN DE LA PERSONA:\n${identityDescription}\n\nUsa esta descripción junto con las fotos de referencia para generar una imagen más precisa y consistente con la identidad de esta persona.`
+    : '';
+
   // Añadir instrucciones del sistema
   parts.push({
-    text: `Eres un generador de imágenes profesional. Vas a generar una imagen basada en la identidad de "${identityName}".
+    text: `Eres un generador de imágenes profesional. Vas a generar una imagen basada en la identidad de "${identityName}".${descriptionContext}
 
 INSTRUCCIONES IMPORTANTES:
 - Mantén la identidad facial y características físicas de la persona en las fotos de referencia
 - La persona debe ser claramente reconocible como la misma de las fotos de referencia
 - Genera la imagen siguiendo exactamente la situación/escenario descrito
 - Calidad profesional, alta resolución
+${identityDescription ? '- Ten en cuenta la descripción proporcionada para mantener la consistencia de la persona' : ''}
 
 Fotos de referencia de "${identityName}" adjuntas a continuación:`
   });
@@ -51,7 +58,7 @@ Fotos de referencia de "${identityName}" adjuntas a continuación:`
 SITUACIÓN A GENERAR:
 ${prompt}
 
-Genera una imagen de "${identityName}" en esta situación, manteniendo su identidad visual de las fotos de referencia.`
+Genera una imagen de "${identityName}" en esta situación, manteniendo su identidad visual de las fotos de referencia${identityDescription ? ' y considerando la descripción proporcionada de la persona' : ''}.`
   });
 
   const requestBody = {
@@ -150,24 +157,31 @@ export async function generateWithAttachedImages(
   prompt: string,
   attachedImages: AttachedImage[],
   referencePhotos?: IdentityPhoto[],
-  identityName?: string
+  identityName?: string,
+  identityDescription?: string
 ): Promise<string> {
   const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
 
   // Instrucciones del sistema según el contexto
   if (identityName && referencePhotos && referencePhotos.length > 0) {
+    // Construir la descripción de la identidad si existe
+    const descriptionContext = identityDescription
+      ? `\n\nDESCRIPCIÓN DE LA PERSONA "${identityName}":\n${identityDescription}\n`
+      : '';
+
     parts.push({
       text: `Eres un generador y editor de imágenes profesional. Vas a trabajar con las imágenes que el usuario ha adjuntado.
 
 CONTEXTO:
 - El usuario ha adjuntado ${attachedImages.length} imagen(es) para que las analices, edites o uses como referencia.
-- También tienes fotos de referencia de "${identityName}" para mantener la identidad si es necesario.
+- También tienes fotos de referencia de "${identityName}" para mantener la identidad si es necesario.${descriptionContext}
 
 INSTRUCCIONES:
 - Analiza las imágenes adjuntas por el usuario
-- Si el usuario pide editar o modificar las imágenes, hazlo manteniendo la identidad de "${identityName}"
+- Si el usuario pide editar o modificar las imágenes, hazlo manteniendo la identidad de "${identityName}"${identityDescription ? ' y considerando la descripción proporcionada de esta persona' : ''}
 - Si el usuario pide generar algo nuevo basado en las imágenes, úsalas como inspiración
 - Genera una imagen de alta calidad siguiendo las instrucciones del usuario
+${identityDescription ? '- Asegúrate de que la persona generada sea consistente con la descripción y las fotos de referencia' : ''}
 
 Fotos de referencia de "${identityName}":`
     });
