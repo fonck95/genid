@@ -168,14 +168,19 @@ export async function processImageWithWebGPU(
     passEncoder.end();
 
     // Crear buffer para leer resultado
+    // WebGPU requiere que bytesPerRow sea múltiplo de 256
+    const bytesPerRow = width * 4;
+    const alignedBytesPerRow = Math.ceil(bytesPerRow / 256) * 256;
+    const bufferSize = alignedBytesPerRow * height;
+
     const readBuffer = device.createBuffer({
-      size: width * height * 4,
+      size: bufferSize,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
     });
 
     commandEncoder.copyTextureToBuffer(
       { texture: outputTexture },
-      { buffer: readBuffer, bytesPerRow: width * 4 },
+      { buffer: readBuffer, bytesPerRow: alignedBytesPerRow },
       [width, height]
     );
 
@@ -183,7 +188,19 @@ export async function processImageWithWebGPU(
 
     // Leer resultado
     await readBuffer.mapAsync(GPUMapMode.READ);
-    const resultData = new Uint8ClampedArray(readBuffer.getMappedRange().slice(0));
+    const paddedData = new Uint8Array(readBuffer.getMappedRange());
+
+    // Remover padding de cada fila si es necesario
+    const resultData = new Uint8ClampedArray(width * height * 4);
+    if (alignedBytesPerRow === bytesPerRow) {
+      resultData.set(paddedData);
+    } else {
+      for (let y = 0; y < height; y++) {
+        const srcOffset = y * alignedBytesPerRow;
+        const dstOffset = y * bytesPerRow;
+        resultData.set(paddedData.subarray(srcOffset, srcOffset + bytesPerRow), dstOffset);
+      }
+    }
     readBuffer.unmap();
 
     // Limpiar recursos
