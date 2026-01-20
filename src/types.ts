@@ -42,3 +42,10 @@ export interface GeminiResponse {
     code: number;
   };
 }
+
+export interface AttachedImage {
+  id: string;
+  dataUrl: string;
+  thumbnail: string;
+  mimeType: string;
+}
