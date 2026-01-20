@@ -1,5 +1,5 @@
 {
-  "name": "berraquera-santandereana",
+  "name": "genid-nano-banana",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -7,14 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "generate-seo": "node scripts/generate-seo-assets.js",
-    "prebuild": "npm run generate-seo"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-social-media-embed": "^2.5.18"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -27,7 +24,6 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
-    "sharp": "^0.34.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
