@@ -2,7 +2,15 @@ import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
 
 // API Key hardcodeada (solo para pruebas)
 const GEMINI_API_KEY = 'AIzaSyCwglAP66Y3h0Bims1rudXNXjPlkd25MZo';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+
+// Modelos de imagen de Gemini (Nano Banana)
+// - gemini-2.5-flash-image: Rápido, hasta 1K, ideal para generación simple
+// - gemini-3-pro-image-preview: Alta calidad, hasta 4K, razonamiento avanzado, mejor para edición con identidad
+const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
+const GEMINI_IMAGE_PRO_MODEL = 'gemini-3-pro-image-preview';
+
+const getApiUrl = (model: string) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
 export async function generateImageWithIdentity(
   prompt: string,
@@ -56,7 +64,8 @@ Genera una imagen de "${identityName}" en esta situación, manteniendo su identi
     }
   };
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+  // Usar modelo Pro para generación con identidad (mejor calidad y soporte para múltiples referencias)
+  const response = await fetch(`${getApiUrl(GEMINI_IMAGE_PRO_MODEL)}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -103,7 +112,8 @@ export async function generateSimpleImage(prompt: string): Promise<string> {
     }
   };
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+  // Usar modelo estándar para generación simple (más rápido)
+  const response = await fetch(`${getApiUrl(GEMINI_IMAGE_MODEL)}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -220,7 +230,8 @@ Genera una imagen basándote en las instrucciones anteriores.`
     }
   };
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+  // Usar modelo Pro para edición de imágenes (mejor calidad y soporte para múltiples referencias)
+  const response = await fetch(`${getApiUrl(GEMINI_IMAGE_PRO_MODEL)}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
