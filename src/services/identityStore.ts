@@ -183,6 +183,49 @@ export async function removePhotoFromIdentity(identityId: string, photoId: strin
   return updateIdentity(identity);
 }
 
+/**
+ * Actualiza la descripción facial de una foto específica.
+ * Al estar vinculada a la foto, si se elimina la foto también se elimina la descripción.
+ */
+export async function updatePhotoFaceDescription(
+  identityId: string,
+  photoId: string,
+  faceDescription: string
+): Promise<Identity> {
+  const identity = await getIdentity(identityId);
+  if (!identity) throw new Error('Identidad no encontrada');
+
+  const photoIndex = identity.photos.findIndex(p => p.id === photoId);
+  if (photoIndex === -1) throw new Error('Foto no encontrada');
+
+  identity.photos[photoIndex] = {
+    ...identity.photos[photoIndex],
+    faceDescription,
+    faceDescriptionGeneratedAt: Date.now()
+  };
+
+  return updateIdentity(identity);
+}
+
+/**
+ * Elimina la descripción facial de una foto específica.
+ */
+export async function removePhotoFaceDescription(
+  identityId: string,
+  photoId: string
+): Promise<Identity> {
+  const identity = await getIdentity(identityId);
+  if (!identity) throw new Error('Identidad no encontrada');
+
+  const photoIndex = identity.photos.findIndex(p => p.id === photoId);
+  if (photoIndex === -1) throw new Error('Foto no encontrada');
+
+  const { faceDescription, faceDescriptionGeneratedAt, ...photoWithoutDescription } = identity.photos[photoIndex];
+  identity.photos[photoIndex] = photoWithoutDescription as typeof identity.photos[number];
+
+  return updateIdentity(identity);
+}
+
 // === IMÁGENES GENERADAS (Con Cloudinary) ===
 
 export async function saveGeneratedImage(

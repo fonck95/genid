@@ -1,13 +1,16 @@
 import { useState, useRef } from 'react';
-import type { Identity } from '../types';
+import type { Identity, IdentityPhoto } from '../types';
 import {
   createIdentity,
   updateIdentity,
   deleteIdentity,
   addPhotoToIdentity,
   removePhotoFromIdentity,
+  updatePhotoFaceDescription,
+  removePhotoFaceDescription,
   deleteGeneratedImagesByIdentity
 } from '../services/identityStore';
+import { analyzeFaceForConsistency } from '../services/gemini';
 
 interface Props {
   deviceId: string;
@@ -25,6 +28,8 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [analyzingPhotoId, setAnalyzingPhotoId] = useState<string | null>(null);
+  const [expandedPhotoId, setExpandedPhotoId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreate = async () => {
@@ -74,8 +79,44 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
 
   const handleRemovePhoto = async (photoId: string) => {
     if (!selectedIdentity) return;
+    // Al eliminar la foto, también se elimina la descripción facial asociada
     await removePhotoFromIdentity(selectedIdentity.id, photoId);
+    if (expandedPhotoId === photoId) {
+      setExpandedPhotoId(null);
+    }
     onRefresh();
+  };
+
+  const handleGenerateFaceDescription = async (photo: IdentityPhoto) => {
+    if (!selectedIdentity || analyzingPhotoId) return;
+
+    setAnalyzingPhotoId(photo.id);
+    try {
+      const description = await analyzeFaceForConsistency(photo.dataUrl);
+      await updatePhotoFaceDescription(selectedIdentity.id, photo.id, description);
+      setExpandedPhotoId(photo.id);
+      onRefresh();
+    } catch (error) {
+      console.error('Error al analizar rostro:', error);
+      alert('Error al generar la descripción del rostro. Por favor, intenta de nuevo.');
+    } finally {
+      setAnalyzingPhotoId(null);
+    }
+  };
+
+  const handleRemoveFaceDescription = async (photoId: string) => {
+    if (!selectedIdentity) return;
+    if (!confirm('¿Eliminar la descripción facial de esta foto?')) return;
+
+    await removePhotoFaceDescription(selectedIdentity.id, photoId);
+    if (expandedPhotoId === photoId) {
+      setExpandedPhotoId(null);
+    }
+    onRefresh();
+  };
+
+  const togglePhotoExpansion = (photoId: string) => {
+    setExpandedPhotoId(expandedPhotoId === photoId ? null : photoId);
   };
 
   const handleStartEdit = () => {
@@ -242,14 +283,83 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
 
             <div className="photos-grid">
               {selectedIdentity.photos.map((photo) => (
-                <div key={photo.id} className="photo-item">
-                  <img src={photo.thumbnail} alt="" />
-                  <button
-                    className="photo-delete"
-                    onClick={() => handleRemovePhoto(photo.id)}
-                  >
-                    ×
-                  </button>
+                <div
+                  key={photo.id}
+                  className={`photo-item-container ${expandedPhotoId === photo.id ? 'expanded' : ''} ${photo.faceDescription ? 'has-description' : ''}`}
+                >
+                  <div className="photo-item">
+                    <img src={photo.thumbnail} alt="" onClick={() => photo.faceDescription && togglePhotoExpansion(photo.id)} />
+
+                    {/* Indicador de descripción facial */}
+                    {photo.faceDescription && (
+                      <div
+                        className="face-description-indicator"
+                        onClick={() => togglePhotoExpansion(photo.id)}
+                        title="Ver descripción facial"
+                      >
+                        📋
+                      </div>
+                    )}
+
+                    {/* Botones de acción */}
+                    <div className="photo-actions">
+                      {!photo.faceDescription ? (
+                        <button
+                          className="btn-generate-description"
+                          onClick={() => handleGenerateFaceDescription(photo)}
+                          disabled={analyzingPhotoId !== null}
+                          title="Generar descripción facial"
+                        >
+                          {analyzingPhotoId === photo.id ? '⏳' : '🔍'}
+                        </button>
+                      ) : (
+                        <button
+                          className="btn-remove-description"
+                          onClick={() => handleRemoveFaceDescription(photo.id)}
+                          title="Eliminar descripción facial"
+                        >
+                          📋✕
+                        </button>
+                      )}
+                      <button
+                        className="photo-delete"
+                        onClick={() => handleRemovePhoto(photo.id)}
+                        title="Eliminar foto y descripción"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Panel expandido con descripción facial */}
+                  {expandedPhotoId === photo.id && photo.faceDescription && (
+                    <div className="face-description-panel">
+                      <div className="face-description-header">
+                        <span>Descripción Facial Antropométrica</span>
+                        <button
+                          className="btn-close-panel"
+                          onClick={() => setExpandedPhotoId(null)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="face-description-content">
+                        <pre>{photo.faceDescription}</pre>
+                      </div>
+                      <div className="face-description-footer">
+                        <small>
+                          Generada: {new Date(photo.faceDescriptionGeneratedAt || 0).toLocaleString()}
+                        </small>
+                        <button
+                          className="btn-regenerate"
+                          onClick={() => handleGenerateFaceDescription(photo)}
+                          disabled={analyzingPhotoId !== null}
+                        >
+                          {analyzingPhotoId === photo.id ? 'Analizando...' : 'Regenerar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {selectedIdentity.photos.length === 0 && (

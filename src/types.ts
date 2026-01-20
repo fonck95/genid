@@ -14,6 +14,10 @@ export interface IdentityPhoto {
   thumbnail: string;
   cloudinaryId?: string;
   addedAt: number;
+  /** Descripción antropométrica del rostro generada por IA */
+  faceDescription?: string;
+  /** Timestamp de cuando se generó la descripción */
+  faceDescriptionGeneratedAt?: number;
 }
 
 export interface GeneratedImage {
