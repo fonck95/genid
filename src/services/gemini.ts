@@ -3,6 +3,29 @@ import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
 // API Key desde variable de entorno
 const GEMINI_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
 
+// Función auxiliar para convertir URL a base64
+async function urlToBase64(url: string): Promise<string> {
+  // Si ya es un data URL, extraer solo la parte base64
+  if (url.startsWith('data:')) {
+    return url.replace(/^data:image\/\w+;base64,/, '');
+  }
+
+  // Si es una URL, descargar y convertir a base64
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      // Extraer solo la parte base64 del data URL
+      resolve(result.replace(/^data:image\/\w+;base64,/, ''));
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 // Modelos de imagen de Gemini (Nano Banana)
 // - gemini-2.5-flash-image: Rápido, hasta 1K, ideal para generación simple
 // - gemini-3-pro-image-preview: Alta calidad, hasta 4K, razonamiento avanzado, mejor para edición con identidad
@@ -42,7 +65,7 @@ Fotos de referencia de "${identityName}" adjuntas a continuación:`
   // Añadir fotos de referencia (máximo 5 para no sobrecargar)
   const photosToUse = referencePhotos.slice(0, 5);
   for (const photo of photosToUse) {
-    const base64Data = photo.dataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const base64Data = await urlToBase64(photo.dataUrl);
     parts.push({
       inlineData: {
         mimeType: 'image/jpeg',
@@ -189,7 +212,7 @@ Fotos de referencia de "${identityName}":`
     // Añadir fotos de referencia de identidad
     const photosToUse = referencePhotos.slice(0, 3);
     for (const photo of photosToUse) {
-      const base64Data = photo.dataUrl.replace(/^data:image\/\w+;base64,/, '');
+      const base64Data = await urlToBase64(photo.dataUrl);
       parts.push({
         inlineData: {
           mimeType: 'image/jpeg',
@@ -215,7 +238,7 @@ Imágenes adjuntadas:`
 
   // Añadir las imágenes adjuntas por el usuario
   for (const image of attachedImages) {
-    const base64Data = image.dataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const base64Data = await urlToBase64(image.dataUrl);
     parts.push({
       inlineData: {
         mimeType: image.mimeType,
