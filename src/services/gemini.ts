@@ -1,7 +1,7 @@
 import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
 
-// API Key hardcodeada (solo para pruebas)
-const GEMINI_API_KEY = 'AIzaSyCwglAP66Y3h0Bims1rudXNXjPlkd25MZo';
+// API Key desde variable de entorno
+const GEMINI_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
 
 // Modelos de imagen de Gemini (Nano Banana)
 // - gemini-2.5-flash-image: Rápido, hasta 1K, ideal para generación simple
