@@ -4,7 +4,8 @@ import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
 const GEMINI_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
 
 // Modelo de texto para análisis de rostro (Flash es más rápido y económico para esta tarea)
-const GEMINI_TEXT_MODEL = 'gemini-2.5-flash-preview-05-20';
+// Usando el modelo estable sin sufijo preview para evitar errores 404
+const GEMINI_TEXT_MODEL = 'gemini-2.5-flash';
 
 // System prompt para análisis antropométrico de rostros
 const FACE_ANALYSIS_SYSTEM_PROMPT = `[ROL]
