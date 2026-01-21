@@ -1,4 +1,4 @@
-import type { VeoResponse, IdentityPhoto } from '../types';
+import type { VeoResponse, VeoGenerationOptions, VeoModel, VeoReferenceImage, IdentityPhoto } from '../types';
 import { downscaleImage } from './imageOptimizer';
 import { getValidAccessToken, isAuthenticated as isUserAuthenticated } from './googleAuth';
 
@@ -69,8 +69,124 @@ if (RAW_FALLBACK_TOKEN && !FALLBACK_ACCESS_TOKEN) {
   );
 }
 
-// Modelo de Veo 3.1 para generación de video
-const VEO_MODEL = 'veo-3.1-generate-preview';
+// Modelos Veo disponibles
+export const VEO_MODELS: Record<string, VeoModel> = {
+  // Veo 2 models
+  'veo-2.0-generate-001': {
+    id: 'veo-2.0-generate-001',
+    name: 'Veo 2.0',
+    version: '2.0',
+    supportsAudio: false,
+    supportsEnhancePrompt: true,
+    durationRange: { min: 5, max: 8 },
+    defaultDuration: 8,
+    resolutions: ['720p'],
+    supportsReferenceImages: false,
+  },
+  'veo-2.0-generate-exp': {
+    id: 'veo-2.0-generate-exp',
+    name: 'Veo 2.0 Experimental',
+    version: '2.0',
+    supportsAudio: false,
+    supportsEnhancePrompt: true,
+    durationRange: { min: 5, max: 8 },
+    defaultDuration: 8,
+    resolutions: ['720p'],
+    supportsReferenceImages: true,
+    supportsStyleImages: true,
+  },
+  'veo-2.0-generate-preview': {
+    id: 'veo-2.0-generate-preview',
+    name: 'Veo 2.0 Preview',
+    version: '2.0',
+    supportsAudio: false,
+    supportsEnhancePrompt: true,
+    durationRange: { min: 5, max: 8 },
+    defaultDuration: 8,
+    resolutions: ['720p'],
+    supportsReferenceImages: false,
+    supportsMask: true,
+  },
+  // Veo 3 models
+  'veo-3.0-generate-001': {
+    id: 'veo-3.0-generate-001',
+    name: 'Veo 3.0',
+    version: '3.0',
+    supportsAudio: true,
+    supportsEnhancePrompt: false,
+    durationRange: { min: 4, max: 8, allowed: [4, 6, 8] },
+    defaultDuration: 8,
+    resolutions: ['720p', '1080p'],
+    supportsReferenceImages: false,
+  },
+  'veo-3.0-fast-generate-001': {
+    id: 'veo-3.0-fast-generate-001',
+    name: 'Veo 3.0 Fast',
+    version: '3.0',
+    supportsAudio: true,
+    supportsEnhancePrompt: false,
+    durationRange: { min: 4, max: 8, allowed: [4, 6, 8] },
+    defaultDuration: 8,
+    resolutions: ['720p', '1080p'],
+    supportsReferenceImages: false,
+  },
+  // Veo 3.1 models
+  'veo-3.1-generate-001': {
+    id: 'veo-3.1-generate-001',
+    name: 'Veo 3.1',
+    version: '3.1',
+    supportsAudio: true,
+    supportsEnhancePrompt: false,
+    durationRange: { min: 4, max: 8, allowed: [4, 6, 8] },
+    defaultDuration: 8,
+    resolutions: ['720p', '1080p'],
+    supportsReferenceImages: true,
+    supportsLastFrame: true,
+    supportsVideoExtension: true,
+  },
+  'veo-3.1-fast-generate-001': {
+    id: 'veo-3.1-fast-generate-001',
+    name: 'Veo 3.1 Fast',
+    version: '3.1',
+    supportsAudio: true,
+    supportsEnhancePrompt: false,
+    durationRange: { min: 4, max: 8, allowed: [4, 6, 8] },
+    defaultDuration: 8,
+    resolutions: ['720p', '1080p'],
+    supportsReferenceImages: true,
+    supportsLastFrame: true,
+    supportsVideoExtension: true,
+  },
+  'veo-3.1-generate-preview': {
+    id: 'veo-3.1-generate-preview',
+    name: 'Veo 3.1 Preview',
+    version: '3.1',
+    supportsAudio: true,
+    supportsEnhancePrompt: false,
+    durationRange: { min: 4, max: 8, allowed: [4, 6, 8] },
+    defaultDuration: 8,
+    resolutions: ['720p', '1080p', '4k'],
+    supportsReferenceImages: true,
+    supportsLastFrame: true,
+    supportsVideoExtension: true,
+  },
+  'veo-3.1-fast-generate-preview': {
+    id: 'veo-3.1-fast-generate-preview',
+    name: 'Veo 3.1 Fast Preview',
+    version: '3.1',
+    supportsAudio: true,
+    supportsEnhancePrompt: false,
+    durationRange: { min: 4, max: 8, allowed: [4, 6, 8] },
+    defaultDuration: 8,
+    resolutions: ['720p', '1080p', '4k'],
+    supportsReferenceImages: true,
+    supportsLastFrame: true,
+    supportsVideoExtension: true,
+  },
+};
+
+// Modelo por defecto de Veo para generación de video
+const DEFAULT_VEO_MODEL = 'veo-3.1-generate-preview';
 
 // Variable para almacenar el token actual (se actualiza dinámicamente)
 let currentAccessToken: string | null = null;
@@ -119,17 +235,20 @@ const hasOAuth2Config = () => Boolean((currentAccessToken || FALLBACK_ACCESS_TOK
 // URL para la API de generación de video
 // Veo requiere el endpoint estándar de Vertex AI con proyecto/ubicación
 // Formato: https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/google/models/{model}:predictLongRunning
-const getVeoApiUrl = () => {
-  return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${VEO_MODEL}:predictLongRunning`;
+const getVeoApiUrl = (modelId: string = DEFAULT_VEO_MODEL) => {
+  return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${modelId}:predictLongRunning`;
 };
 
-// URL para verificar el estado de operaciones
-const getOperationUrl = (operationName: string) => {
-  // El operationName ya viene con el path completo: projects/{project}/locations/{location}/...
-  if (operationName.startsWith('projects/')) {
-    return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/${operationName}`;
-  }
-  return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/operations/${operationName}`;
+// URL para verificar el estado de operaciones usando fetchPredictOperation
+// Según la documentación de Veo, se debe usar POST con :fetchPredictOperation
+const getFetchOperationUrl = (modelId: string = DEFAULT_VEO_MODEL) => {
+  return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${modelId}:fetchPredictOperation`;
+};
+
+// Extraer el modelo del operation name (formato: projects/.../models/{model}/operations/...)
+const extractModelFromOperationName = (operationName: string): string => {
+  const match = operationName.match(/models\/([^/]+)\/operations/);
+  return match ? match[1] : DEFAULT_VEO_MODEL;
 };
 
 // Obtener el token de acceso efectivo (OAuth > fallback)
@@ -285,16 +404,65 @@ DESCRIPCIÓN DEL VIDEO A GENERAR:
 }
 
 /**
- * Inicia la generación de un video usando Veo 3
+ * Obtener modelo Veo por ID
+ */
+export function getVeoModel(modelId: string): VeoModel | undefined {
+  return VEO_MODELS[modelId];
+}
+
+/**
+ * Obtener lista de modelos Veo disponibles
+ */
+export function getAvailableVeoModels(): VeoModel[] {
+  return Object.values(VEO_MODELS);
+}
+
+/**
+ * Obtener modelo Veo por defecto
+ */
+export function getDefaultVeoModel(): VeoModel {
+  return VEO_MODELS[DEFAULT_VEO_MODEL];
+}
+
+/**
+ * Inicia la generación de un video usando Veo
  * Retorna el nombre de la operación para polling
  */
 export async function startVideoGeneration(
-  imageUrl: string,
+  imageUrl: string | null,
   prompt: string,
-  identityName?: string,
-  identityDescription?: string,
-  faceDescriptions?: string[]
+  options: VeoGenerationOptions = {}
 ): Promise<string> {
+  const {
+    modelId = DEFAULT_VEO_MODEL,
+    aspectRatio = '16:9',
+    durationSeconds,
+    generateAudio,
+    resolution = '720p',
+    sampleCount = 1,
+    personGeneration = 'allow_adult',
+    negativePrompt,
+    enhancePrompt,
+    seed,
+    storageUri,
+    resizeMode,
+    compressionQuality,
+    // Identity context
+    identityName,
+    identityDescription,
+    faceDescriptions,
+    // Reference images
+    referenceImages,
+    // Last frame for interpolation
+    lastFrame,
+  } = options;
+
+  // Get model configuration
+  const model = VEO_MODELS[modelId];
+  if (!model) {
+    throw new Error(`Modelo de Veo no soportado: ${modelId}\n\nModelos disponibles: ${Object.keys(VEO_MODELS).join(', ')}`);
+  }
+
   // Validar configuración de proyecto
   if (!hasProjectConfig()) {
     throw new Error(
@@ -359,9 +527,6 @@ export async function startVideoGeneration(
     throw new Error(errorMessage);
   }
 
-  // Preparar la imagen en base64
-  const imageData = await imageToBase64ForVeo(imageUrl);
-
   // Combinar descripciones faciales si existen
   const combinedFaceDescription = faceDescriptions?.filter(Boolean).join('\n\n---\n\n');
 
@@ -372,25 +537,101 @@ export async function startVideoGeneration(
     combinedFaceDescription || identityDescription
   );
 
-  const requestBody = {
-    instances: [
-      {
-        prompt: fullPrompt,
-        image: {
-          imageBytes: imageData.base64,
-          mimeType: imageData.mimeType
-        }
-      }
-    ],
-    parameters: {
-      aspectRatio: '16:9',
-      personGeneration: 'allow_adult',
-      sampleCount: 1,
-      resolution: '720p'
-    }
+  // Build instance object according to API specification
+  const instance: Record<string, unknown> = {
+    prompt: fullPrompt,
   };
 
-  const response = await fetch(getVeoApiUrl(), {
+  // Add image if provided (image-to-video)
+  if (imageUrl) {
+    const imageData = await imageToBase64ForVeo(imageUrl);
+    instance.image = {
+      bytesBase64Encoded: imageData.base64,
+      mimeType: imageData.mimeType,
+    };
+  }
+
+  // Add last frame if provided (for interpolation)
+  if (lastFrame && model.supportsLastFrame) {
+    const lastFrameData = await imageToBase64ForVeo(lastFrame);
+    instance.lastFrame = {
+      bytesBase64Encoded: lastFrameData.base64,
+      mimeType: lastFrameData.mimeType,
+    };
+  }
+
+  // Add reference images if provided
+  if (referenceImages && referenceImages.length > 0 && model.supportsReferenceImages) {
+    const refs = await Promise.all(
+      referenceImages.map(async (ref) => {
+        const refData = await imageToBase64ForVeo(ref.imageUrl);
+        return {
+          image: {
+            bytesBase64Encoded: refData.base64,
+            mimeType: refData.mimeType,
+          },
+          referenceType: ref.referenceType,
+        };
+      })
+    );
+    instance.referenceImages = refs;
+  }
+
+  // Build parameters object according to API specification
+  const parameters: Record<string, unknown> = {
+    aspectRatio,
+    personGeneration,
+    sampleCount,
+  };
+
+  // Add duration (required for most models)
+  const effectiveDuration = durationSeconds ?? model.defaultDuration;
+  parameters.durationSeconds = effectiveDuration;
+
+  // Add resolution for Veo 3+ models
+  if (model.version !== '2.0' && model.resolutions.includes(resolution)) {
+    parameters.resolution = resolution;
+  }
+
+  // Add generateAudio for Veo 3+ models (required)
+  if (model.supportsAudio) {
+    parameters.generateAudio = generateAudio ?? true;
+  }
+
+  // Add enhancePrompt for Veo 2 models only
+  if (model.supportsEnhancePrompt && enhancePrompt !== undefined) {
+    parameters.enhancePrompt = enhancePrompt;
+  }
+
+  // Add optional parameters
+  if (negativePrompt) {
+    parameters.negativePrompt = negativePrompt;
+  }
+
+  if (seed !== undefined) {
+    parameters.seed = seed;
+  }
+
+  if (storageUri) {
+    parameters.storageUri = storageUri;
+  }
+
+  // Add resizeMode for Veo 3 image-to-video only
+  if (imageUrl && model.version !== '2.0' && resizeMode) {
+    parameters.resizeMode = resizeMode;
+  }
+
+  // Add compression quality if specified
+  if (compressionQuality) {
+    parameters.compressionQuality = compressionQuality;
+  }
+
+  const requestBody = {
+    instances: [instance],
+    parameters,
+  };
+
+  const response = await fetch(getVeoApiUrl(modelId), {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(requestBody)
@@ -539,11 +780,19 @@ export async function startVideoGeneration(
 
 /**
  * Verifica el estado de una operación de generación de video
+ * Usa POST con fetchPredictOperation según la documentación de Veo
  */
 export async function checkVideoGenerationStatus(operationName: string): Promise<VeoResponse> {
-  const response = await fetch(getOperationUrl(operationName), {
-    method: 'GET',
-    headers: getAuthHeaders()
+  // Extract model from operation name to use correct endpoint
+  const modelId = extractModelFromOperationName(operationName);
+
+  // Use POST with fetchPredictOperation as per API documentation
+  const response = await fetch(getFetchOperationUrl(modelId), {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      operationName: operationName
+    })
   });
 
   if (!response.ok) {
@@ -606,8 +855,37 @@ export async function waitForVideoGeneration(
     }
 
     if (status.done) {
-      // Video completado, extraer URL
-      // La respuesta de Veo 3.1 usa generateVideoResponse como wrapper
+      // Video completado, extraer URL o base64
+      // Check for filtered content
+      if (status.response?.raiMediaFilteredCount && status.response.raiMediaFilteredCount > 0) {
+        const reasons = status.response.raiMediaFilteredReasons?.join(', ') || 'Contenido no permitido';
+        throw new Error(`Video filtrado por políticas de IA responsable: ${reasons}`);
+      }
+
+      // Try new API format first (videos array)
+      const videos = status.response?.videos;
+      if (videos && videos.length > 0) {
+        const video = videos[0];
+
+        // Check for gcsUri (Google Cloud Storage)
+        if (video.gcsUri) {
+          return await downloadVideoFromGoogleStorage(video.gcsUri);
+        }
+
+        // Check for bytesBase64Encoded
+        if (video.bytesBase64Encoded && video.mimeType) {
+          // Convert base64 to blob URL
+          const binaryString = atob(video.bytesBase64Encoded);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes], { type: video.mimeType });
+          return URL.createObjectURL(blob);
+        }
+      }
+
+      // Fallback to old format (generateVideoResponse)
       const videoUri = status.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
 
       if (!videoUri) {
@@ -671,7 +949,8 @@ export async function generateVideoFromImage(
   identityName?: string,
   referencePhotos?: IdentityPhoto[],
   identityDescription?: string,
-  onProgress?: (status: string) => void
+  onProgress?: (status: string) => void,
+  options: Partial<VeoGenerationOptions> = {}
 ): Promise<string> {
   onProgress?.('Iniciando generación de video...');
 
@@ -685,9 +964,12 @@ export async function generateVideoFromImage(
   const operationName = await startVideoGeneration(
     imageUrl,
     prompt,
-    identityName,
-    identityDescription,
-    faceDescriptions
+    {
+      ...options,
+      identityName,
+      identityDescription,
+      faceDescriptions,
+    }
   );
 
   onProgress?.('Procesando video con IA...');
@@ -701,12 +983,118 @@ export async function generateVideoFromImage(
 }
 
 /**
- * Genera un video simple sin identidad
+ * Genera un video simple sin identidad (image-to-video)
  */
 export async function generateSimpleVideo(
   imageUrl: string,
   prompt: string,
-  onProgress?: (status: string) => void
+  onProgress?: (status: string) => void,
+  options: Partial<VeoGenerationOptions> = {}
 ): Promise<string> {
-  return generateVideoFromImage(imageUrl, prompt, undefined, undefined, undefined, onProgress);
+  return generateVideoFromImage(imageUrl, prompt, undefined, undefined, undefined, onProgress, options);
+}
+
+/**
+ * Genera un video a partir de texto (text-to-video)
+ * No requiere imagen de entrada
+ */
+export async function generateVideoFromText(
+  prompt: string,
+  onProgress?: (status: string) => void,
+  options: Partial<VeoGenerationOptions> = {}
+): Promise<string> {
+  onProgress?.('Iniciando generación de video desde texto...');
+
+  // Iniciar la generación sin imagen
+  const operationName = await startVideoGeneration(
+    null,
+    prompt,
+    options
+  );
+
+  onProgress?.('Procesando video con IA...');
+
+  // Esperar a que se complete
+  const videoUrl = await waitForVideoGeneration(operationName, onProgress);
+
+  onProgress?.('Video completado!');
+
+  return videoUrl;
+}
+
+/**
+ * Genera un video con imágenes de referencia (asset o style)
+ */
+export async function generateVideoWithReferences(
+  prompt: string,
+  referenceImages: VeoReferenceImage[],
+  onProgress?: (status: string) => void,
+  options: Partial<VeoGenerationOptions> = {}
+): Promise<string> {
+  onProgress?.('Iniciando generación de video con referencias...');
+
+  // For style images, use veo-2.0-generate-exp
+  const hasStyleImages = referenceImages.some(ref => ref.referenceType === 'style');
+  const modelId = hasStyleImages ? 'veo-2.0-generate-exp' : (options.modelId || DEFAULT_VEO_MODEL);
+
+  // Iniciar la generación
+  const operationName = await startVideoGeneration(
+    null,
+    prompt,
+    {
+      ...options,
+      modelId,
+      referenceImages,
+    }
+  );
+
+  onProgress?.('Procesando video con IA...');
+
+  // Esperar a que se complete
+  const videoUrl = await waitForVideoGeneration(operationName, onProgress);
+
+  onProgress?.('Video completado!');
+
+  return videoUrl;
+}
+
+/**
+ * Genera un video interpolando entre dos imágenes (first frame y last frame)
+ */
+export async function generateVideoInterpolation(
+  firstFrameUrl: string,
+  lastFrameUrl: string,
+  prompt: string,
+  onProgress?: (status: string) => void,
+  options: Partial<VeoGenerationOptions> = {}
+): Promise<string> {
+  onProgress?.('Iniciando interpolación de video...');
+
+  // Use a model that supports lastFrame
+  const modelId = options.modelId || 'veo-3.1-generate-preview';
+  const model = VEO_MODELS[modelId];
+
+  if (!model?.supportsLastFrame) {
+    throw new Error(`El modelo ${modelId} no soporta interpolación con lastFrame. Usa veo-3.1-generate-preview o veo-3.1-fast-generate-preview.`);
+  }
+
+  // Iniciar la generación con primera y última imagen
+  const operationName = await startVideoGeneration(
+    firstFrameUrl,
+    prompt,
+    {
+      ...options,
+      modelId,
+      lastFrame: lastFrameUrl,
+    }
+  );
+
+  onProgress?.('Procesando interpolación con IA...');
+
+  // Esperar a que se complete
+  const videoUrl = await waitForVideoGeneration(operationName, onProgress);
+
+  onProgress?.('Video completado!');
+
+  return videoUrl;
 }
