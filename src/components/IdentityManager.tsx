@@ -8,9 +8,11 @@ import {
   removePhotoFromIdentity,
   updatePhotoFaceDescription,
   removePhotoFaceDescription,
-  deleteGeneratedImagesByIdentity
+  deleteGeneratedImagesByIdentity,
+  deleteFaceVariantsByIdentity
 } from '../services/identityStore';
 import { analyzeFaceForConsistency } from '../services/gemini';
+import { FaceVariantsGenerator } from './FaceVariantsGenerator';
 
 interface Props {
   deviceId: string;
@@ -43,11 +45,13 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
   };
 
   const handleDelete = async (id: string) => {
-    const confirmMessage = '¿Eliminar esta identidad?\n\nTambien se eliminarán todas las imágenes generadas con esta identidad.';
+    const confirmMessage = '¿Eliminar esta identidad?\n\nTambien se eliminarán todas las imágenes generadas y variantes de rostro.';
     if (!confirm(confirmMessage)) return;
 
     // Eliminar imágenes asociadas a la identidad
     await deleteGeneratedImagesByIdentity(id);
+    // Eliminar variantes de rostro
+    await deleteFaceVariantsByIdentity(id);
     // Eliminar la identidad
     await deleteIdentity(id);
 
@@ -263,6 +267,9 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
               </>
             )}
           </div>
+
+          {/* Generador de variantes de rostro */}
+          <FaceVariantsGenerator identity={selectedIdentity} onRefresh={onRefresh} />
 
           <div className="photos-section">
             <div className="photos-header">

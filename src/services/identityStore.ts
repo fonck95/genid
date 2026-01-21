@@ -1,11 +1,12 @@
-import type { Identity, IdentityPhoto, GeneratedImage, EditingThread, EditingStep } from '../types';
+import type { Identity, IdentityPhoto, GeneratedImage, EditingThread, EditingStep, FaceVariantsSet, FaceVariant, FaceVariantType } from '../types';
 import { uploadFileToCloudinary, uploadToCloudinary, getThumbnailUrl } from './cloudinary';
 
 const DB_NAME = 'GenID_IdentityStore';
-const DB_VERSION = 3; // Incrementar versión para nuevo store de hilos
+const DB_VERSION = 4; // Incrementar versión para nuevo store de variantes de rostro
 const IDENTITIES_STORE = 'identities';
 const GENERATED_STORE = 'generated';
 const THREADS_STORE = 'editing_threads';
+const FACE_VARIANTS_STORE = 'face_variants';
 
 let db: IDBDatabase | null = null;
 
@@ -67,6 +68,12 @@ async function openDB(): Promise<IDBDatabase> {
         threadsStore.createIndex('deviceId', 'deviceId', { unique: false });
         threadsStore.createIndex('identityId', 'identityId', { unique: false });
         threadsStore.createIndex('isActive', 'isActive', { unique: false });
+      }
+
+      // Crear store de variantes de rostro (nuevo en versión 4)
+      if (!database.objectStoreNames.contains(FACE_VARIANTS_STORE)) {
+        const variantsStore = database.createObjectStore(FACE_VARIANTS_STORE, { keyPath: 'id' });
+        variantsStore.createIndex('identityId', 'identityId', { unique: false });
       }
     };
   });
@@ -348,11 +355,12 @@ export async function clearAllData(): Promise<void> {
   const database = await openDB();
 
   return new Promise((resolve, reject) => {
-    const transaction = database.transaction([IDENTITIES_STORE, GENERATED_STORE, THREADS_STORE], 'readwrite');
+    const transaction = database.transaction([IDENTITIES_STORE, GENERATED_STORE, THREADS_STORE, FACE_VARIANTS_STORE], 'readwrite');
 
     transaction.objectStore(IDENTITIES_STORE).clear();
     transaction.objectStore(GENERATED_STORE).clear();
     transaction.objectStore(THREADS_STORE).clear();
+    transaction.objectStore(FACE_VARIANTS_STORE).clear();
 
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
@@ -637,4 +645,171 @@ async function createThumbnail(imageUrl: string, size: number): Promise<string> 
 
     img.src = imageUrl;
   });
+}
+
+// === VARIANTES DE ROSTRO ===
+
+/**
+ * Guarda un conjunto de variantes de rostro generadas
+ */
+export async function saveFaceVariantsSet(
+  identityId: string,
+  baseImageUrl: string,
+  variants: Record<FaceVariantType, string>
+): Promise<FaceVariantsSet> {
+  const database = await openDB();
+  const now = Date.now();
+
+  // Crear thumbnail de la imagen base
+  const baseImageThumbnail = await createThumbnail(baseImageUrl, 150);
+
+  // Procesar cada variante: subir a Cloudinary y crear thumbnail
+  const variantLabels: Record<FaceVariantType, string> = {
+    afroamerican: 'Afroamericana',
+    latin: 'Latina',
+    caucasian: 'Caucásica'
+  };
+
+  const processedVariants: FaceVariant[] = [];
+
+  for (const [type, imageUrl] of Object.entries(variants)) {
+    const variantType = type as FaceVariantType;
+
+    // Subir a Cloudinary
+    const uploadResult = await uploadToCloudinary(
+      imageUrl,
+      `genid/face_variants/${identityId}`
+    );
+
+    // Crear thumbnail
+    const thumbnail = await createThumbnail(imageUrl, 150);
+
+    processedVariants.push({
+      id: generateId(),
+      type: variantType,
+      label: variantLabels[variantType],
+      imageUrl: uploadResult.secure_url,
+      thumbnail,
+      cloudinaryId: uploadResult.public_id,
+      createdAt: now
+    });
+  }
+
+  const variantsSet: FaceVariantsSet = {
+    id: generateId(),
+    identityId,
+    baseImageUrl,
+    baseImageThumbnail,
+    variants: processedVariants,
+    createdAt: now
+  };
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(FACE_VARIANTS_STORE, 'readwrite');
+    const store = transaction.objectStore(FACE_VARIANTS_STORE);
+    const request = store.add(variantsSet);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(variantsSet);
+  });
+}
+
+/**
+ * Obtiene todos los conjuntos de variantes de una identidad
+ */
+export async function getFaceVariantsByIdentity(identityId: string): Promise<FaceVariantsSet[]> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(FACE_VARIANTS_STORE, 'readonly');
+    const store = transaction.objectStore(FACE_VARIANTS_STORE);
+    const index = store.index('identityId');
+    const request = index.getAll(identityId);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const sets = request.result as FaceVariantsSet[];
+      // Ordenar por fecha, más reciente primero
+      resolve(sets.sort((a, b) => b.createdAt - a.createdAt));
+    };
+  });
+}
+
+/**
+ * Obtiene un conjunto de variantes por su ID
+ */
+export async function getFaceVariantsSet(id: string): Promise<FaceVariantsSet | null> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(FACE_VARIANTS_STORE, 'readonly');
+    const store = transaction.objectStore(FACE_VARIANTS_STORE);
+    const request = store.get(id);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result || null);
+  });
+}
+
+/**
+ * Elimina un conjunto de variantes
+ */
+export async function deleteFaceVariantsSet(id: string): Promise<void> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(FACE_VARIANTS_STORE, 'readwrite');
+    const store = transaction.objectStore(FACE_VARIANTS_STORE);
+    const request = store.delete(id);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
+}
+
+/**
+ * Elimina todos los conjuntos de variantes de una identidad
+ */
+export async function deleteFaceVariantsByIdentity(identityId: string): Promise<void> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(FACE_VARIANTS_STORE, 'readwrite');
+    const store = transaction.objectStore(FACE_VARIANTS_STORE);
+    const index = store.index('identityId');
+    const request = index.getAllKeys(identityId);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const keys = request.result;
+      keys.forEach(key => store.delete(key));
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    };
+  });
+}
+
+/**
+ * Usa una variante como foto de referencia de la identidad
+ */
+export async function useVariantAsIdentityPhoto(
+  identityId: string,
+  variant: FaceVariant
+): Promise<Identity> {
+  const identity = await getIdentity(identityId);
+  if (!identity) throw new Error('Identidad no encontrada');
+
+  // Crear thumbnail si no existe
+  const thumbnail = variant.thumbnail || await createThumbnail(variant.imageUrl, 150);
+
+  const photo: IdentityPhoto = {
+    id: generateId(),
+    dataUrl: variant.imageUrl,
+    thumbnail,
+    cloudinaryId: variant.cloudinaryId,
+    addedAt: Date.now()
+  };
+
+  identity.photos.push(photo);
+  return updateIdentity(identity);
 }
