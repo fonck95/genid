@@ -25,7 +25,31 @@ const VERTEX_LOCATION = import.meta.env.VITE_VERTEX_LOCATION || 'us-central1';
 
 // Access token de respaldo desde variables de entorno
 // VITE_APP_API_KEY_VERTEX puede contener un access token pre-generado para Vertex AI
-const FALLBACK_ACCESS_TOKEN = import.meta.env.VITE_APP_API_KEY_VERTEX || null;
+// IMPORTANTE: Debe ser un token OAuth2 válido (empieza con 'ya29.')
+// NO es una API key tradicional - es un access token temporal (~1 hora)
+const RAW_FALLBACK_TOKEN = import.meta.env.VITE_APP_API_KEY_VERTEX || null;
+
+// Validar que el token de respaldo tenga el formato correcto
+// Los access tokens de Google OAuth2 empiezan con 'ya29.'
+function isValidAccessToken(token: string | null): boolean {
+  if (!token) return false;
+  // Access tokens válidos de Google empiezan con 'ya29.' o 'ya39.'
+  return token.startsWith('ya29.') || token.startsWith('ya39.');
+}
+
+// Solo usar el fallback token si es válido
+const FALLBACK_ACCESS_TOKEN = isValidAccessToken(RAW_FALLBACK_TOKEN) ? RAW_FALLBACK_TOKEN : null;
+
+// Log warning si hay un token inválido configurado
+if (RAW_FALLBACK_TOKEN && !FALLBACK_ACCESS_TOKEN) {
+  console.warn(
+    '[GenID] VITE_APP_API_KEY_VERTEX contiene un valor que NO es un access token válido.\n' +
+    'Los access tokens de Google empiezan con "ya29." y expiran en ~1 hora.\n' +
+    'Para Vertex AI, debes:\n' +
+    '1. Iniciar sesión con Google OAuth (recomendado), o\n' +
+    '2. Generar un token con: gcloud auth print-access-token'
+  );
+}
 
 // Modelo de Veo 3.1 para generación de video
 const VEO_MODEL = 'veo-3.1-generate-preview';
@@ -269,16 +293,40 @@ export async function startVideoGeneration(
 
   // Validar autenticación OAuth2 (requerida para video generation)
   if (!hasOAuth2Config()) {
-    throw new Error(
-      '⚠️ Autenticacion Requerida\n\n' +
-      'Debes iniciar sesion con Google para generar videos.\n\n' +
-      'Haz clic en "Iniciar sesion con Google" en la parte superior de la pagina.\n\n' +
-      'Tu cuenta de Google debe tener acceso al proyecto de Google Cloud\n' +
-      'con Vertex AI habilitado.\n\n' +
-      'Si ya iniciaste sesion y ves este mensaje, es posible que:\n' +
-      '• Tu sesion haya expirado - vuelve a iniciar sesion\n' +
-      '• Tu cuenta no tenga permisos en el proyecto de Google Cloud'
-    );
+    // Construir mensaje de error detallado
+    const hasInvalidFallbackToken = RAW_FALLBACK_TOKEN && !FALLBACK_ACCESS_TOKEN;
+    const projectId = VERTEX_PROJECT_ID || '(no configurado)';
+
+    let errorMessage = '⚠️ Autenticacion Requerida para Vertex AI\n\n';
+
+    if (hasInvalidFallbackToken) {
+      errorMessage +=
+        '❌ VITE_APP_API_KEY_VERTEX contiene un valor INVALIDO.\n' +
+        'Los access tokens de Google empiezan con "ya29." y expiran en ~1 hora.\n' +
+        'El valor actual NO es un access token valido.\n\n';
+    }
+
+    errorMessage +=
+      '═══════════════════════════════════════════════════════════\n' +
+      'OPCION 1: Iniciar sesion con Google OAuth (RECOMENDADO)\n' +
+      '═══════════════════════════════════════════════════════════\n' +
+      '1. Haz clic en "Iniciar sesion con Google" en la parte superior\n' +
+      '2. Tu cuenta debe tener acceso al proyecto: ' + projectId + '\n' +
+      '3. Debes tener el rol "Vertex AI User" en IAM\n\n' +
+      '═══════════════════════════════════════════════════════════\n' +
+      'OPCION 2: Token de acceso temporal (avanzado)\n' +
+      '═══════════════════════════════════════════════════════════\n' +
+      '1. Instala gcloud CLI: https://cloud.google.com/sdk/docs/install\n' +
+      '2. Ejecuta: gcloud auth login\n' +
+      '3. Ejecuta: gcloud auth print-access-token\n' +
+      '4. Copia el token (empieza con "ya29.")\n' +
+      '5. Configura: VITE_APP_API_KEY_VERTEX=ya29.xxx...\n' +
+      '6. NOTA: El token expira en ~1 hora\n\n' +
+      'Si ya iniciaste sesion y ves este mensaje:\n' +
+      '• Tu sesion puede haber expirado - vuelve a iniciar sesion\n' +
+      '• Tu cuenta puede no tener permisos en el proyecto';
+
+    throw new Error(errorMessage);
   }
 
   // Preparar la imagen en base64
