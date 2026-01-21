@@ -51,7 +51,7 @@ OUTPUT: Indistinguishable from professional 4K cinema footage.
 {USER_PROMPT}
 [/MOTION]`;
 
-const KLING_VIDEO_SYSTEM_PROMPT = process.env.KLING_VIDEO_SYSTEM_PROMPT || DEFAULT_VIDEO_SYSTEM_PROMPT;
+const KLING_VIDEO_SYSTEM_PROMPT = process.env.VITE_APP_KLING_VIDEO_SYSTEM_PROMPT || DEFAULT_VIDEO_SYSTEM_PROMPT;
 
 /**
  * Builds the final video prompt combining system prompt, face description, and user motion request
