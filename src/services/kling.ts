@@ -40,6 +40,53 @@ export interface KlingVideoOptions {
   negative_prompt?: string;
 }
 
+/**
+ * Mapeo de códigos de error de Kling API a mensajes amigables para el usuario
+ */
+const KLING_ERROR_MESSAGES: Record<number, string> = {
+  // Errores de autenticación (401)
+  1000: 'Error de autenticación. Verifica las credenciales de Kling AI.',
+  1001: 'Falta la autorización. Configura las credenciales de Kling AI.',
+  1002: 'Autorización inválida. Verifica las credenciales de Kling AI.',
+  1003: 'El token de autorización aún no es válido. Intenta de nuevo en unos segundos.',
+  1004: 'El token de autorización ha expirado. Se regenerará automáticamente.',
+
+  // Errores de cuenta (429)
+  1100: 'Error en la cuenta de Kling AI. Verifica la configuración de tu cuenta.',
+  1101: 'Cuenta de Kling AI con saldo pendiente. Recarga tu cuenta para continuar.',
+  1102: 'Sin créditos disponibles en Kling AI. Compra más créditos o activa el servicio de pago por uso en tu cuenta de Kling AI (https://klingai.com).',
+  1103: 'No tienes permiso para acceder a este recurso o modelo de Kling AI.',
+
+  // Errores de parámetros (400/404)
+  1200: 'Parámetros de solicitud inválidos.',
+  1201: 'Parámetro con valor incorrecto o no permitido.',
+  1202: 'Método de solicitud inválido.',
+  1203: 'El recurso solicitado no existe.',
+
+  // Errores de políticas (400/429)
+  1300: 'Se activó una política de la plataforma.',
+  1301: 'El contenido no cumple con las políticas de seguridad de Kling AI. Modifica el prompt o la imagen.',
+  1302: 'Demasiadas solicitudes. Espera un momento antes de intentar de nuevo.',
+  1303: 'Se excedió el límite de uso del paquete de recursos. Espera o contacta soporte.',
+  1304: 'Tu IP no está en la lista blanca de Kling AI.',
+
+  // Errores internos (500)
+  5000: 'Error interno del servidor de Kling AI. Intenta de nuevo más tarde.',
+  5001: 'El servidor de Kling AI no está disponible temporalmente (mantenimiento).',
+  5002: 'Tiempo de espera agotado en el servidor de Kling AI. Intenta de nuevo más tarde.',
+};
+
+/**
+ * Obtiene un mensaje de error amigable para un código de error de Kling
+ */
+function getKlingErrorMessage(code: number, defaultMessage: string): string {
+  const friendlyMessage = KLING_ERROR_MESSAGES[code];
+  if (friendlyMessage) {
+    return friendlyMessage;
+  }
+  return `${defaultMessage} (código ${code})`;
+}
+
 
 /**
  * Convierte una imagen a base64 sin el prefijo data:
@@ -103,7 +150,7 @@ export async function createImageToVideoTask(
   const result: KlingApiResponse<KlingVideoTask> = await response.json();
 
   if (result.code !== 0) {
-    throw new Error(`Error Kling: ${result.message} (código ${result.code})`);
+    throw new Error(getKlingErrorMessage(result.code, result.message));
   }
 
   return result.data;
@@ -129,7 +176,7 @@ export async function getVideoTaskStatus(taskId: string): Promise<KlingVideoTask
   const result: KlingApiResponse<KlingVideoTask> = await response.json();
 
   if (result.code !== 0) {
-    throw new Error(`Error Kling: ${result.message} (código ${result.code})`);
+    throw new Error(getKlingErrorMessage(result.code, result.message));
   }
 
   return result.data;
