@@ -7,14 +7,20 @@ const KLING_API_BASE = 'https://api-singapore.klingai.com';
 const KLING_ACCESS_KEY = process.env.KLING_ACCESS_KEY || process.env.VITE_APP_API_KLING_KEY;
 const KLING_SECRET_KEY = process.env.KLING_SECRET_KEY || process.env.VITE_APP_SECRET_KLING;
 
+// Default system prompt (used if env var not set)
+const DEFAULT_VIDEO_SYSTEM_PROMPT = `Photorealistic cinematic video. Natural human motion with realistic physics. Consistent lighting, no AI artifacts. {USER_PROMPT}`;
+
+// Use env var if available, otherwise use default
+const KLING_VIDEO_SYSTEM_PROMPT = process.env.VITE_APP_KLING_VIDEO_SYSTEM_PROMPT || DEFAULT_VIDEO_SYSTEM_PROMPT;
 
 /**
  * Builds the final video prompt for Kling API
  * Note: Facial anthropometry removed to stay within Kling's 2500 char limit
  */
 function buildVideoPrompt(userPrompt: string, _faceDescription?: string): string {
-  // Simple enhancement without facial anthropometry to stay within 2500 char limit
-  return `Photorealistic cinematic video. Natural human motion with realistic physics. Consistent lighting, no AI artifacts. ${userPrompt}`;
+  // Use system prompt template, replacing {USER_PROMPT} with the actual prompt
+  // Facial anthropometry is ignored to stay within 2500 char limit
+  return KLING_VIDEO_SYSTEM_PROMPT.replace('{USER_PROMPT}', userPrompt);
 }
 
 /**
