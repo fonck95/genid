@@ -6,7 +6,6 @@ import {
   getValidAccessToken,
   isOAuth2Configured,
   type AuthState,
-  type GoogleUser,
 } from '../services/googleAuth';
 
 interface AuthContextType extends AuthState {
@@ -96,16 +95,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  // Update user state helper (used after successful authentication)
-  const updateUser = useCallback((user: GoogleUser, accessToken: string) => {
-    setAuthState({
-      isAuthenticated: true,
-      user,
-      accessToken,
-      isLoading: false,
-      error: null,
-    });
-  }, []);
 
   // Listen for storage changes (for multi-tab support)
   useEffect(() => {
