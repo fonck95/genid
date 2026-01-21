@@ -6,11 +6,10 @@ import { IdentityManager } from './components/IdentityManager';
 import { ImageGenerator } from './components/ImageGenerator';
 import { Gallery } from './components/Gallery';
 import { ImageEditor } from './components/ImageEditor';
-import { VideoGenerator } from './components/VideoGenerator';
 import { AuthProvider } from './contexts/AuthContext';
 import { GoogleLoginButton } from './components/GoogleLoginButton';
 
-type Tab = 'generate' | 'gallery' | 'editor' | 'video';
+type Tab = 'generate' | 'gallery' | 'editor';
 
 function App() {
   const [deviceId, setDeviceId] = useState<string>('');
@@ -154,12 +153,6 @@ function App() {
               >
                 Editor {activeThreadsCount > 0 && `(${activeThreadsCount})`}
               </button>
-              <button
-                className={`tab ${activeTab === 'video' ? 'active' : ''}`}
-                onClick={() => setActiveTab('video')}
-              >
-                Video
-              </button>
             </nav>
 
             <div className="tab-content">
@@ -190,21 +183,12 @@ function App() {
                   onImageSaved={loadData}
                 />
               )}
-              {activeTab === 'video' && (
-                <VideoGenerator
-                  deviceId={deviceId}
-                  selectedIdentity={selectedIdentity}
-                  generatedImages={generatedImages}
-                  identities={identities}
-                  onRefresh={loadData}
-                />
-              )}
             </div>
           </section>
         </main>
 
         <footer className="app-footer">
-          <p>Powered by Nano Banana Pro (Gemini) + Veo 3 + WebGPU</p>
+          <p>Powered by Nano Banana Pro (Gemini)</p>
         </footer>
       </div>
     </AuthProvider>
