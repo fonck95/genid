@@ -1,4 +1,4 @@
-import type { GeminiResponse, IdentityPhoto, AttachedImage } from '../types';
+import type { GeminiResponse, IdentityPhoto, AttachedImage, FaceVariantType } from '../types';
 import { downscaleImage, defaultOptimizationConfig, type ImageOptimizationConfig } from './imageOptimizer';
 
 // API Key desde variable de entorno
@@ -976,4 +976,236 @@ export async function analyzeFaceForConsistency(imageUrl: string): Promise<strin
   }
 
   throw new Error('No se generó descripción del rostro');
+}
+
+// System prompt para generación de variantes de rostro con belleza matemática
+const FACE_VARIANTS_SYSTEM_PROMPT = `[ROL]
+Eres un experto en generación de retratos fotorrealistas con conocimientos avanzados en:
+- Antropometría y proporciones áureas faciales
+- Estándares de belleza matemática (proporción phi 1.618)
+- Características fenotípicas de diferentes grupos étnicos
+- Fotografía de retrato profesional
+
+[OBJETIVO]
+A partir de una imagen de referencia de un rostro, debes generar una NUEVA versión del rostro que:
+1. PRESERVE la esencia y estructura base del rostro original (forma general, expresión)
+2. ADAPTE los rasgos fenotípicos al grupo étnico especificado
+3. OPTIMICE las proporciones según los estándares de belleza matemática
+
+[PRINCIPIOS DE BELLEZA MATEMÁTICA A APLICAR]
+- Proporción Áurea (Phi = 1.618): La distancia entre ojos debe ser aproximadamente 1/1.618 del ancho total de la cara
+- Regla de los Tercios: El rostro dividido horizontalmente en tres partes iguales (frente, nariz, mentón)
+- Simetría Bilateral: Máxima simetría posible en rasgos faciales
+- Triángulo de la Juventud: Pómulos prominentes que enmarcan el rostro
+- Ángulo Nasolabial Óptimo: Entre 90-105 grados
+- Proporción Labial: Labio inferior 1.618 veces más grueso que el superior
+
+[INSTRUCCIONES TÉCNICAS DE IMAGEN]
+- Mantener la MISMA pose, ángulo de cámara y expresión del rostro original
+- Iluminación profesional de estudio: luz principal suave a 45°, fill light, rim light sutil
+- Calidad de retrato profesional (equivalente a 85mm f/1.8)
+- Piel con textura natural (poros visibles pero sutiles, sin efecto "plástico")
+- Ojos con catchlights naturales que reflejen las fuentes de luz
+- Resolución y nitidez uniformes`;
+
+// Características específicas por variante étnica
+const FACE_VARIANT_CHARACTERISTICS: Record<FaceVariantType, string> = {
+  afroamerican: `[VARIANTE AFROAMERICANA - CARACTERÍSTICAS A APLICAR]
+
+ESTRUCTURA FACIAL:
+- Estructura ósea definida con pómulos altos y prominentes
+- Mandíbula bien definida con ángulos suaves pero marcados
+- Frente proporcionada con línea de cabello natural
+
+RASGOS ESPECÍFICOS:
+- Nariz: Puente moderadamente ancho, aletas nasales suaves y proporcionadas
+- Labios: Bermellón completo y bien definido, arco de Cupido marcado
+- Ojos: Forma almendrada con pestañas naturalmente densas
+- Cejas: Arco natural, grosor medio-completo
+
+PIEL Y TONO:
+- Fototipo Fitzpatrick IV-VI
+- Tono cálido con subtones dorados/rojizos
+- Luminosidad natural en pómulos y puente nasal
+- Textura uniforme con brillo saludable
+
+CABELLO (si visible):
+- Textura afro natural o estilizado (rizos definidos, trenzas, etc.)
+- Línea de cabello natural y bien definida`,
+
+  latin: `[VARIANTE LATINA - CARACTERÍSTICAS A APLICAR]
+
+ESTRUCTURA FACIAL:
+- Rostro ovalado o ligeramente corazón
+- Pómulos altos con contorno suave
+- Mentón proporcionado y definido
+
+RASGOS ESPECÍFICOS:
+- Nariz: Perfil recto o ligeramente aquilino, punta definida
+- Labios: Grosor medio-completo, muy bien definidos
+- Ojos: Expresivos, forma variada (almendrada a redondeada), color marrón oscuro a avellana
+- Cejas: Bien definidas, arqueadas, grosor natural
+
+PIEL Y TONO:
+- Fototipo Fitzpatrick III-IV
+- Tonos oliva a canela cálidos
+- Bronceado natural y uniforme
+- Subtones cálidos (dorados, melocotón)
+
+CABELLO (si visible):
+- Textura ondulada a lacia, negro o castaño oscuro
+- Brillo natural y saludable
+- Volumen medio a alto`,
+
+  caucasian: `[VARIANTE CAUCÁSICA/ANGLOSAJONA - CARACTERÍSTICAS A APLICAR]
+
+ESTRUCTURA FACIAL:
+- Estructura ósea definida con ángulos nítidos
+- Mandíbula marcada y definida
+- Pómulos altos con contorno angular
+
+RASGOS ESPECÍFICOS:
+- Nariz: Puente recto y definido, punta proporcionada
+- Labios: Grosor medio, bermellón rosado bien definido
+- Ojos: Variedad de colores (azul, verde, avellana), forma redondeada a almendrada
+- Cejas: Bien definidas, arco natural, tonos claros a medios
+
+PIEL Y TONO:
+- Fototipo Fitzpatrick I-III
+- Tonos porcelana a melocotón
+- Subtones fríos (rosados) o neutros
+- Pecas sutiles opcionales (aspecto natural)
+
+CABELLO (si visible):
+- Texturas variadas (lacio a ondulado)
+- Colores rubio a castaño
+- Brillo natural y textura definida`
+};
+
+/**
+ * Genera una variante de rostro de un tipo étnico específico
+ * basada en una imagen de referencia, optimizando proporciones de belleza matemática.
+ */
+export async function generateFaceVariant(
+  baseImageUrl: string,
+  variantType: FaceVariantType
+): Promise<string> {
+  const parts: ContentPart[] = [];
+
+  const variantCharacteristics = FACE_VARIANT_CHARACTERISTICS[variantType];
+  const variantLabel = {
+    afroamerican: 'Afroamericana',
+    latin: 'Latina',
+    caucasian: 'Caucásica/Anglosajona'
+  }[variantType];
+
+  // System prompt con instrucciones completas
+  parts.push({
+    text: `${FACE_VARIANTS_SYSTEM_PROMPT}
+
+${variantCharacteristics}
+
+[INSTRUCCIÓN ESPECÍFICA]
+Genera un retrato fotorrealista de alta calidad que:
+1. TOME como base la ESTRUCTURA FACIAL y EXPRESIÓN de la imagen de referencia
+2. ADAPTE los rasgos al fenotipo ${variantLabel} según las características especificadas
+3. OPTIMICE las proporciones según los principios de belleza matemática (proporción áurea)
+4. MANTENGA la misma pose, ángulo y expresión del rostro original
+5. APLIQUE iluminación profesional de estudio para resaltar los rasgos
+
+IMPORTANTE:
+- El resultado debe ser un RETRATO INDIVIDUAL (solo el rostro/busto)
+- Fondo neutro o ligeramente desenfocado (estudio fotográfico)
+- La persona debe lucir atractiva según los estándares de belleza de su grupo étnico
+- Los rasgos deben ser armoniosos y proporcionados
+- La imagen debe tener calidad de fotografía profesional de retrato
+
+Imagen de referencia:`
+  });
+
+  // Optimizar y añadir la imagen base
+  const optimizedBase = await optimizeImageForAPI(baseImageUrl);
+  parts.push(createImagePart(optimizedBase, 'image/jpeg'));
+
+  // Instrucción final
+  parts.push({
+    text: `
+
+Genera ahora el retrato con variante ${variantLabel}, manteniendo la estructura base del rostro de referencia pero adaptando los rasgos fenotípicos y optimizando las proporciones de belleza.`
+  });
+
+  const requestBody = {
+    contents: [{
+      parts
+    }],
+    generationConfig: {
+      responseModalities: ['TEXT', 'IMAGE'],
+      temperature: 0.8,
+    }
+  };
+
+  // Usar modelo Pro para mejor calidad en generación de retratos
+  const response = await fetch(`${getApiUrl(GEMINI_IMAGE_PRO_MODEL)}?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error de API Gemini: ${response.status} - ${errorText}`);
+  }
+
+  const data: GeminiResponse = await response.json();
+
+  if (data.error) {
+    throw new Error(`Error Gemini: ${data.error.message}`);
+  }
+
+  const candidate = data.candidates?.[0];
+  if (!candidate?.content?.parts) {
+    throw new Error('No se recibió respuesta válida de Gemini');
+  }
+
+  for (const part of candidate.content.parts) {
+    if (part.inlineData) {
+      return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    }
+  }
+
+  throw new Error('No se generó ninguna imagen en la respuesta');
+}
+
+/**
+ * Genera las 3 variantes de rostro (afroamericana, latina, caucásica)
+ * basadas en una imagen de referencia.
+ *
+ * @param baseImageUrl URL de la imagen base
+ * @param onProgress Callback para reportar progreso (opcional)
+ * @returns Objeto con las 3 variantes generadas
+ */
+export async function generateAllFaceVariants(
+  baseImageUrl: string,
+  onProgress?: (variantType: FaceVariantType, status: 'generating' | 'completed' | 'error') => void
+): Promise<Record<FaceVariantType, string>> {
+  const variantTypes: FaceVariantType[] = ['afroamerican', 'latin', 'caucasian'];
+  const results: Partial<Record<FaceVariantType, string>> = {};
+
+  // Generar variantes secuencialmente para evitar rate limiting
+  for (const variantType of variantTypes) {
+    try {
+      onProgress?.(variantType, 'generating');
+      const imageUrl = await generateFaceVariant(baseImageUrl, variantType);
+      results[variantType] = imageUrl;
+      onProgress?.(variantType, 'completed');
+    } catch (error) {
+      console.error(`Error generando variante ${variantType}:`, error);
+      onProgress?.(variantType, 'error');
+      throw error;
+    }
+  }
+
+  return results as Record<FaceVariantType, string>;
 }

@@ -20,6 +20,40 @@ export interface IdentityPhoto {
   faceDescriptionGeneratedAt?: number;
 }
 
+/** Tipo de variante étnica para generación de rostros */
+export type FaceVariantType = 'afroamerican' | 'latin' | 'caucasian';
+
+/** Información de una variante de rostro generada */
+export interface FaceVariant {
+  id: string;
+  type: FaceVariantType;
+  /** Nombre descriptivo de la variante */
+  label: string;
+  /** URL de la imagen generada */
+  imageUrl: string;
+  /** Thumbnail para preview */
+  thumbnail: string;
+  /** ID de Cloudinary si está almacenada */
+  cloudinaryId?: string;
+  /** Timestamp de creación */
+  createdAt: number;
+}
+
+/** Conjunto de variantes de rostro generadas a partir de una foto base */
+export interface FaceVariantsSet {
+  id: string;
+  /** ID de la identidad asociada */
+  identityId: string;
+  /** URL de la imagen base usada */
+  baseImageUrl: string;
+  /** Thumbnail de la imagen base */
+  baseImageThumbnail: string;
+  /** Variantes generadas */
+  variants: FaceVariant[];
+  /** Timestamp de creación */
+  createdAt: number;
+}
+
 export interface GeneratedImage {
   id: string;
   deviceId: string;
