@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { GeneratedImage, KlingModel, KlingVideoMode, KlingVideoDuration, VideoGenerationStatus, Identity } from '../types';
 import { generateVideoFromImage, isKlingConfigured } from '../services/kling';
-import { saveGeneratedVideo } from '../services/identityStore';
+import { saveGeneratedVideo, getIdentity } from '../services/identityStore';
 
 /** Video pendiente que aun no ha sido guardado en la galeria */
 interface PendingVideo {
@@ -60,10 +60,27 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
     setProgress(0);
 
     try {
+      // Obtener descripción facial antropométrica de la identidad si existe
+      let faceDescription: string | undefined;
+      if (selectedImage.identityId) {
+        const identity = await getIdentity(selectedImage.identityId);
+        if (identity?.photos) {
+          // Combinar todas las descripciones faciales disponibles
+          const faceDescriptions = identity.photos
+            .filter(photo => photo.faceDescription)
+            .map((photo, index) => `[Reference ${index + 1}]\n${photo.faceDescription}`)
+            .join('\n\n');
+
+          if (faceDescriptions) {
+            faceDescription = faceDescriptions;
+          }
+        }
+      }
+
       const result = await generateVideoFromImage(
         selectedImage.imageUrl,
         prompt,
-        { model_name: model, mode, duration },
+        { model_name: model, mode, duration, faceDescription },
         (status, prog) => {
           setGenerationStatus(status as VideoGenerationStatus);
           if (prog !== undefined) setProgress(prog);

@@ -38,6 +38,8 @@ export interface KlingVideoOptions {
   duration?: '3' | '5' | '10';
   cfg_scale?: number;
   negative_prompt?: string;
+  /** Descripción antropométrica facial para mantener consistencia de identidad */
+  faceDescription?: string;
 }
 
 /**
@@ -131,7 +133,9 @@ export async function createImageToVideoTask(
     negative_prompt: options.negative_prompt,
     mode: options.mode || 'std',
     duration: options.duration || '5',
-    cfg_scale: options.cfg_scale ?? 0.5
+    cfg_scale: options.cfg_scale ?? 0.5,
+    // Face description for anthropometric consistency (processed server-side)
+    faceDescription: options.faceDescription
   };
 
   const response = await fetch(`${API_BASE}/image2video`, {
