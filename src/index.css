@@ -3952,6 +3952,175 @@ textarea {
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
 }
 
+/* Video Mode Selector */
+.video-mode-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.25rem;
+  background: var(--bg-input);
+  border-radius: 0.75rem;
+}
+
+.mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.mode-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mode-description {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--primary);
+}
+
+/* Motion Control Video Upload */
+.btn-upload-video {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: var(--bg-input);
+  border: 2px dashed var(--border);
+  border-radius: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-upload-video:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(236, 72, 153, 0.05);
+  color: var(--accent);
+}
+
+.btn-upload-video:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-upload-video svg {
+  opacity: 0.6;
+}
+
+/* Motion Video Preview */
+.motion-video-preview {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--bg-input);
+}
+
+.motion-video-preview video {
+  width: 100%;
+  max-height: 200px;
+  display: block;
+  object-fit: contain;
+  background: black;
+}
+
+.btn-remove-video {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-remove-video:hover {
+  background: var(--danger);
+}
+
+.btn-remove-video:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Hint */
+.form-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Motion Badge */
+.motion-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  background: var(--accent);
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Video Pending Section */
+.video-pending-section {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.video-pending-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.pending-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .video-generator-content {

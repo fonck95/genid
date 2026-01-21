@@ -180,6 +180,29 @@ export interface GeneratedVideo {
   model: string;
   /** Modo usado (std/pro) */
   mode: string;
+  /** Tipo de generación de video */
+  generationType?: 'image2video' | 'motion-control';
+  /** URL del video de referencia de movimiento (solo para motion-control) */
+  motionVideoUrl?: string;
+  /** Orientación del personaje (solo para motion-control) */
+  characterOrientation?: 'image' | 'video';
   /** Timestamp de creación */
   createdAt: number;
+}
+
+// === TIPOS PARA MOTION CONTROL (KLING) ===
+
+/** Orientación del personaje en Motion Control */
+export type MotionControlOrientation = 'image' | 'video';
+
+/** Opciones para Motion Control */
+export interface MotionControlOptions {
+  /** Texto prompt opcional */
+  prompt?: string;
+  /** Mantener sonido original del video */
+  keep_original_sound?: 'yes' | 'no';
+  /** Orientación del personaje */
+  character_orientation: MotionControlOrientation;
+  /** Modo de generación */
+  mode: 'std' | 'pro';
 }

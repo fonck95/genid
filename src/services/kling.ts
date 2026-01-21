@@ -42,6 +42,13 @@ export interface KlingVideoOptions {
   faceDescription?: string;
 }
 
+export interface KlingMotionControlOptions {
+  prompt?: string;
+  keep_original_sound?: 'yes' | 'no';
+  character_orientation: 'image' | 'video';
+  mode: 'std' | 'pro';
+}
+
 /**
  * Mapeo de códigos de error de Kling API a mensajes amigables para el usuario
  */
@@ -262,4 +269,137 @@ export async function generateVideoFromImage(
 export function isKlingConfigured(): boolean {
   // Credentials are now checked server-side in the API routes
   return true;
+}
+
+// ==================== MOTION CONTROL ====================
+
+/**
+ * Crea una tarea de Motion Control
+ * Aplica el movimiento de un video de referencia a una imagen
+ */
+export async function createMotionControlTask(
+  imageUrl: string,
+  videoUrl: string,
+  options: KlingMotionControlOptions
+): Promise<KlingVideoTask> {
+  const requestBody = {
+    image: imageUrl,
+    video: videoUrl,
+    prompt: options.prompt,
+    keep_original_sound: options.keep_original_sound || 'no',
+    character_orientation: options.character_orientation,
+    mode: options.mode
+  };
+
+  const response = await fetch(`${API_BASE}/motion-control`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error de Kling Motion Control API: ${response.status} - ${errorText}`);
+  }
+
+  const result: KlingApiResponse<KlingVideoTask> = await response.json();
+
+  if (result.code !== 0) {
+    throw new Error(getKlingErrorMessage(result.code, result.message));
+  }
+
+  return result.data;
+}
+
+/**
+ * Consulta el estado de una tarea de Motion Control
+ */
+export async function getMotionControlTaskStatus(taskId: string): Promise<KlingVideoTask> {
+  const response = await fetch(`${API_BASE}/motion-control-status?taskId=${encodeURIComponent(taskId)}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error de Kling Motion Control API: ${response.status} - ${errorText}`);
+  }
+
+  const result: KlingApiResponse<KlingVideoTask> = await response.json();
+
+  if (result.code !== 0) {
+    throw new Error(getKlingErrorMessage(result.code, result.message));
+  }
+
+  return result.data;
+}
+
+/**
+ * Espera a que una tarea de Motion Control se complete (polling)
+ */
+export async function waitForMotionControlCompletion(
+  taskId: string,
+  onProgress?: (status: string, progress?: number) => void,
+  maxWaitMs: number = 600000,
+  pollIntervalMs: number = 5000
+): Promise<KlingVideoTask> {
+  const startTime = Date.now();
+  let lastStatus = '';
+
+  while (Date.now() - startTime < maxWaitMs) {
+    const task = await getMotionControlTaskStatus(taskId);
+
+    if (task.task_status !== lastStatus) {
+      lastStatus = task.task_status;
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const progress = Math.min(elapsed / 120 * 100, 95);
+      onProgress?.(task.task_status, progress);
+    }
+
+    if (task.task_status === 'succeed') {
+      onProgress?.('succeed', 100);
+      return task;
+    }
+
+    if (task.task_status === 'failed') {
+      throw new Error(`La generación del video Motion Control falló: ${task.task_status_msg || 'Error desconocido'}`);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+  }
+
+  throw new Error('Tiempo de espera agotado para la generación del video Motion Control');
+}
+
+/**
+ * Genera un video con Motion Control y espera el resultado
+ * Aplica el movimiento de un video de referencia a una imagen
+ */
+export async function generateMotionControlVideo(
+  imageUrl: string,
+  videoUrl: string,
+  options: KlingMotionControlOptions,
+  onProgress?: (status: string, progress?: number) => void
+): Promise<{ videoUrl: string; duration: string; taskId: string }> {
+  onProgress?.('creating', 0);
+  const task = await createMotionControlTask(imageUrl, videoUrl, options);
+
+  onProgress?.('submitted', 5);
+
+  const completedTask = await waitForMotionControlCompletion(task.task_id, onProgress);
+
+  const video = completedTask.task_result?.videos?.[0];
+  if (!video) {
+    throw new Error('No se encontró video en la respuesta de Motion Control');
+  }
+
+  return {
+    videoUrl: video.url,
+    duration: video.duration,
+    taskId: task.task_id
+  };
 }

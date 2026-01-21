@@ -2,6 +2,7 @@
 const CLOUDINARY_CLOUD_NAME = 'diaaseefm';
 const CLOUDINARY_UPLOAD_PRESET = 'carendary';
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+const CLOUDINARY_VIDEO_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`;
 
 export interface CloudinaryUploadResult {
   secure_url: string;
@@ -134,4 +135,55 @@ export function getFullImageUrl(publicId: string): string {
     quality: 'auto',
     format: 'auto'
   });
+}
+
+// ==================== VIDEO UPLOAD ====================
+
+export interface CloudinaryVideoUploadResult {
+  secure_url: string;
+  public_id: string;
+  duration: number;
+  format: string;
+  bytes: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Sube un video a Cloudinary desde un File object
+ */
+export async function uploadVideoToCloudinary(
+  file: File,
+  folder?: string
+): Promise<CloudinaryVideoUploadResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  formData.append('resource_type', 'video');
+
+  if (folder) {
+    formData.append('folder', folder);
+  }
+
+  const response = await fetch(CLOUDINARY_VIDEO_UPLOAD_URL, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error subiendo video a Cloudinary: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+
+  return {
+    secure_url: result.secure_url,
+    public_id: result.public_id,
+    duration: result.duration,
+    format: result.format,
+    bytes: result.bytes,
+    width: result.width,
+    height: result.height
+  };
 }

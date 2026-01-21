@@ -1,7 +1,12 @@
-import { useState } from 'react';
-import type { GeneratedImage, KlingModel, KlingVideoMode, KlingVideoDuration, VideoGenerationStatus, Identity } from '../types';
-import { generateVideoFromImage, isKlingConfigured } from '../services/kling';
+import { useState, useRef } from 'react';
+import type { GeneratedImage, KlingModel, KlingVideoMode, KlingVideoDuration, VideoGenerationStatus, Identity, MotionControlOrientation } from '../types';
+import { generateVideoFromImage, generateMotionControlVideo, isKlingConfigured } from '../services/kling';
+import type { KlingMotionControlOptions } from '../services/kling';
 import { saveGeneratedVideo, getIdentity } from '../services/identityStore';
+import { uploadVideoToCloudinary } from '../services/cloudinary';
+
+/** Tipo de modo de video */
+type VideoMode = 'image2video' | 'motion-control';
 
 /** Video pendiente que aun no ha sido guardado en la galeria */
 interface PendingVideo {
@@ -17,6 +22,9 @@ interface PendingVideo {
   klingTaskId: string;
   model: string;
   mode: string;
+  generationType: VideoMode;
+  motionVideoUrl?: string;
+  characterOrientation?: MotionControlOrientation;
   createdAt: number;
 }
 
@@ -24,19 +32,33 @@ interface Props {
   deviceId: string;
   galleryImages: GeneratedImage[];
   selectedIdentity: Identity | null;
+  identities: Identity[];
+  onSelectIdentity: (identity: Identity | null) => void;
   onRefresh: () => void;
 }
 
-export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRefresh }: Props) {
+export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, identities, onSelectIdentity, onRefresh }: Props) {
+  // Estado de modo de video
+  const [videoMode, setVideoMode] = useState<VideoMode>('image2video');
+
   // Estado de seleccion
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [showImagePicker, setShowImagePicker] = useState(false);
 
-  // Estado del formulario
+  // Estado del formulario - Image to Video
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState<KlingModel>('kling-v2-1-master');
   const [mode, setMode] = useState<KlingVideoMode>('pro');
   const [duration, setDuration] = useState<KlingVideoDuration>('5');
+
+  // Estado del formulario - Motion Control
+  const [motionVideoFile, setMotionVideoFile] = useState<File | null>(null);
+  const [motionVideoPreview, setMotionVideoPreview] = useState<string | null>(null);
+  const [characterOrientation, setCharacterOrientation] = useState<MotionControlOrientation>('image');
+  const [keepOriginalSound, setKeepOriginalSound] = useState<'yes' | 'no'>('no');
+  const [motionPrompt, setMotionPrompt] = useState('');
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Estado de generacion
   const [generationStatus, setGenerationStatus] = useState<VideoGenerationStatus>('idle');
@@ -50,9 +72,50 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
   const handleImageSelect = (image: GeneratedImage) => {
     setSelectedImage(image);
     setShowImagePicker(false);
+
+    // Auto-seleccionar la identidad correspondiente a la imagen
+    if (image.identityId) {
+      const imageIdentity = identities.find(id => id.id === image.identityId);
+      if (imageIdentity && (!selectedIdentity || selectedIdentity.id !== imageIdentity.id)) {
+        onSelectIdentity(imageIdentity);
+      }
+    }
   };
 
-  const handleGenerate = async () => {
+  const handleVideoFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const validTypes = ['video/mp4', 'video/quicktime'];
+    if (!validTypes.includes(file.type)) {
+      setError('Formato de video no soportado. Usa MP4 o MOV.');
+      return;
+    }
+
+    // Validar tamaño (max 100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      setError('El video no debe superar 100MB.');
+      return;
+    }
+
+    setMotionVideoFile(file);
+    setMotionVideoPreview(URL.createObjectURL(file));
+    setError(null);
+  };
+
+  const handleClearMotionVideo = () => {
+    if (motionVideoPreview) {
+      URL.revokeObjectURL(motionVideoPreview);
+    }
+    setMotionVideoFile(null);
+    setMotionVideoPreview(null);
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
+  };
+
+  const handleGenerateImage2Video = async () => {
     if (!selectedImage || !prompt.trim()) return;
 
     setError(null);
@@ -65,7 +128,6 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
       if (selectedImage.identityId) {
         const identity = await getIdentity(selectedImage.identityId);
         if (identity?.photos) {
-          // Combinar todas las descripciones faciales disponibles
           const faceDescriptions = identity.photos
             .filter(photo => photo.faceDescription)
             .map((photo, index) => `[Reference ${index + 1}]\n${photo.faceDescription}`)
@@ -87,7 +149,6 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
         }
       );
 
-      // Crear video pendiente (NO guardar automaticamente)
       const pendingVideo: PendingVideo = {
         id: `pending-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         sourceImageId: selectedImage.id,
@@ -101,13 +162,11 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
         klingTaskId: result.taskId,
         model,
         mode,
+        generationType: 'image2video',
         createdAt: Date.now()
       };
 
-      // Agregar a videos pendientes
       setPendingVideos(prev => [pendingVideo, ...prev]);
-
-      // Limpiar formulario
       setPrompt('');
       setGenerationStatus('idle');
       setProgress(0);
@@ -118,9 +177,78 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
     }
   };
 
+  const handleGenerateMotionControl = async () => {
+    if (!selectedImage || !motionVideoFile) return;
+
+    setError(null);
+    setGenerationStatus('creating');
+    setProgress(0);
+
+    try {
+      // Primero subir el video a Cloudinary
+      setIsUploadingVideo(true);
+      const uploadResult = await uploadVideoToCloudinary(motionVideoFile, 'genid_motion_videos');
+      setIsUploadingVideo(false);
+
+      const options: KlingMotionControlOptions = {
+        prompt: motionPrompt || undefined,
+        keep_original_sound: keepOriginalSound,
+        character_orientation: characterOrientation,
+        mode
+      };
+
+      const result = await generateMotionControlVideo(
+        selectedImage.imageUrl,
+        uploadResult.secure_url,
+        options,
+        (status, prog) => {
+          setGenerationStatus(status as VideoGenerationStatus);
+          if (prog !== undefined) setProgress(prog);
+        }
+      );
+
+      const pendingVideo: PendingVideo = {
+        id: `pending-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        sourceImageId: selectedImage.id,
+        sourceImageUrl: selectedImage.imageUrl,
+        sourceImageThumbnail: selectedImage.imageUrl,
+        identityId: selectedImage.identityId,
+        identityName: selectedImage.identityName,
+        prompt: motionPrompt || 'Motion Control',
+        videoUrl: result.videoUrl,
+        duration: result.duration,
+        klingTaskId: result.taskId,
+        model: 'motion-control',
+        mode,
+        generationType: 'motion-control',
+        motionVideoUrl: uploadResult.secure_url,
+        characterOrientation,
+        createdAt: Date.now()
+      };
+
+      setPendingVideos(prev => [pendingVideo, ...prev]);
+      handleClearMotionVideo();
+      setMotionPrompt('');
+      setGenerationStatus('idle');
+      setProgress(0);
+    } catch (err) {
+      console.error('Error generando video Motion Control:', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setGenerationStatus('failed');
+      setIsUploadingVideo(false);
+    }
+  };
+
+  const handleGenerate = () => {
+    if (videoMode === 'image2video') {
+      handleGenerateImage2Video();
+    } else {
+      handleGenerateMotionControl();
+    }
+  };
+
   const handleSaveVideo = async (pendingVideo: PendingVideo) => {
     try {
-      // Guardar en IndexedDB con identidad
       await saveGeneratedVideo(
         deviceId,
         pendingVideo.sourceImageUrl,
@@ -136,13 +264,9 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
         pendingVideo.sourceImageThumbnail
       );
 
-      // Remover de pendientes
       setPendingVideos(prev => prev.filter(v => v.id !== pendingVideo.id));
-
-      // Refrescar galería
       onRefresh();
 
-      // Si estaba seleccionado, deseleccionar
       if (selectedVideo?.id === pendingVideo.id) {
         setSelectedVideo(null);
       }
@@ -168,6 +292,7 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
   };
 
   const getStatusText = (status: VideoGenerationStatus): string => {
+    if (isUploadingVideo) return 'Subiendo video de referencia...';
     switch (status) {
       case 'creating': return 'Creando tarea...';
       case 'submitted': return 'Tarea enviada...';
@@ -178,10 +303,16 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
     }
   };
 
-  // Filtrar imagenes de la galeria por identidad seleccionada
-  const filteredGalleryImages = selectedIdentity
+  // Filtrar imagenes de la galeria por identidad seleccionada (solo para image2video)
+  const filteredGalleryImages = videoMode === 'image2video' && selectedIdentity
     ? galleryImages.filter(img => img.identityId === selectedIdentity.id)
     : galleryImages;
+
+  const isGenerating = generationStatus !== 'idle' && generationStatus !== 'failed';
+
+  const canGenerate = videoMode === 'image2video'
+    ? selectedImage && prompt.trim() && !isGenerating
+    : selectedImage && motionVideoFile && !isGenerating;
 
   // Verificar configuracion de Kling
   if (!isKlingConfigured()) {
@@ -225,11 +356,46 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
       <div className="video-generator-content">
         {/* Panel de generacion */}
         <div className="video-form-section">
-          <h3>Crear Video desde Imagen</h3>
+          {/* Selector de modo */}
+          <div className="video-mode-selector">
+            <button
+              className={`mode-btn ${videoMode === 'image2video' ? 'active' : ''}`}
+              onClick={() => setVideoMode('image2video')}
+              disabled={isGenerating}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              Imagen a Video
+            </button>
+            <button
+              className={`mode-btn ${videoMode === 'motion-control' ? 'active' : ''}`}
+              onClick={() => setVideoMode('motion-control')}
+              disabled={isGenerating}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+              </svg>
+              Motion Control
+            </button>
+          </div>
+
+          <h3>{videoMode === 'image2video' ? 'Crear Video desde Imagen' : 'Motion Control'}</h3>
+          {videoMode === 'motion-control' && (
+            <p className="mode-description">
+              Aplica el movimiento de un video de referencia a tu imagen.
+            </p>
+          )}
 
           {/* Selector de imagen */}
           <div className="form-group">
-            <label>Imagen de origen {selectedIdentity && `(de ${selectedIdentity.name})`}</label>
+            <label>
+              Imagen de referencia
+              {videoMode === 'image2video' && selectedIdentity && ` (de ${selectedIdentity.name})`}
+            </label>
             {selectedImage ? (
               <div className="selected-image-preview">
                 <img src={selectedImage.imageUrl} alt="Imagen seleccionada" />
@@ -238,6 +404,7 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
                   <button
                     className="btn-change-image"
                     onClick={() => setShowImagePicker(true)}
+                    disabled={isGenerating}
                   >
                     Cambiar
                   </button>
@@ -247,6 +414,7 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
               <button
                 className="btn-select-image"
                 onClick={() => setShowImagePicker(true)}
+                disabled={isGenerating}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -258,64 +426,168 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
             )}
           </div>
 
-          {/* Prompt */}
-          <div className="form-group">
-            <label>Prompt de movimiento</label>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe como quieres que se mueva la imagen..."
-              rows={3}
-              disabled={generationStatus !== 'idle' && generationStatus !== 'failed'}
-            />
-          </div>
+          {/* Contenido especifico del modo */}
+          {videoMode === 'image2video' ? (
+            <>
+              {/* Prompt para Image to Video */}
+              <div className="form-group">
+                <label>Prompt de movimiento</label>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Describe como quieres que se mueva la imagen..."
+                  rows={3}
+                  disabled={isGenerating}
+                />
+              </div>
 
-          {/* Opciones */}
-          <div className="video-options">
-            <div className="form-group">
-              <label>Modelo</label>
-              <select
-                value={model}
-                onChange={(e) => setModel(e.target.value as KlingModel)}
-                disabled={generationStatus !== 'idle' && generationStatus !== 'failed'}
-              >
-                <option value="kling-v1">Kling V1</option>
-                <option value="kling-v1-5">Kling V1.5</option>
-                <option value="kling-v1-6">Kling V1.6</option>
-                <option value="kling-v2-master">Kling V2 Master</option>
-                <option value="kling-v2-1">Kling V2.1</option>
-                <option value="kling-v2-1-master">Kling V2.1 Master (Recomendado)</option>
-              </select>
-            </div>
+              {/* Opciones de Image to Video */}
+              <div className="video-options">
+                <div className="form-group">
+                  <label>Modelo</label>
+                  <select
+                    value={model}
+                    onChange={(e) => setModel(e.target.value as KlingModel)}
+                    disabled={isGenerating}
+                  >
+                    <option value="kling-v1">Kling V1</option>
+                    <option value="kling-v1-5">Kling V1.5</option>
+                    <option value="kling-v1-6">Kling V1.6</option>
+                    <option value="kling-v2-master">Kling V2 Master</option>
+                    <option value="kling-v2-1">Kling V2.1</option>
+                    <option value="kling-v2-1-master">Kling V2.1 Master (Recomendado)</option>
+                  </select>
+                </div>
 
-            <div className="form-group">
-              <label>Modo</label>
-              <select
-                value={mode}
-                onChange={(e) => setMode(e.target.value as KlingVideoMode)}
-                disabled={generationStatus !== 'idle' && generationStatus !== 'failed'}
-              >
-                <option value="std">Estandar (rapido)</option>
-                <option value="pro">Profesional (mejor calidad)</option>
-              </select>
-            </div>
+                <div className="form-group">
+                  <label>Modo</label>
+                  <select
+                    value={mode}
+                    onChange={(e) => setMode(e.target.value as KlingVideoMode)}
+                    disabled={isGenerating}
+                  >
+                    <option value="std">Estandar (rapido)</option>
+                    <option value="pro">Profesional (mejor calidad)</option>
+                  </select>
+                </div>
 
-            <div className="form-group">
-              <label>Duracion</label>
-              <select
-                value={duration}
-                onChange={(e) => setDuration(e.target.value as KlingVideoDuration)}
-                disabled={generationStatus !== 'idle' && generationStatus !== 'failed'}
-              >
-                <option value="3">3 segundos</option>
-                <option value="5">5 segundos</option>
-                <option value="10">10 segundos</option>
-              </select>
-            </div>
-          </div>
+                <div className="form-group">
+                  <label>Duracion</label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value as KlingVideoDuration)}
+                    disabled={isGenerating}
+                  >
+                    <option value="3">3 segundos</option>
+                    <option value="5">5 segundos</option>
+                    <option value="10">10 segundos</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Video de referencia para Motion Control */}
+              <div className="form-group">
+                <label>Video de referencia de movimiento</label>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/mp4,video/quicktime,.mp4,.mov"
+                  onChange={handleVideoFileSelect}
+                  style={{ display: 'none' }}
+                />
+                {motionVideoPreview ? (
+                  <div className="motion-video-preview">
+                    <video src={motionVideoPreview} controls muted />
+                    <button
+                      className="btn-remove-video"
+                      onClick={handleClearMotionVideo}
+                      disabled={isGenerating}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="btn-upload-video"
+                    onClick={() => videoInputRef.current?.click()}
+                    disabled={isGenerating}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    Subir video de movimiento
+                  </button>
+                )}
+                <p className="form-hint">
+                  MP4 o MOV, max 100MB, 3-30 segundos. El personaje debe ser visible completamente.
+                </p>
+              </div>
+
+              {/* Prompt opcional para Motion Control */}
+              <div className="form-group">
+                <label>Prompt (opcional)</label>
+                <textarea
+                  value={motionPrompt}
+                  onChange={(e) => setMotionPrompt(e.target.value)}
+                  placeholder="Descripcion adicional del movimiento deseado..."
+                  rows={2}
+                  disabled={isGenerating}
+                />
+              </div>
+
+              {/* Opciones de Motion Control */}
+              <div className="video-options">
+                <div className="form-group">
+                  <label>Orientacion del personaje</label>
+                  <select
+                    value={characterOrientation}
+                    onChange={(e) => setCharacterOrientation(e.target.value as MotionControlOrientation)}
+                    disabled={isGenerating}
+                  >
+                    <option value="image">Igual que la imagen (max 10s)</option>
+                    <option value="video">Igual que el video (max 30s)</option>
+                  </select>
+                  <p className="form-hint">
+                    Elige si el personaje mantiene la orientacion de la imagen o adopta la del video.
+                  </p>
+                </div>
+
+                <div className="form-group">
+                  <label>Modo</label>
+                  <select
+                    value={mode}
+                    onChange={(e) => setMode(e.target.value as KlingVideoMode)}
+                    disabled={isGenerating}
+                  >
+                    <option value="std">Estandar (rapido)</option>
+                    <option value="pro">Profesional (mejor calidad)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Audio original</label>
+                  <select
+                    value={keepOriginalSound}
+                    onChange={(e) => setKeepOriginalSound(e.target.value as 'yes' | 'no')}
+                    disabled={isGenerating}
+                  >
+                    <option value="no">Sin audio</option>
+                    <option value="yes">Mantener audio del video</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Progreso */}
-          {generationStatus !== 'idle' && generationStatus !== 'failed' && (
+          {isGenerating && (
             <div className="video-progress">
               <div className="progress-bar">
                 <div
@@ -340,13 +612,9 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
           <button
             className="btn-generate-video"
             onClick={handleGenerate}
-            disabled={
-              !selectedImage ||
-              !prompt.trim() ||
-              (generationStatus !== 'idle' && generationStatus !== 'failed')
-            }
+            disabled={!canGenerate}
           >
-            {generationStatus !== 'idle' && generationStatus !== 'failed' ? (
+            {isGenerating ? (
               <>
                 <div className="spinner-small" />
                 Generando...
@@ -356,7 +624,7 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
-                Generar Video
+                {videoMode === 'image2video' ? 'Generar Video' : 'Generar Motion Control'}
               </>
             )}
           </button>
@@ -395,6 +663,9 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
                     </div>
                     <span className="video-duration">{video.duration}s</span>
                     <span className="pending-badge">Pendiente</span>
+                    {video.generationType === 'motion-control' && (
+                      <span className="motion-badge">Motion</span>
+                    )}
                   </div>
                   <div className="video-item-info">
                     <p className="video-prompt">{video.prompt}</p>
@@ -442,13 +713,16 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
         <div className="modal-overlay" onClick={() => setShowImagePicker(false)}>
           <div className="modal-content image-picker-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Seleccionar imagen {selectedIdentity && `de ${selectedIdentity.name}`}</h3>
+              <h3>
+                Seleccionar imagen
+                {videoMode === 'image2video' && selectedIdentity && ` de ${selectedIdentity.name}`}
+              </h3>
               <button className="modal-close" onClick={() => setShowImagePicker(false)}>x</button>
             </div>
             <div className="image-picker-grid">
               {filteredGalleryImages.length === 0 ? (
                 <div className="image-picker-empty">
-                  <p>No hay imagenes en la galeria{selectedIdentity ? ` para ${selectedIdentity.name}` : ''}. Genera algunas primero.</p>
+                  <p>No hay imagenes en la galeria{videoMode === 'image2video' && selectedIdentity ? ` para ${selectedIdentity.name}` : ''}. Genera algunas primero.</p>
                 </div>
               ) : (
                 filteredGalleryImages.map((image) => (
@@ -490,7 +764,7 @@ export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRe
               )}
               <div className="video-modal-meta">
                 <span>Duracion: {selectedVideo.duration}s</span>
-                <span>Modelo: {selectedVideo.model}</span>
+                <span>Tipo: {selectedVideo.generationType === 'motion-control' ? 'Motion Control' : 'Image to Video'}</span>
                 <span>Modo: {selectedVideo.mode === 'pro' ? 'Profesional' : 'Estandar'}</span>
                 <span>{formatDate(selectedVideo.createdAt)}</span>
               </div>
