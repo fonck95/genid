@@ -394,28 +394,41 @@ export async function startVideoGeneration(
 
           const activationUrl = metadata?.activationUrl;
           const serviceName = metadata?.serviceTitle || 'Vertex AI API';
+          const projectId = VERTEX_PROJECT_ID || '(no configurado)';
+
+          // Build project-specific console links
+          const apiEnableUrl = activationUrl ||
+            `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com?project=${projectId}`;
+          const iamUrl = `https://console.cloud.google.com/iam-admin/iam?project=${projectId}`;
 
           throw new Error(
             `⚠️ Permiso Denegado: ${serviceName}\n\n` +
-            `Posibles causas:\n\n` +
-            `1. **API no habilitada:**\n` +
-            `   Visita: ${activationUrl || 'https://console.cloud.google.com/apis/library/aiplatform.googleapis.com'}\n\n` +
-            `2. **Sin permisos en el proyecto:**\n` +
-            `   Tu cuenta necesita el rol "Vertex AI User" o similar\n\n` +
-            `3. **Project ID incorrecto:**\n` +
-            `   Verifica VITE_APP_ID=${VERTEX_PROJECT_ID || '(no configurado)'}`
+            `Proyecto: ${projectId}\n` +
+            `Region: ${VERTEX_LOCATION}\n\n` +
+            `Pasos para solucionar:\n\n` +
+            `1. **Habilitar Vertex AI API:**\n` +
+            `   ${apiEnableUrl}\n\n` +
+            `2. **Agregar permisos IAM:**\n` +
+            `   ${iamUrl}\n` +
+            `   - Agrega tu email con rol "Vertex AI User"\n\n` +
+            `3. **Verificar Project ID:**\n` +
+            `   - VITE_APP_ID_VERTEX debe coincidir con tu proyecto\n` +
+            `   - Actual: ${projectId}\n\n` +
+            `4. **Esperar propagacion:**\n` +
+            `   - Despues de cambios, espera 2-3 minutos`
           );
         }
       } catch (parseError) {
         if (parseError instanceof Error && parseError.message.includes('⚠️')) {
           throw parseError;
         }
+        const projectId = VERTEX_PROJECT_ID || '(no configurado)';
         if (errorText.includes('SERVICE_DISABLED') || errorText.includes('has not been used')) {
           throw new Error(
             `⚠️ API No Habilitada\n\n` +
             `Habilita Vertex AI API en tu proyecto:\n` +
-            `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com\n\n` +
-            `Después de habilitarla, espera 2-3 minutos e intenta de nuevo.`
+            `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com?project=${projectId}\n\n` +
+            `Despues de habilitarla, espera 2-3 minutos e intenta de nuevo.`
           );
         }
       }
@@ -457,17 +470,21 @@ export async function checkVideoGenerationStatus(operationName: string): Promise
 
     // Handle permission denied errors (403)
     if (response.status === 403) {
+      const projectId = VERTEX_PROJECT_ID || '(no configurado)';
       if (errorText.includes('SERVICE_DISABLED') || errorText.includes('has not been used')) {
         throw new Error(
           `⚠️ API No Habilitada\n\n` +
           `Habilita Vertex AI API:\n` +
-          `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com`
+          `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com?project=${projectId}`
         );
       }
       throw new Error(
         `⚠️ Permiso Denegado\n\n` +
-        `No tienes permisos para acceder a esta operación.\n` +
-        `Verifica que tu cuenta tenga acceso al proyecto.`
+        `No tienes permisos para acceder a esta operación.\n\n` +
+        `Verifica:\n` +
+        `- Tu cuenta tenga acceso al proyecto: ${projectId}\n` +
+        `- Tengas el rol "Vertex AI User" en IAM\n\n` +
+        `IAM: https://console.cloud.google.com/iam-admin/iam?project=${projectId}`
       );
     }
 
