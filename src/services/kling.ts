@@ -1,12 +1,10 @@
 /**
  * Servicio de integración con Kling AI API para generación de videos
- * https://api-singapore.klingai.com
+ * Las llamadas se realizan a través de API routes en /api/kling para evitar CORS
  */
 
-// API Keys desde variables de entorno
-const KLING_ACCESS_KEY = import.meta.env.VITE_APP_API_KLING_KEY;
-const KLING_SECRET_KEY = import.meta.env.VITE_APP_SECRET_KLING;
-const KLING_API_BASE = 'https://api-singapore.klingai.com';
+// API base for proxy endpoints (relative URLs work in both dev and prod)
+const API_BASE = '/api/kling';
 
 // Tipos para la API de Kling
 export interface KlingVideoTask {
@@ -42,73 +40,6 @@ export interface KlingVideoOptions {
   negative_prompt?: string;
 }
 
-/**
- * Genera un JWT token para autenticación con Kling API
- * Siguiendo el estándar RFC 7519
- */
-async function generateJwtToken(): Promise<string> {
-  if (!KLING_ACCESS_KEY || !KLING_SECRET_KEY) {
-    throw new Error('Faltan las credenciales de Kling API. Configura VITE_APP_API_KLING_KEY y VITE_APP_SECRET_KLING');
-  }
-
-  const header = {
-    alg: 'HS256',
-    typ: 'JWT'
-  };
-
-  const now = Math.floor(Date.now() / 1000);
-  const payload = {
-    iss: KLING_ACCESS_KEY,
-    exp: now + 1800, // Válido por 30 minutos
-    nbf: now - 5     // Efectivo desde 5 segundos antes
-  };
-
-  // Codificar header y payload en base64url
-  const encodedHeader = base64UrlEncode(JSON.stringify(header));
-  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-
-  // Crear la firma usando HMAC-SHA256
-  const signatureInput = `${encodedHeader}.${encodedPayload}`;
-  const signature = await hmacSha256(KLING_SECRET_KEY, signatureInput);
-
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
-}
-
-/**
- * Codifica un string en base64url (sin padding)
- */
-function base64UrlEncode(str: string): string {
-  const base64 = btoa(unescape(encodeURIComponent(str)));
-  return base64
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
-/**
- * Genera firma HMAC-SHA256 y la codifica en base64url
- */
-async function hmacSha256(secret: string, message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(secret);
-  const messageData = encoder.encode(message);
-
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
-
-  return base64
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
 
 /**
  * Convierte una imagen a base64 sin el prefijo data:
@@ -136,14 +67,13 @@ async function imageToBase64(imageUrl: string): Promise<string> {
 
 /**
  * Crea una tarea de generación de video a partir de una imagen
+ * Las llamadas se hacen a través del proxy /api/kling para evitar CORS
  */
 export async function createImageToVideoTask(
   imageUrl: string,
   prompt: string,
   options: KlingVideoOptions = {}
 ): Promise<KlingVideoTask> {
-  const token = await generateJwtToken();
-
   // Convertir imagen a base64
   const imageBase64 = await imageToBase64(imageUrl);
 
@@ -157,11 +87,10 @@ export async function createImageToVideoTask(
     cfg_scale: options.cfg_scale ?? 0.5
   };
 
-  const response = await fetch(`${KLING_API_BASE}/v1/videos/image2video`, {
+  const response = await fetch(`${API_BASE}/image2video`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(requestBody)
   });
@@ -182,15 +111,13 @@ export async function createImageToVideoTask(
 
 /**
  * Consulta el estado de una tarea de generación de video
+ * Las llamadas se hacen a través del proxy /api/kling para evitar CORS
  */
 export async function getVideoTaskStatus(taskId: string): Promise<KlingVideoTask> {
-  const token = await generateJwtToken();
-
-  const response = await fetch(`${KLING_API_BASE}/v1/videos/image2video/${taskId}`, {
+  const response = await fetch(`${API_BASE}/status?taskId=${encodeURIComponent(taskId)}`, {
     method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Content-Type': 'application/json'
     }
   });
 
@@ -279,7 +206,9 @@ export async function generateVideoFromImage(
 
 /**
  * Verifica si las credenciales de Kling están configuradas
+ * Nota: Las credenciales ahora se verifican en el servidor
  */
 export function isKlingConfigured(): boolean {
-  return !!(KLING_ACCESS_KEY && KLING_SECRET_KEY);
+  // Credentials are now checked server-side in the API routes
+  return true;
 }
