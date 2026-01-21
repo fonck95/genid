@@ -4,7 +4,8 @@ import { downscaleImage } from './imageOptimizer';
 // Configuración de autenticación para Vertex AI
 // Video generation con Veo requiere OAuth2 (no soporta Express Mode con API Keys)
 const VERTEX_ACCESS_TOKEN = import.meta.env.VITE_VERTEX_ACCESS_TOKEN;
-const VERTEX_PROJECT_ID = import.meta.env.VITE_VERTEX_PROJECT_ID;
+// Project ID: usar VITE_APP_ID como fuente principal, VITE_VERTEX_PROJECT_ID como fallback
+const VERTEX_PROJECT_ID = import.meta.env.VITE_APP_ID || import.meta.env.VITE_VERTEX_PROJECT_ID;
 const VERTEX_LOCATION = import.meta.env.VITE_VERTEX_LOCATION || 'us-central1';
 
 // Modelo de Veo 3.1 para generación de video
@@ -210,7 +211,7 @@ export async function startVideoGeneration(
       '   gcloud auth print-access-token\n\n' +
       '2. **Configura las variables de entorno:**\n' +
       '   VITE_VERTEX_ACCESS_TOKEN=tu_access_token\n' +
-      '   VITE_VERTEX_PROJECT_ID=tu_project_id\n' +
+      '   VITE_APP_ID=tu_project_id (ya configurado si usas la app)\n' +
       '   VITE_VERTEX_LOCATION=us-central1 (opcional)\n\n' +
       '3. **Asegúrate de tener habilitado Vertex AI:**\n' +
       '   https://console.cloud.google.com/apis/library/aiplatform.googleapis.com\n\n' +
@@ -275,7 +276,7 @@ export async function startVideoGeneration(
             '⚠️ Configuración de Proyecto Inválida\n\n' +
             'La API de generación de video (Veo) requiere un proyecto de Google Cloud válido.\n\n' +
             'Verifica tu configuración:\n\n' +
-            '1. **VITE_VERTEX_PROJECT_ID** debe ser un ID de proyecto válido\n' +
+            '1. **VITE_APP_ID** debe ser un ID de proyecto válido\n' +
             '   • Encuentra tu project ID en: https://console.cloud.google.com\n\n' +
             '2. **VITE_VERTEX_ACCESS_TOKEN** debe ser un token OAuth2 válido\n' +
             '   • Genera uno con: gcloud auth print-access-token\n' +
@@ -359,7 +360,7 @@ export async function startVideoGeneration(
             `2. **Sin permisos en el proyecto:**\n` +
             `   Tu cuenta necesita el rol "Vertex AI User" o similar\n\n` +
             `3. **Project ID incorrecto:**\n` +
-            `   Verifica VITE_VERTEX_PROJECT_ID=${VERTEX_PROJECT_ID || '(no configurado)'}`
+            `   Verifica VITE_APP_ID=${VERTEX_PROJECT_ID || '(no configurado)'}`
           );
         }
       } catch (parseError) {
