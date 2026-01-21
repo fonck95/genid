@@ -254,7 +254,8 @@ export async function waitForVideoGeneration(
 
     if (status.done) {
       // Video completado, extraer URL
-      const videoUri = status.response?.generatedSamples?.[0]?.video?.uri;
+      // La respuesta de Veo 3.1 usa generateVideoResponse como wrapper
+      const videoUri = status.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
 
       if (!videoUri) {
         throw new Error('No se encontró video en la respuesta de Veo');

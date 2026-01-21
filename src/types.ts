@@ -172,12 +172,14 @@ export interface VeoResponse {
     '@type': string;
   };
   response?: {
-    generatedSamples?: Array<{
-      video?: {
-        uri?: string;
-        encoding?: string;
-      };
-    }>;
+    generateVideoResponse?: {
+      generatedSamples?: Array<{
+        video?: {
+          uri?: string;
+          encoding?: string;
+        };
+      }>;
+    };
   };
   error?: {
     code: number;
