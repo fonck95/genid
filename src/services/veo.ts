@@ -211,6 +211,46 @@ export async function startVideoGeneration(
   if (!response.ok) {
     const errorText = await response.text();
 
+    // Check for API key not supported error (401 UNAUTHENTICATED)
+    if (response.status === 401) {
+      try {
+        const errorData = JSON.parse(errorText);
+        const errorInfo = errorData?.error;
+
+        // Check if it's the "API keys not supported" error
+        if (errorInfo?.status === 'UNAUTHENTICATED' || errorInfo?.code === 401) {
+          const isApiKeyNotSupported = errorInfo?.message?.includes('API keys are not supported') ||
+            errorInfo?.details?.some((d: { reason?: string }) => d.reason === 'CREDENTIALS_MISSING');
+
+          if (isApiKeyNotSupported) {
+            throw new Error(
+              '⚠️ Autenticación No Compatible\n\n' +
+              'La API de generación de video (Veo) requiere autenticación OAuth2 y no soporta API Keys.\n\n' +
+              'Para resolver este problema:\n\n' +
+              '1. **Opción Recomendada - Usar Vertex AI:**\n' +
+              '   • Habilita Vertex AI API en tu proyecto de Google Cloud\n' +
+              '   • Configura una cuenta de servicio con credenciales OAuth2\n' +
+              '   • Más info: https://cloud.google.com/vertex-ai/docs/authentication\n\n' +
+              '2. **Opción Alternativa - Google AI Studio:**\n' +
+              '   • Usa Google AI Studio para generar videos manualmente\n' +
+              '   • https://aistudio.google.com/\n\n' +
+              'Nota: La generación de video con Veo actualmente requiere autenticación OAuth2,\n' +
+              'no es posible usar solo una API Key para este endpoint específico.'
+            );
+          }
+        }
+      } catch (parseError) {
+        // If parsing fails but error text mentions API keys
+        if (errorText.includes('API keys are not supported') || errorText.includes('CREDENTIALS_MISSING')) {
+          throw new Error(
+            '⚠️ Autenticación No Compatible\n\n' +
+            'La API de generación de video requiere OAuth2, no API Keys.\n' +
+            'Visita https://cloud.google.com/vertex-ai/docs/authentication para más información.'
+          );
+        }
+      }
+    }
+
     // Check for API disabled error (403)
     if (response.status === 403) {
       try {
@@ -274,6 +314,17 @@ export async function checkVideoGenerationStatus(operationName: string): Promise
 
   if (!response.ok) {
     const errorText = await response.text();
+
+    // Handle API key not supported errors (401)
+    if (response.status === 401) {
+      if (errorText.includes('API keys are not supported') || errorText.includes('CREDENTIALS_MISSING')) {
+        throw new Error(
+          '⚠️ Autenticación No Compatible\n\n' +
+          'La API de generación de video requiere OAuth2, no API Keys.\n' +
+          'Visita https://cloud.google.com/vertex-ai/docs/authentication para más información.'
+        );
+      }
+    }
 
     // Handle API disabled errors
     if (response.status === 403 && (errorText.includes('SERVICE_DISABLED') || errorText.includes('has not been used'))) {
