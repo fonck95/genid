@@ -3,8 +3,24 @@ import { downscaleImage } from './imageOptimizer';
 import { getValidAccessToken, isAuthenticated as isUserAuthenticated } from './googleAuth';
 
 // Configuración de Vertex AI
-// Project ID: usar VITE_APP_ID como fuente principal, VITE_VERTEX_PROJECT_ID como fallback
-const VERTEX_PROJECT_ID = import.meta.env.VITE_APP_ID || import.meta.env.VITE_VERTEX_PROJECT_ID;
+// Función para extraer Project ID de un email de service account o valor directo
+function extractProjectId(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+
+  // Si es un email de service account (ejemplo: vertex-express@gen-lang-client-0249478362.iam.gserviceaccount.com)
+  // Extraer el project ID del dominio
+  const serviceAccountMatch = value.match(/@([^.]+)\.iam\.gserviceaccount\.com$/);
+  if (serviceAccountMatch) {
+    return serviceAccountMatch[1];
+  }
+
+  // Si no es un email de service account, usar el valor directamente
+  return value;
+}
+
+// Project ID: prioridad VITE_APP_ID_VERTEX > VITE_APP_ID > VITE_VERTEX_PROJECT_ID
+const rawVertexId = import.meta.env.VITE_APP_ID_VERTEX || import.meta.env.VITE_APP_ID || import.meta.env.VITE_VERTEX_PROJECT_ID;
+const VERTEX_PROJECT_ID = extractProjectId(rawVertexId);
 const VERTEX_LOCATION = import.meta.env.VITE_VERTEX_LOCATION || 'us-central1';
 
 // Modelo de Veo 3.1 para generación de video
@@ -229,8 +245,10 @@ export async function startVideoGeneration(
     throw new Error(
       '⚠️ Configuracion de Proyecto Requerida\n\n' +
       'La API de generacion de video (Veo) requiere un proyecto de Google Cloud.\n\n' +
-      'Configura la variable de entorno:\n' +
-      'VITE_APP_ID=tu_project_id\n\n' +
+      'Configura una de estas variables de entorno:\n' +
+      '• VITE_APP_ID_VERTEX=tu_project_id (o email de service account)\n' +
+      '• VITE_APP_ID=tu_project_id\n' +
+      '• VITE_VERTEX_PROJECT_ID=tu_project_id\n\n' +
       'Encuentra tu project ID en:\n' +
       'https://console.cloud.google.com'
     );
