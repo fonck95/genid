@@ -200,6 +200,44 @@ export async function startVideoGeneration(
 
   if (!response.ok) {
     const errorText = await response.text();
+
+    // Check for API disabled error (403)
+    if (response.status === 403) {
+      try {
+        const errorData = JSON.parse(errorText);
+        const errorInfo = errorData?.error;
+
+        // Check if it's specifically the API disabled error
+        if (errorInfo?.status === 'PERMISSION_DENIED') {
+          const metadata = errorInfo?.details?.find(
+            (d: { '@type': string }) => d['@type']?.includes('ErrorInfo')
+          )?.metadata;
+
+          const activationUrl = metadata?.activationUrl;
+          const serviceName = metadata?.serviceTitle || 'Generative Language API';
+
+          throw new Error(
+            `⚠️ API No Habilitada: ${serviceName}\n\n` +
+            `Para usar la generación de video, necesitas habilitar la API en Google Cloud:\n\n` +
+            `1. Visita: ${activationUrl || 'https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com'}\n` +
+            `2. Haz clic en "Habilitar" o "Enable"\n` +
+            `3. Espera 2-3 minutos para que se propague\n` +
+            `4. Intenta generar el video nuevamente`
+          );
+        }
+      } catch (parseError) {
+        // If parsing fails, check if error message contains key indicators
+        if (errorText.includes('SERVICE_DISABLED') || errorText.includes('has not been used')) {
+          throw new Error(
+            `⚠️ API No Habilitada\n\n` +
+            `Para usar la generación de video, habilita la Generative Language API:\n` +
+            `https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com\n\n` +
+            `Después de habilitarla, espera 2-3 minutos e intenta de nuevo.`
+          );
+        }
+      }
+    }
+
     throw new Error(`Error iniciando generación de video: ${response.status} - ${errorText}`);
   }
 
@@ -226,6 +264,16 @@ export async function checkVideoGenerationStatus(operationName: string): Promise
 
   if (!response.ok) {
     const errorText = await response.text();
+
+    // Handle API disabled errors
+    if (response.status === 403 && (errorText.includes('SERVICE_DISABLED') || errorText.includes('has not been used'))) {
+      throw new Error(
+        `⚠️ API No Habilitada\n\n` +
+        `Habilita la Generative Language API:\n` +
+        `https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com`
+      );
+    }
+
     throw new Error(`Error verificando estado de video: ${response.status} - ${errorText}`);
   }
 
