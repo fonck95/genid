@@ -385,8 +385,7 @@ Un experto en composición digital NO debería poder identificar los puntos de f
 // Tipos para las partes del contenido de Gemini
 type TextPart = { text: string };
 type InlineDataPart = { inlineData: { mimeType: string; data: string } };
-type FileDataPart = { fileData: { mimeType: string; fileUri: string } };
-type ContentPart = TextPart | InlineDataPart | FileDataPart;
+type ContentPart = TextPart | InlineDataPart;
 
 /**
  * Actualiza la configuración de optimización de imágenes
@@ -402,18 +401,35 @@ export function getOptimizationConfig(): ImageOptimizationConfig {
   return { ...optimizationConfig };
 }
 
-// Helper para crear la parte de imagen según si es URL o base64
-function createImagePart(dataUrl: string, mimeType: string = 'image/jpeg'): InlineDataPart | FileDataPart {
-  // Si es una URL (http/https), usar fileData
-  if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) {
-    return {
-      fileData: {
-        mimeType,
-        fileUri: dataUrl
-      }
-    };
+/**
+ * Descarga una imagen desde una URL HTTP y la convierte a base64 data URL
+ */
+async function fetchImageAsBase64(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        resolve(result);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error fetching image as base64:', error);
+    throw error;
   }
-  // Si es base64 data URL, extraer los datos y usar inlineData
+}
+
+// Helper para crear la parte de imagen - siempre usa inlineData (base64)
+// Las URLs HTTP deben ser convertidas a base64 ANTES de llamar a esta función
+function createImagePart(dataUrl: string, mimeType: string = 'image/jpeg'): InlineDataPart {
+  // Extraer los datos base64 del data URL
   const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
   return {
     inlineData: {
@@ -425,15 +441,19 @@ function createImagePart(dataUrl: string, mimeType: string = 'image/jpeg'): Inli
 
 /**
  * Comprime una imagen antes de enviarla a la API para ahorrar tokens
+ * Si es una URL HTTP (ej. Cloudinary), primero la descarga y convierte a base64
  */
 async function optimizeImageForAPI(dataUrl: string): Promise<string> {
-  // Si es una URL externa, no podemos optimizarla localmente
+  let imageData = dataUrl;
+
+  // Si es una URL externa (Cloudinary, etc.), descargarla y convertir a base64
   if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) {
-    return dataUrl;
+    imageData = await fetchImageAsBase64(dataUrl);
   }
 
+  // Ahora optimizar la imagen (ya sea original base64 o descargada)
   return await downscaleImage(
-    dataUrl,
+    imageData,
     optimizationConfig.maxInputDimension,
     optimizationConfig.compressionQuality
   );
