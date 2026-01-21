@@ -2892,3 +2892,319 @@ textarea {
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   Download Notification - Modern Toast UI
+   ========================================================================== */
+
+.download-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 10000;
+  animation: slideInFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.download-notification.exiting {
+  animation: slideOutToRight 0.3s ease-in forwards;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px) scale(0.8);
+  }
+}
+
+.download-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  min-width: 320px;
+  max-width: 420px;
+  position: relative;
+  overflow: hidden;
+}
+
+.download-notification.downloading .download-notification-content {
+  border-left: 4px solid var(--primary);
+}
+
+.download-notification.success .download-notification-content {
+  border-left: 4px solid var(--success);
+}
+
+.download-notification.error .download-notification-content {
+  border-left: 4px solid var(--danger);
+}
+
+/* Icon Wrapper */
+.download-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.download-notification.downloading .download-icon-wrapper {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+}
+
+.download-notification.success .download-icon-wrapper {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+}
+
+.download-notification.error .download-icon-wrapper {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+}
+
+/* Spinner */
+.download-spinner {
+  width: 28px;
+  height: 28px;
+  animation: spinDownload 1s linear infinite;
+}
+
+.download-spinner svg {
+  width: 100%;
+  height: 100%;
+  stroke: var(--primary);
+}
+
+@keyframes spinDownload {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success Icon */
+.download-success-icon {
+  width: 28px;
+  height: 28px;
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.download-success-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: var(--success);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Error Icon */
+.download-error-icon {
+  width: 28px;
+  height: 28px;
+  animation: shake 0.4s ease-in-out;
+}
+
+.download-error-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: var(--danger);
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-4px);
+  }
+  40%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+/* Info Section */
+.download-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.download-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.download-filename {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.download-error-message {
+  font-size: 0.75rem;
+  color: var(--danger);
+  margin-top: 0.25rem;
+}
+
+/* Progress Bar */
+.download-progress-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.download-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.3s ease-out;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Close Button */
+.download-close-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.download-close-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--text-muted);
+  transition: stroke 0.2s;
+}
+
+.download-close-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.download-close-btn:hover svg {
+  stroke: var(--danger);
+}
+
+/* ==========================================================================
+   Fancy Download Button
+   ========================================================================== */
+
+.btn-download-fancy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, var(--success), #16a34a);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-download-fancy::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-download-fancy:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.btn-download-fancy:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+}
+
+.btn-download-fancy:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-download-fancy:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-download-fancy svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s;
+}
+
+.btn-download-fancy:hover:not(:disabled) svg {
+  animation: bounceDown 0.5s ease-in-out infinite;
+}
+
+@keyframes bounceDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+/* Responsive adjustments for download notification */
+@media (max-width: 768px) {
+  .download-notification {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .download-notification-content {
+    min-width: auto;
+    max-width: none;
+  }
+}
