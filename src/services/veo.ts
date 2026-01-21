@@ -1,9 +1,8 @@
 import type { VeoResponse, IdentityPhoto } from '../types';
 import { downscaleImage } from './imageOptimizer';
+import { getValidAccessToken, isAuthenticated as isUserAuthenticated } from './googleAuth';
 
-// Configuración de autenticación para Vertex AI
-// Video generation con Veo requiere OAuth2 (no soporta Express Mode con API Keys)
-const VERTEX_ACCESS_TOKEN = import.meta.env.VITE_VERTEX_ACCESS_TOKEN;
+// Configuración de Vertex AI
 // Project ID: usar VITE_APP_ID como fuente principal, VITE_VERTEX_PROJECT_ID como fallback
 const VERTEX_PROJECT_ID = import.meta.env.VITE_APP_ID || import.meta.env.VITE_VERTEX_PROJECT_ID;
 const VERTEX_LOCATION = import.meta.env.VITE_VERTEX_LOCATION || 'us-central1';
@@ -11,35 +10,61 @@ const VERTEX_LOCATION = import.meta.env.VITE_VERTEX_LOCATION || 'us-central1';
 // Modelo de Veo 3.1 para generación de video
 const VEO_MODEL = 'veo-3.1-generate-preview';
 
-// Determinar si tenemos configuración OAuth2 válida para video generation
-const hasOAuth2Config = () => Boolean(VERTEX_ACCESS_TOKEN && VERTEX_PROJECT_ID);
+// Variable para almacenar el token actual (se actualiza dinámicamente)
+let currentAccessToken: string | null = null;
+
+/**
+ * Set the access token for API calls
+ * Called from the auth context when user logs in
+ */
+export function setAccessToken(token: string | null): void {
+  currentAccessToken = token;
+}
+
+/**
+ * Get the current access token
+ */
+export function getAccessToken(): string | null {
+  return currentAccessToken;
+}
+
+/**
+ * Check if user is authenticated and has a valid token
+ */
+export async function hasValidAuth(): Promise<boolean> {
+  // First check if user is authenticated via OAuth
+  if (!isUserAuthenticated()) {
+    return false;
+  }
+
+  // Try to get a valid token (refreshes if needed)
+  const token = await getValidAccessToken();
+  if (token) {
+    currentAccessToken = token;
+    return true;
+  }
+
+  return false;
+}
+
+// Determinar si tenemos configuración válida para video generation
+const hasProjectConfig = () => Boolean(VERTEX_PROJECT_ID);
+const hasOAuth2Config = () => Boolean(currentAccessToken && VERTEX_PROJECT_ID);
 
 // URL para la API de generación de video
 // Veo requiere el endpoint estándar de Vertex AI con proyecto/ubicación
 // Formato: https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/google/models/{model}:predictLongRunning
 const getVeoApiUrl = () => {
-  if (hasOAuth2Config()) {
-    return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${VEO_MODEL}:predictLongRunning`;
-  }
-  // Fallback - This won't work for video generation, but provides clear error
-  return `https://aiplatform.googleapis.com/v1beta1/publishers/google/models/${VEO_MODEL}:predictLongRunning`;
+  return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${VEO_MODEL}:predictLongRunning`;
 };
 
 // URL para verificar el estado de operaciones
 const getOperationUrl = (operationName: string) => {
-  if (hasOAuth2Config()) {
-    // Para OAuth2, usar el endpoint estándar con el nombre de operación completo
-    // El operationName ya viene con el path completo: projects/{project}/locations/{location}/...
-    if (operationName.startsWith('projects/')) {
-      return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/${operationName}`;
-    }
-    return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/operations/${operationName}`;
+  // El operationName ya viene con el path completo: projects/{project}/locations/{location}/...
+  if (operationName.startsWith('projects/')) {
+    return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/${operationName}`;
   }
-  // Fallback para Express Mode (no funcionará para video)
-  if (operationName.startsWith('operations/')) {
-    return `https://aiplatform.googleapis.com/v1beta1/${operationName}`;
-  }
-  return `https://aiplatform.googleapis.com/v1beta1/operations/${operationName}`;
+  return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/operations/${operationName}`;
 };
 
 // Headers de autenticación
@@ -48,8 +73,8 @@ const getAuthHeaders = (): Record<string, string> => {
     'Content-Type': 'application/json'
   };
 
-  if (hasOAuth2Config()) {
-    headers['Authorization'] = `Bearer ${VERTEX_ACCESS_TOKEN}`;
+  if (currentAccessToken) {
+    headers['Authorization'] = `Bearer ${currentAccessToken}`;
   }
 
   return headers;
@@ -199,24 +224,29 @@ export async function startVideoGeneration(
   identityDescription?: string,
   faceDescriptions?: string[]
 ): Promise<string> {
-  // Validar configuración OAuth2 (requerida para video generation)
+  // Validar configuración de proyecto
+  if (!hasProjectConfig()) {
+    throw new Error(
+      '⚠️ Configuracion de Proyecto Requerida\n\n' +
+      'La API de generacion de video (Veo) requiere un proyecto de Google Cloud.\n\n' +
+      'Configura la variable de entorno:\n' +
+      'VITE_APP_ID=tu_project_id\n\n' +
+      'Encuentra tu project ID en:\n' +
+      'https://console.cloud.google.com'
+    );
+  }
+
+  // Validar autenticación OAuth2 (requerida para video generation)
   if (!hasOAuth2Config()) {
     throw new Error(
-      '⚠️ Autenticación OAuth2 Requerida\n\n' +
-      'La API de generación de video (Veo) requiere autenticación OAuth2.\n' +
-      'Express Mode con API Keys NO es compatible con video generation.\n\n' +
-      'Para configurar OAuth2:\n\n' +
-      '1. **Obtén un Access Token:**\n' +
-      '   Ejecuta en tu terminal:\n' +
-      '   gcloud auth print-access-token\n\n' +
-      '2. **Configura las variables de entorno:**\n' +
-      '   VITE_VERTEX_ACCESS_TOKEN=tu_access_token\n' +
-      '   VITE_APP_ID=tu_project_id (ya configurado si usas la app)\n' +
-      '   VITE_VERTEX_LOCATION=us-central1 (opcional)\n\n' +
-      '3. **Asegúrate de tener habilitado Vertex AI:**\n' +
-      '   https://console.cloud.google.com/apis/library/aiplatform.googleapis.com\n\n' +
-      'Nota: Los access tokens expiran después de ~1 hora.\n' +
-      'Visita https://cloud.google.com/vertex-ai/docs/authentication para más información.'
+      '⚠️ Autenticacion Requerida\n\n' +
+      'Debes iniciar sesion con Google para generar videos.\n\n' +
+      'Haz clic en "Iniciar sesion con Google" en la parte superior de la pagina.\n\n' +
+      'Tu cuenta de Google debe tener acceso al proyecto de Google Cloud\n' +
+      'con Vertex AI habilitado.\n\n' +
+      'Si ya iniciaste sesion y ves este mensaje, es posible que:\n' +
+      '• Tu sesion haya expirado - vuelve a iniciar sesion\n' +
+      '• Tu cuenta no tenga permisos en el proyecto de Google Cloud'
     );
   }
 
@@ -312,17 +342,13 @@ export async function startVideoGeneration(
             errorInfo?.message?.includes('invalid');
 
           throw new Error(
-            '⚠️ Token de Acceso Inválido o Expirado\n\n' +
+            '⚠️ Sesion Expirada\n\n' +
             (isTokenExpired
-              ? 'Tu access token ha expirado. Los tokens OAuth2 expiran después de ~1 hora.\n\n'
+              ? 'Tu sesion ha expirado.\n\n'
               : 'No se pudo autenticar con la API de Vertex AI.\n\n') +
-            'Para obtener un nuevo token:\n\n' +
-            '1. Ejecuta en tu terminal:\n' +
-            '   gcloud auth print-access-token\n\n' +
-            '2. Actualiza la variable de entorno:\n' +
-            '   VITE_VERTEX_ACCESS_TOKEN=nuevo_token\n\n' +
-            '3. Reinicia la aplicación\n\n' +
-            `Detalle: ${errorInfo?.message || 'Error de autenticación'}`
+            'Por favor cierra sesion y vuelve a iniciar sesion con Google\n' +
+            'para obtener un nuevo token de acceso.\n\n' +
+            `Detalle: ${errorInfo?.message || 'Error de autenticacion'}`
           );
         }
       } catch (parseError) {
@@ -330,10 +356,9 @@ export async function startVideoGeneration(
           throw parseError;
         }
         throw new Error(
-          '⚠️ Error de Autenticación\n\n' +
-          'No se pudo autenticar con la API de Vertex AI.\n' +
-          'Verifica tu access token y que sea válido.\n\n' +
-          'Genera un nuevo token: gcloud auth print-access-token'
+          '⚠️ Error de Autenticacion\n\n' +
+          'No se pudo autenticar con la API de Vertex AI.\n\n' +
+          'Por favor cierra sesion y vuelve a iniciar sesion con Google.'
         );
       }
     }
@@ -405,10 +430,10 @@ export async function checkVideoGenerationStatus(operationName: string): Promise
     // Handle authentication errors (401)
     if (response.status === 401) {
       throw new Error(
-        '⚠️ Token de Acceso Expirado\n\n' +
+        '⚠️ Sesion Expirada\n\n' +
         'No se pudo autenticar para verificar el estado del video.\n' +
-        'Tu access token puede haber expirado (duran ~1 hora).\n\n' +
-        'Genera uno nuevo: gcloud auth print-access-token'
+        'Tu sesion puede haber expirado.\n\n' +
+        'Por favor cierra sesion y vuelve a iniciar sesion con Google.'
       );
     }
 

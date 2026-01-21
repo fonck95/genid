@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Identity, GeneratedImage, GeneratedVideo } from '../types';
-import { generateVideoFromImage } from '../services/veo';
+import { generateVideoFromImage, setAccessToken, hasValidAuth } from '../services/veo';
 import {
   getAllGeneratedVideos,
   saveGeneratedVideo,
@@ -8,6 +8,8 @@ import {
   getIdentity
 } from '../services/identityStore';
 import { createSimpleVideoPlayer, isAcceleratedPlayerAvailable } from '../services/webgpuVideoPlayer';
+import { useAuth } from '../contexts/AuthContext';
+import { GoogleLoginButton } from './GoogleLoginButton';
 
 interface Props {
   deviceId: string;
@@ -24,6 +26,9 @@ export function VideoGenerator({
   identities,
   onRefresh
 }: Props) {
+  // Auth state
+  const { isAuthenticated, accessToken, user } = useAuth();
+
   // Estados principales
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [prompt, setPrompt] = useState('');
@@ -47,6 +52,13 @@ export function VideoGenerator({
 
   // WebGPU status
   const [webgpuAvailable] = useState(() => isAcceleratedPlayerAvailable());
+
+  // Update access token when auth changes
+  useEffect(() => {
+    if (accessToken) {
+      setAccessToken(accessToken);
+    }
+  }, [accessToken]);
 
   // Cargar videos generados
   const loadVideos = useCallback(async () => {
@@ -212,10 +224,39 @@ export function VideoGenerator({
     <div className="video-generator">
       <div className="panel-header">
         <h2>Generador de Video</h2>
-        <span className={`webgpu-badge ${webgpuAvailable ? 'available' : ''}`}>
-          {webgpuAvailable ? 'WebGPU Activo' : 'WebGPU No disponible'}
-        </span>
+        <div className="header-badges">
+          <span className={`webgpu-badge ${webgpuAvailable ? 'available' : ''}`}>
+            {webgpuAvailable ? 'WebGPU Activo' : 'WebGPU No disponible'}
+          </span>
+          {isAuthenticated && user && (
+            <span className="auth-badge authenticated" title={`Conectado como ${user.email}`}>
+              <span className="badge-dot"></span>
+              {user.name}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Banner de autenticación */}
+      {!isAuthenticated && (
+        <div className="auth-required-banner">
+          <div className="auth-banner-content">
+            <div className="auth-banner-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <div className="auth-banner-text">
+              <h4>Autenticacion Requerida</h4>
+              <p>
+                La generacion de video con Veo 3 requiere autenticacion con Google.
+                Inicia sesion para acceder a la API de Vertex AI.
+              </p>
+            </div>
+            <GoogleLoginButton />
+          </div>
+        </div>
+      )}
 
       {/* Sección de selección de imagen */}
       <div className="video-source-section">
@@ -288,9 +329,9 @@ export function VideoGenerator({
       <button
         className="btn-generate"
         onClick={handleGenerateVideo}
-        disabled={isGenerating || !selectedImage || !prompt.trim()}
+        disabled={isGenerating || !selectedImage || !prompt.trim() || !isAuthenticated}
       >
-        {isGenerating ? generationStatus : 'Generar Video con Veo 3'}
+        {isGenerating ? generationStatus : (isAuthenticated ? 'Generar Video con Veo 3' : 'Inicia sesion para generar')}
       </button>
 
       {/* Mensaje de error */}

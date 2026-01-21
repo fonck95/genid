@@ -7,6 +7,8 @@ import { ImageGenerator } from './components/ImageGenerator';
 import { Gallery } from './components/Gallery';
 import { ImageEditor } from './components/ImageEditor';
 import { VideoGenerator } from './components/VideoGenerator';
+import { AuthProvider } from './contexts/AuthContext';
+import { GoogleLoginButton } from './components/GoogleLoginButton';
 
 type Tab = 'generate' | 'gallery' | 'editor' | 'video';
 
@@ -99,104 +101,113 @@ function App() {
 
   if (isLoading || !deviceId) {
     return (
-      <div className="app loading">
-        <div className="loader"></div>
-        <p>Cargando GenID...</p>
-      </div>
+      <AuthProvider>
+        <div className="app loading">
+          <div className="loader"></div>
+          <p>Cargando GenID...</p>
+        </div>
+      </AuthProvider>
     );
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>GenID</h1>
-        <p className="subtitle">Generador de Imagenes con Identidades</p>
-      </header>
-
-      <main className="app-main">
-        <aside className="sidebar">
-          <IdentityManager
-            deviceId={deviceId}
-            identities={identities}
-            selectedIdentity={selectedIdentity}
-            onSelectIdentity={handleSelectIdentity}
-            onRefresh={loadData}
-          />
-        </aside>
-
-        <section className="content">
-          <nav className="tabs">
-            <button
-              className={`tab ${activeTab === 'generate' ? 'active' : ''}`}
-              onClick={() => setActiveTab('generate')}
-            >
-              Generar
-            </button>
-            <button
-              className={`tab ${activeTab === 'gallery' ? 'active' : ''}`}
-              onClick={() => setActiveTab('gallery')}
-            >
-              Galeria ({generatedImages.length})
-            </button>
-            <button
-              className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
-              onClick={() => setActiveTab('editor')}
-            >
-              Editor {activeThreadsCount > 0 && `(${activeThreadsCount})`}
-            </button>
-            <button
-              className={`tab ${activeTab === 'video' ? 'active' : ''}`}
-              onClick={() => setActiveTab('video')}
-            >
-              Video
-            </button>
-          </nav>
-
-          <div className="tab-content">
-            {activeTab === 'generate' && (
-              <ImageGenerator
-                deviceId={deviceId}
-                selectedIdentity={selectedIdentity}
-                identities={identities}
-                onImageGenerated={handleImageGenerated}
-                onCreateIdentity={() => {}}
-                onStartEditingThread={handleStartEditingThread}
-              />
-            )}
-            {activeTab === 'gallery' && (
-              <Gallery
-                images={generatedImages}
-                identities={identities}
-                onRefresh={loadData}
-                onStartEditingThread={handleStartEditingThread}
-              />
-            )}
-            {activeTab === 'editor' && (
-              <ImageEditor
-                deviceId={deviceId}
-                identities={identities}
-                activeThreadId={activeThreadId}
-                onThreadChange={handleThreadChange}
-                onImageSaved={loadData}
-              />
-            )}
-            {activeTab === 'video' && (
-              <VideoGenerator
-                deviceId={deviceId}
-                selectedIdentity={selectedIdentity}
-                generatedImages={generatedImages}
-                identities={identities}
-                onRefresh={loadData}
-              />
-            )}
+    <AuthProvider>
+      <div className="app">
+        <header className="app-header">
+          <div className="header-left">
+            <h1>GenID</h1>
+            <p className="subtitle">Generador de Imagenes con Identidades</p>
           </div>
-        </section>
-      </main>
+          <div className="header-right">
+            <GoogleLoginButton compact />
+          </div>
+        </header>
 
-      <footer className="app-footer">
-        <p>Powered by Nano Banana Pro (Gemini) + Veo 3 + WebGPU</p>
-      </footer>
-    </div>
+        <main className="app-main">
+          <aside className="sidebar">
+            <IdentityManager
+              deviceId={deviceId}
+              identities={identities}
+              selectedIdentity={selectedIdentity}
+              onSelectIdentity={handleSelectIdentity}
+              onRefresh={loadData}
+            />
+          </aside>
+
+          <section className="content">
+            <nav className="tabs">
+              <button
+                className={`tab ${activeTab === 'generate' ? 'active' : ''}`}
+                onClick={() => setActiveTab('generate')}
+              >
+                Generar
+              </button>
+              <button
+                className={`tab ${activeTab === 'gallery' ? 'active' : ''}`}
+                onClick={() => setActiveTab('gallery')}
+              >
+                Galeria ({generatedImages.length})
+              </button>
+              <button
+                className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
+                onClick={() => setActiveTab('editor')}
+              >
+                Editor {activeThreadsCount > 0 && `(${activeThreadsCount})`}
+              </button>
+              <button
+                className={`tab ${activeTab === 'video' ? 'active' : ''}`}
+                onClick={() => setActiveTab('video')}
+              >
+                Video
+              </button>
+            </nav>
+
+            <div className="tab-content">
+              {activeTab === 'generate' && (
+                <ImageGenerator
+                  deviceId={deviceId}
+                  selectedIdentity={selectedIdentity}
+                  identities={identities}
+                  onImageGenerated={handleImageGenerated}
+                  onCreateIdentity={() => {}}
+                  onStartEditingThread={handleStartEditingThread}
+                />
+              )}
+              {activeTab === 'gallery' && (
+                <Gallery
+                  images={generatedImages}
+                  identities={identities}
+                  onRefresh={loadData}
+                  onStartEditingThread={handleStartEditingThread}
+                />
+              )}
+              {activeTab === 'editor' && (
+                <ImageEditor
+                  deviceId={deviceId}
+                  identities={identities}
+                  activeThreadId={activeThreadId}
+                  onThreadChange={handleThreadChange}
+                  onImageSaved={loadData}
+                />
+              )}
+              {activeTab === 'video' && (
+                <VideoGenerator
+                  deviceId={deviceId}
+                  selectedIdentity={selectedIdentity}
+                  generatedImages={generatedImages}
+                  identities={identities}
+                  onRefresh={loadData}
+                />
+              )}
+            </div>
+          </section>
+        </main>
+
+        <footer className="app-footer">
+          <p>Powered by Nano Banana Pro (Gemini) + Veo 3 + WebGPU</p>
+        </footer>
+      </div>
+    </AuthProvider>
   );
 }
 
