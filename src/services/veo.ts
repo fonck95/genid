@@ -23,6 +23,10 @@ const rawVertexId = import.meta.env.VITE_APP_ID_VERTEX || import.meta.env.VITE_A
 const VERTEX_PROJECT_ID = extractProjectId(rawVertexId);
 const VERTEX_LOCATION = import.meta.env.VITE_VERTEX_LOCATION || 'us-central1';
 
+// Access token de respaldo desde variables de entorno
+// VITE_APP_API_KEY_VERTEX puede contener un access token pre-generado para Vertex AI
+const FALLBACK_ACCESS_TOKEN = import.meta.env.VITE_APP_API_KEY_VERTEX || null;
+
 // Modelo de Veo 3.1 para generación de video
 const VEO_MODEL = 'veo-3.1-generate-preview';
 
@@ -49,14 +53,17 @@ export function getAccessToken(): string | null {
  */
 export async function hasValidAuth(): Promise<boolean> {
   // First check if user is authenticated via OAuth
-  if (!isUserAuthenticated()) {
-    return false;
+  if (isUserAuthenticated()) {
+    // Try to get a valid token (refreshes if needed)
+    const token = await getValidAccessToken();
+    if (token) {
+      currentAccessToken = token;
+      return true;
+    }
   }
 
-  // Try to get a valid token (refreshes if needed)
-  const token = await getValidAccessToken();
-  if (token) {
-    currentAccessToken = token;
+  // Si no hay OAuth pero hay token de respaldo y project ID configurado, también es válido
+  if (FALLBACK_ACCESS_TOKEN && VERTEX_PROJECT_ID) {
     return true;
   }
 
@@ -65,7 +72,7 @@ export async function hasValidAuth(): Promise<boolean> {
 
 // Determinar si tenemos configuración válida para video generation
 const hasProjectConfig = () => Boolean(VERTEX_PROJECT_ID);
-const hasOAuth2Config = () => Boolean(currentAccessToken && VERTEX_PROJECT_ID);
+const hasOAuth2Config = () => Boolean((currentAccessToken || FALLBACK_ACCESS_TOKEN) && VERTEX_PROJECT_ID);
 
 // URL para la API de generación de video
 // Veo requiere el endpoint estándar de Vertex AI con proyecto/ubicación
@@ -83,14 +90,20 @@ const getOperationUrl = (operationName: string) => {
   return `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/operations/${operationName}`;
 };
 
+// Obtener el token de acceso efectivo (OAuth > fallback)
+const getEffectiveAccessToken = (): string | null => {
+  return currentAccessToken || FALLBACK_ACCESS_TOKEN;
+};
+
 // Headers de autenticación
 const getAuthHeaders = (): Record<string, string> => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   };
 
-  if (currentAccessToken) {
-    headers['Authorization'] = `Bearer ${currentAccessToken}`;
+  const token = getEffectiveAccessToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   return headers;
