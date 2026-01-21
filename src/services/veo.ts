@@ -306,7 +306,36 @@ export async function waitForVideoGeneration(
       const videoUri = status.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
 
       if (!videoUri) {
-        throw new Error('No se encontró video en la respuesta de Veo');
+        // Log the actual response structure for debugging
+        console.error('Veo response structure:', JSON.stringify(status, null, 2));
+
+        // Check for alternative response paths (API might have changed)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyStatus = status as any;
+
+        // Check if there's an error in the response we missed
+        if (anyStatus.error) {
+          throw new Error(`Error en generación de video: ${anyStatus.error.message || anyStatus.error.status}`);
+        }
+        const altVideoUri =
+          anyStatus.response?.generatedSamples?.[0]?.video?.uri ||
+          anyStatus.response?.videos?.[0]?.uri ||
+          anyStatus.result?.generatedSamples?.[0]?.video?.uri ||
+          anyStatus.result?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+
+        if (altVideoUri) {
+          console.log('Found video at alternative path:', altVideoUri);
+          if (altVideoUri.startsWith('gs://')) {
+            return await downloadVideoFromGoogleStorage(altVideoUri);
+          }
+          return altVideoUri;
+        }
+
+        throw new Error(
+          'No se encontró video en la respuesta de Veo. ' +
+          'La generación puede haber fallado silenciosamente. ' +
+          'Estructura de respuesta: ' + JSON.stringify(status.response || status, null, 2).substring(0, 500)
+        );
       }
 
       // Si el video viene en formato URI de Google Storage, construir URL de descarga
@@ -343,17 +372,55 @@ async function downloadVideoFromGoogleStorage(gsUri: string): Promise<string> {
 
   const [, bucket, path] = matches;
 
-  // Construir URL de descarga pública
-  const downloadUrl = `https://storage.googleapis.com/${bucket}/${path}`;
+  // Try multiple download methods
+  const downloadUrls = [
+    // Method 1: Direct storage URL
+    `https://storage.googleapis.com/${bucket}/${path}`,
+    // Method 2: Authenticated storage API URL
+    `https://storage.googleapis.com/storage/v1/b/${bucket}/o/${encodeURIComponent(path)}?alt=media`,
+  ];
 
-  // Descargar el video y convertirlo a blob URL
-  const response = await fetch(downloadUrl);
-  if (!response.ok) {
-    throw new Error(`Error descargando video: ${response.status}`);
+  let lastError: Error | null = null;
+
+  for (const downloadUrl of downloadUrls) {
+    try {
+      console.log('Attempting video download from:', downloadUrl);
+
+      const response = await fetch(downloadUrl, {
+        headers: GOOGLE_API_KEY ? {
+          'x-goog-api-key': GOOGLE_API_KEY
+        } : {}
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        console.log('Video downloaded successfully, size:', blob.size);
+        return URL.createObjectURL(blob);
+      }
+
+      // If 403, try next URL
+      if (response.status === 403) {
+        console.warn(`403 Forbidden for ${downloadUrl}, trying alternative...`);
+        lastError = new Error(`Acceso denegado (403) al descargar video desde: ${downloadUrl}`);
+        continue;
+      }
+
+      lastError = new Error(`Error descargando video: ${response.status}`);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      console.error('Download attempt failed:', err);
+    }
   }
 
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+  // If all methods failed, return the gs:// URI as a fallback (some players might handle it)
+  console.error('All download methods failed, returning gs:// URI:', gsUri);
+
+  throw new Error(
+    `No se pudo descargar el video. ` +
+    `El video fue generado pero está en un bucket privado. ` +
+    `URI del video: ${gsUri}. ` +
+    `Error: ${lastError?.message || 'Desconocido'}`
+  );
 }
 
 /**
