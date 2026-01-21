@@ -7,6 +7,69 @@ const KLING_API_BASE = 'https://api-singapore.klingai.com';
 const KLING_ACCESS_KEY = process.env.KLING_ACCESS_KEY || process.env.VITE_APP_API_KLING_KEY;
 const KLING_SECRET_KEY = process.env.KLING_SECRET_KEY || process.env.VITE_APP_SECRET_KLING;
 
+// Default system prompt for photorealistic video generation with facial consistency
+const DEFAULT_VIDEO_SYSTEM_PROMPT = `CINEMATIC VIDEO GENERATION - PHOTOREALISTIC HUMAN MOTION.
+
+IDENTITY PRESERVATION (CRITICAL): Maintain absolute facial consistency with the anthropometric profile. Every frame must preserve:
+- Exact facial bone structure: skull shape, jaw angle, cheekbone prominence
+- Orbital region: eye shape, eyelid configuration, eyebrow morphology
+- Nasal anatomy: dorsum profile, alar width, tip shape
+- Labial features: lip thickness, Cupid's bow definition
+- Skin characteristics: texture, tone, marks, micro-details
+- Hair patterns: color, texture, natural movement
+
+PHOTOREALISTIC MOTION REQUIREMENTS:
+- Natural physics: weight distribution, momentum, gravity on hair/clothing
+- Micro-expressions: subtle facial muscles, eye tracking, natural blinks (3-5s intervals)
+- Breathing rhythm: visible chest/shoulder movement
+- Skin dynamics: subsurface scattering, pore visibility
+- Natural imperfections: minor asymmetries, realistic texture
+
+CINEMATOGRAPHY STANDARDS:
+- Consistent lighting (no AI flickering)
+- Natural motion blur on fast movements
+- Depth of field coherence
+- Color grading continuity
+- Realistic shadow behavior
+
+CRITICAL AVOIDANCES:
+- Plastic/synthetic skin appearance
+- Morphing artifacts between frames
+- Unnatural or dead eyes
+- Robotic motion quality
+- Temporal facial inconsistency
+- Over-smoothed skin texture
+- Physics-defying hair/clothing
+
+OUTPUT: Indistinguishable from professional 4K cinema footage.
+
+[FACE_ANTHROPOMETRY]
+{FACE_DESCRIPTION}
+[/FACE_ANTHROPOMETRY]
+
+[MOTION]
+{USER_PROMPT}
+[/MOTION]`;
+
+const KLING_VIDEO_SYSTEM_PROMPT = process.env.KLING_VIDEO_SYSTEM_PROMPT || DEFAULT_VIDEO_SYSTEM_PROMPT;
+
+/**
+ * Builds the final video prompt combining system prompt, face description, and user motion request
+ */
+function buildVideoPrompt(userPrompt: string, faceDescription?: string): string {
+  // If no face description, return just the user prompt with basic enhancement
+  if (!faceDescription) {
+    return `Photorealistic cinematic video. Natural human motion with realistic physics. Consistent lighting, no AI artifacts. ${userPrompt}`;
+  }
+
+  // Build the complete prompt with anthropometric data
+  const finalPrompt = KLING_VIDEO_SYSTEM_PROMPT
+    .replace('{FACE_DESCRIPTION}', faceDescription)
+    .replace('{USER_PROMPT}', userPrompt);
+
+  return finalPrompt;
+}
+
 /**
  * Generates a JWT token for Kling API authentication
  */
@@ -64,7 +127,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const token = generateJwtToken();
-    const requestBody = req.body;
+    const { faceDescription, prompt, ...restBody } = req.body;
+
+    // Build enhanced prompt with facial anthropometry if available
+    const enhancedPrompt = buildVideoPrompt(prompt, faceDescription);
+
+    const requestBody = {
+      ...restBody,
+      prompt: enhancedPrompt
+    };
 
     const response = await fetch(`${KLING_API_BASE}/v1/videos/image2video`, {
       method: 'POST',
