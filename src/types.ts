@@ -143,7 +143,7 @@ export type KlingModel = 'kling-v1' | 'kling-v1-5' | 'kling-v1-6' | 'kling-v2-ma
 export type KlingVideoMode = 'std' | 'pro';
 
 /** Duración del video */
-export type KlingVideoDuration = '5' | '10';
+export type KlingVideoDuration = '3' | '5' | '10';
 
 /** Opciones para generación de video */
 export interface VideoGenerationOptions {
@@ -158,6 +158,10 @@ export interface VideoGenerationOptions {
 export interface GeneratedVideo {
   id: string;
   deviceId: string;
+  /** ID de la identidad asociada */
+  identityId?: string;
+  /** Nombre de la identidad para referencia rapida */
+  identityName?: string;
   /** ID de la imagen de origen */
   sourceImageId?: string;
   /** URL de la imagen de origen */
