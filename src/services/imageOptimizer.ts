@@ -193,6 +193,7 @@ export async function downscaleImage(
 ): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous'; // Permitir CORS para imágenes de Cloudinary
     img.onload = async () => {
       // Calcular nuevas dimensiones manteniendo aspecto
       let newWidth = img.width;
@@ -449,6 +450,7 @@ export async function upscaleImageWebGPU(
 
   return new Promise((resolve) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous'; // Permitir CORS para imágenes de Cloudinary
     img.onload = async () => {
       // Calcular nuevas dimensiones
       let newWidth = img.width;
@@ -485,6 +487,7 @@ async function upscaleWithCanvas(
 ): Promise<string | null> {
   return new Promise((resolve) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous'; // Permitir CORS para imágenes de Cloudinary
     img.onload = () => {
       let newWidth = img.width;
       let newHeight = img.height;
@@ -703,6 +706,7 @@ export function estimateTokenSavings(
 export function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous'; // Permitir CORS para imágenes de Cloudinary
     img.onload = () => resolve({ width: img.width, height: img.height });
     img.onerror = reject;
     img.src = dataUrl;
