@@ -1,8 +1,8 @@
 import type { VeoResponse, IdentityPhoto } from '../types';
 import { downscaleImage } from './imageOptimizer';
 
-// API Key desde variable de entorno (misma que Gemini, es la API de Google AI)
-const GOOGLE_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
+// API Key desde variable de entorno para Vertex AI / Google AI
+const VERTEX_API_KEY = import.meta.env.VITE_APP_API_KEY_VERTEX;
 
 // Modelo de Veo 3.1 para generación de video
 const VEO_MODEL = 'veo-3.1-generate-preview';
@@ -158,6 +158,16 @@ export async function startVideoGeneration(
   identityDescription?: string,
   faceDescriptions?: string[]
 ): Promise<string> {
+  // Validar API key
+  if (!VERTEX_API_KEY) {
+    throw new Error(
+      '⚠️ API Key no configurada\n\n' +
+      'Para usar la generación de video, configura la variable de entorno VITE_APP_API_KEY_VERTEX con tu API key de Google Cloud.\n\n' +
+      'Puedes obtener una API key en:\n' +
+      'https://console.cloud.google.com/apis/credentials'
+    );
+  }
+
   // Preparar la imagen en base64
   const imageData = await imageToBase64ForVeo(imageUrl);
 
@@ -176,7 +186,7 @@ export async function startVideoGeneration(
       {
         prompt: fullPrompt,
         image: {
-          bytesBase64Encoded: imageData.base64,
+          imageBytes: imageData.base64,
           mimeType: imageData.mimeType
         }
       }
@@ -185,7 +195,7 @@ export async function startVideoGeneration(
       aspectRatio: '16:9',
       personGeneration: 'allow_adult',
       sampleCount: 1,
-      durationSeconds: 8
+      resolution: '720p'
     }
   };
 
@@ -193,7 +203,7 @@ export async function startVideoGeneration(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-goog-api-key': GOOGLE_API_KEY || ''
+      'x-goog-api-key': VERTEX_API_KEY || ''
     },
     body: JSON.stringify(requestBody)
   });
@@ -258,7 +268,7 @@ export async function checkVideoGenerationStatus(operationName: string): Promise
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'x-goog-api-key': GOOGLE_API_KEY || ''
+      'x-goog-api-key': VERTEX_API_KEY || ''
     }
   });
 
