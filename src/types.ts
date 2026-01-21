@@ -130,3 +130,52 @@ export interface EditingThread {
   createdAt: number;
   updatedAt: number;
 }
+
+// === TIPOS PARA VIDEOS GENERADOS (KLING) ===
+
+/** Estado del proceso de generación de video */
+export type VideoGenerationStatus = 'idle' | 'creating' | 'submitted' | 'processing' | 'succeed' | 'failed';
+
+/** Modelo de Kling disponible */
+export type KlingModel = 'kling-v1' | 'kling-v1-5' | 'kling-v1-6' | 'kling-v2-master' | 'kling-v2-1' | 'kling-v2-1-master';
+
+/** Modo de generación de video */
+export type KlingVideoMode = 'std' | 'pro';
+
+/** Duración del video */
+export type KlingVideoDuration = '5' | '10';
+
+/** Opciones para generación de video */
+export interface VideoGenerationOptions {
+  model_name?: KlingModel;
+  mode?: KlingVideoMode;
+  duration?: KlingVideoDuration;
+  cfg_scale?: number;
+  negative_prompt?: string;
+}
+
+/** Video generado almacenado */
+export interface GeneratedVideo {
+  id: string;
+  deviceId: string;
+  /** ID de la imagen de origen */
+  sourceImageId?: string;
+  /** URL de la imagen de origen */
+  sourceImageUrl: string;
+  /** Thumbnail de la imagen de origen */
+  sourceImageThumbnail?: string;
+  /** Prompt usado para generar el video */
+  prompt: string;
+  /** URL del video generado */
+  videoUrl: string;
+  /** Duración del video en segundos */
+  duration: string;
+  /** ID de la tarea en Kling API */
+  klingTaskId: string;
+  /** Modelo usado */
+  model: string;
+  /** Modo usado (std/pro) */
+  mode: string;
+  /** Timestamp de creación */
+  createdAt: number;
+}

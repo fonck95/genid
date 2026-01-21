@@ -6,10 +6,11 @@ import { IdentityManager } from './components/IdentityManager';
 import { ImageGenerator } from './components/ImageGenerator';
 import { Gallery } from './components/Gallery';
 import { ImageEditor } from './components/ImageEditor';
+import { VideoGenerator } from './components/VideoGenerator';
 import { AuthProvider } from './contexts/AuthContext';
 import { GoogleLoginButton } from './components/GoogleLoginButton';
 
-type Tab = 'generate' | 'gallery' | 'editor';
+type Tab = 'generate' | 'gallery' | 'editor' | 'video';
 
 function App() {
   const [deviceId, setDeviceId] = useState<string>('');
@@ -153,6 +154,12 @@ function App() {
               >
                 Editor {activeThreadsCount > 0 && `(${activeThreadsCount})`}
               </button>
+              <button
+                className={`tab ${activeTab === 'video' ? 'active' : ''}`}
+                onClick={() => setActiveTab('video')}
+              >
+                Video
+              </button>
             </nav>
 
             <div className="tab-content">
@@ -181,6 +188,13 @@ function App() {
                   activeThreadId={activeThreadId}
                   onThreadChange={handleThreadChange}
                   onImageSaved={loadData}
+                />
+              )}
+              {activeTab === 'video' && (
+                <VideoGenerator
+                  deviceId={deviceId}
+                  galleryImages={generatedImages}
+                  onRefresh={loadData}
                 />
               )}
             </div>

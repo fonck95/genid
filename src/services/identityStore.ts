@@ -1,12 +1,13 @@
-import type { Identity, IdentityPhoto, GeneratedImage, EditingThread, EditingStep, FaceVariantsSet, FaceVariant, FaceVariantType } from '../types';
+import type { Identity, IdentityPhoto, GeneratedImage, EditingThread, EditingStep, FaceVariantsSet, FaceVariant, FaceVariantType, GeneratedVideo } from '../types';
 import { uploadFileToCloudinary, uploadToCloudinary, getThumbnailUrl } from './cloudinary';
 
 const DB_NAME = 'GenID_IdentityStore';
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 const IDENTITIES_STORE = 'identities';
 const GENERATED_STORE = 'generated';
 const THREADS_STORE = 'editing_threads';
 const FACE_VARIANTS_STORE = 'face_variants';
+const VIDEOS_STORE = 'generated_videos';
 
 let db: IDBDatabase | null = null;
 
@@ -74,6 +75,12 @@ async function openDB(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains(FACE_VARIANTS_STORE)) {
         const variantsStore = database.createObjectStore(FACE_VARIANTS_STORE, { keyPath: 'id' });
         variantsStore.createIndex('identityId', 'identityId', { unique: false });
+      }
+
+      // Crear store de videos generados (nuevo en versión 6)
+      if (!database.objectStoreNames.contains(VIDEOS_STORE)) {
+        const videosStore = database.createObjectStore(VIDEOS_STORE, { keyPath: 'id' });
+        videosStore.createIndex('deviceId', 'deviceId', { unique: false });
       }
     };
   });
@@ -355,12 +362,13 @@ export async function clearAllData(): Promise<void> {
   const database = await openDB();
 
   return new Promise((resolve, reject) => {
-    const transaction = database.transaction([IDENTITIES_STORE, GENERATED_STORE, THREADS_STORE, FACE_VARIANTS_STORE], 'readwrite');
+    const transaction = database.transaction([IDENTITIES_STORE, GENERATED_STORE, THREADS_STORE, FACE_VARIANTS_STORE, VIDEOS_STORE], 'readwrite');
 
     transaction.objectStore(IDENTITIES_STORE).clear();
     transaction.objectStore(GENERATED_STORE).clear();
     transaction.objectStore(THREADS_STORE).clear();
     transaction.objectStore(FACE_VARIANTS_STORE).clear();
+    transaction.objectStore(VIDEOS_STORE).clear();
 
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
@@ -812,4 +820,109 @@ export async function useVariantAsIdentityPhoto(
 
   identity.photos.push(photo);
   return updateIdentity(identity);
+}
+
+// === VIDEOS GENERADOS (KLING) ===
+
+/**
+ * Guarda un video generado en IndexedDB
+ */
+export async function saveGeneratedVideo(
+  deviceId: string,
+  sourceImageUrl: string,
+  prompt: string,
+  videoUrl: string,
+  duration: string,
+  klingTaskId: string,
+  model: string,
+  mode: string,
+  sourceImageId?: string
+): Promise<GeneratedVideo> {
+  const database = await openDB();
+
+  // Crear thumbnail de la imagen de origen
+  const sourceImageThumbnail = await createThumbnail(sourceImageUrl, 150);
+
+  const video: GeneratedVideo = {
+    id: generateId(),
+    deviceId,
+    sourceImageId,
+    sourceImageUrl,
+    sourceImageThumbnail,
+    prompt,
+    videoUrl,
+    duration,
+    klingTaskId,
+    model,
+    mode,
+    createdAt: Date.now()
+  };
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(VIDEOS_STORE, 'readwrite');
+    const store = transaction.objectStore(VIDEOS_STORE);
+    const request = store.add(video);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(video);
+  });
+}
+
+/**
+ * Obtiene todos los videos generados de un dispositivo
+ */
+export async function getAllGeneratedVideos(deviceId?: string): Promise<GeneratedVideo[]> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(VIDEOS_STORE, 'readonly');
+    const store = transaction.objectStore(VIDEOS_STORE);
+
+    let request: IDBRequest;
+
+    if (deviceId) {
+      const index = store.index('deviceId');
+      request = index.getAll(deviceId);
+    } else {
+      request = store.getAll();
+    }
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const videos = request.result as GeneratedVideo[];
+      resolve(videos.sort((a, b) => b.createdAt - a.createdAt));
+    };
+  });
+}
+
+/**
+ * Obtiene un video por su ID
+ */
+export async function getGeneratedVideo(id: string): Promise<GeneratedVideo | null> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(VIDEOS_STORE, 'readonly');
+    const store = transaction.objectStore(VIDEOS_STORE);
+    const request = store.get(id);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result || null);
+  });
+}
+
+/**
+ * Elimina un video generado
+ */
+export async function deleteGeneratedVideo(id: string): Promise<void> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(VIDEOS_STORE, 'readwrite');
+    const store = transaction.objectStore(VIDEOS_STORE);
+    const request = store.delete(id);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
 }

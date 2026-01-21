@@ -3208,3 +3208,503 @@ textarea {
     max-width: none;
   }
 }
+
+/* ==========================================================================
+   Video Generator - Kling AI Integration
+   ========================================================================== */
+
+.video-generator {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.video-generator .panel-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.video-generator-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* Video Not Configured State */
+.video-not-configured {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--bg-card);
+  border-radius: 1rem;
+  margin-top: 1rem;
+}
+
+.video-not-configured .warning-icon {
+  color: var(--warning);
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.video-not-configured h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.video-not-configured p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.video-not-configured code {
+  display: block;
+  background: var(--bg-input);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--primary-light);
+  text-align: left;
+}
+
+/* Video Form Section */
+.video-form-section {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.video-form-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--primary-light);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+/* Select Image Button */
+.btn-select-image {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: var(--bg-input);
+  border: 2px dashed var(--border);
+  border-radius: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-select-image:hover {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+  color: var(--primary-light);
+}
+
+.btn-select-image svg {
+  opacity: 0.6;
+}
+
+/* Selected Image Preview */
+.selected-image-preview {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--bg-input);
+}
+
+.selected-image-preview img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+}
+
+.selected-image-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.btn-change-image {
+  padding: 0.375rem 0.75rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-change-image:hover {
+  background: var(--primary-dark);
+}
+
+/* Video Options */
+.video-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Video Progress */
+.video-progress {
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--bg-input);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 4px;
+  transition: width 0.3s ease-out;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  display: block;
+}
+
+/* Video Error */
+.video-error {
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--danger);
+  margin-bottom: 1rem;
+}
+
+/* Generate Video Button */
+.btn-generate-video {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-generate-video:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.btn-generate-video:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Video Gallery Section */
+.video-gallery-section {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.video-gallery-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.video-gallery-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.video-gallery-empty svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Video Grid */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.video-item {
+  background: var(--bg-input);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.video-item:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.video-thumbnail {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: var(--bg-dark);
+}
+
+.video-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0.8;
+  transition: all 0.2s;
+}
+
+.video-item:hover .video-play-icon {
+  opacity: 1;
+  background: var(--primary);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.video-duration {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  color: white;
+  font-weight: 500;
+}
+
+.video-item-info {
+  padding: 0.75rem;
+}
+
+.video-prompt {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.video-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Image Picker Modal */
+.image-picker-modal {
+  max-width: 700px;
+}
+
+.image-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.image-picker-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.image-picker-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.image-picker-item:hover {
+  border-color: var(--primary);
+  transform: scale(1.02);
+}
+
+.image-picker-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-picker-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  font-size: 0.7rem;
+  color: white;
+}
+
+/* Video Modal */
+.video-modal {
+  max-width: 900px;
+  position: relative;
+}
+
+.video-player-container {
+  background: black;
+  width: 100%;
+}
+
+.video-player {
+  width: 100%;
+  max-height: 60vh;
+  display: block;
+}
+
+.video-modal-info {
+  padding: 1.5rem;
+}
+
+.video-modal-prompt {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.video-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.video-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-download-video {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, var(--success), #16a34a);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-download-video:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .video-generator-content {
+    grid-template-columns: 1fr;
+  }
+
+  .video-options {
+    grid-template-columns: 1fr;
+  }
+
+  .video-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .image-picker-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
