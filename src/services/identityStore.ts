@@ -2,7 +2,7 @@ import type { Identity, IdentityPhoto, GeneratedImage, EditingThread, EditingSte
 import { uploadFileToCloudinary, uploadToCloudinary, getThumbnailUrl } from './cloudinary';
 
 const DB_NAME = 'GenID_IdentityStore';
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 const IDENTITIES_STORE = 'identities';
 const GENERATED_STORE = 'generated';
 const THREADS_STORE = 'editing_threads';
@@ -81,6 +81,16 @@ async function openDB(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains(VIDEOS_STORE)) {
         const videosStore = database.createObjectStore(VIDEOS_STORE, { keyPath: 'id' });
         videosStore.createIndex('deviceId', 'deviceId', { unique: false });
+        videosStore.createIndex('identityId', 'identityId', { unique: false });
+      } else if (oldVersion < 7) {
+        // Migración v7: agregar índice identityId al store de videos
+        const transaction = (event.target as IDBOpenDBRequest).transaction;
+        if (transaction) {
+          const videosStore = transaction.objectStore(VIDEOS_STORE);
+          if (!videosStore.indexNames.contains('identityId')) {
+            videosStore.createIndex('identityId', 'identityId', { unique: false });
+          }
+        }
       }
     };
   });
@@ -836,16 +846,21 @@ export async function saveGeneratedVideo(
   klingTaskId: string,
   model: string,
   mode: string,
-  sourceImageId?: string
+  sourceImageId?: string,
+  identityId?: string,
+  identityName?: string,
+  sourceImageThumbnailInput?: string
 ): Promise<GeneratedVideo> {
   const database = await openDB();
 
-  // Crear thumbnail de la imagen de origen
-  const sourceImageThumbnail = await createThumbnail(sourceImageUrl, 150);
+  // Crear thumbnail de la imagen de origen si no se provee
+  const sourceImageThumbnail = sourceImageThumbnailInput || await createThumbnail(sourceImageUrl, 150);
 
   const video: GeneratedVideo = {
     id: generateId(),
     deviceId,
+    identityId,
+    identityName,
     sourceImageId,
     sourceImageUrl,
     sourceImageThumbnail,
@@ -886,6 +901,26 @@ export async function getAllGeneratedVideos(deviceId?: string): Promise<Generate
     } else {
       request = store.getAll();
     }
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const videos = request.result as GeneratedVideo[];
+      resolve(videos.sort((a, b) => b.createdAt - a.createdAt));
+    };
+  });
+}
+
+/**
+ * Obtiene todos los videos generados de una identidad
+ */
+export async function getGeneratedVideosByIdentity(identityId: string): Promise<GeneratedVideo[]> {
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(VIDEOS_STORE, 'readonly');
+    const store = transaction.objectStore(VIDEOS_STORE);
+    const index = store.index('identityId');
+    const request = index.getAll(identityId);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {

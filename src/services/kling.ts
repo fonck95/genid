@@ -35,7 +35,7 @@ export interface KlingApiResponse<T> {
 export interface KlingVideoOptions {
   model_name?: 'kling-v1' | 'kling-v1-5' | 'kling-v1-6' | 'kling-v2-master' | 'kling-v2-1' | 'kling-v2-1-master';
   mode?: 'std' | 'pro';
-  duration?: '5' | '10';
+  duration?: '3' | '5' | '10';
   cfg_scale?: number;
   negative_prompt?: string;
 }

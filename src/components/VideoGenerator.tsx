@@ -1,43 +1,72 @@
 import { useState, useEffect } from 'react';
-import type { GeneratedImage, GeneratedVideo, KlingModel, KlingVideoMode, KlingVideoDuration, VideoGenerationStatus } from '../types';
+import type { GeneratedImage, GeneratedVideo, KlingModel, KlingVideoMode, KlingVideoDuration, VideoGenerationStatus, Identity } from '../types';
 import { generateVideoFromImage, isKlingConfigured } from '../services/kling';
-import { saveGeneratedVideo, getAllGeneratedVideos, deleteGeneratedVideo } from '../services/identityStore';
+import { saveGeneratedVideo, getAllGeneratedVideos, deleteGeneratedVideo, getGeneratedVideosByIdentity } from '../services/identityStore';
+
+/** Video pendiente que aun no ha sido guardado en la galeria */
+interface PendingVideo {
+  id: string;
+  sourceImageId?: string;
+  sourceImageUrl: string;
+  sourceImageThumbnail?: string;
+  identityId?: string;
+  identityName?: string;
+  prompt: string;
+  videoUrl: string;
+  duration: string;
+  klingTaskId: string;
+  model: string;
+  mode: string;
+  createdAt: number;
+}
 
 interface Props {
   deviceId: string;
   galleryImages: GeneratedImage[];
+  selectedIdentity: Identity | null;
   onRefresh: () => void;
 }
 
-export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
-  // Estado de selección
+export function VideoGenerator({ deviceId, galleryImages, selectedIdentity, onRefresh }: Props) {
+  // Estado de seleccion
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [showImagePicker, setShowImagePicker] = useState(false);
 
   // Estado del formulario
   const [prompt, setPrompt] = useState('');
-  const [model, setModel] = useState<KlingModel>('kling-v1-6');
-  const [mode, setMode] = useState<KlingVideoMode>('std');
+  const [model, setModel] = useState<KlingModel>('kling-v2-1-master');
+  const [mode, setMode] = useState<KlingVideoMode>('pro');
   const [duration, setDuration] = useState<KlingVideoDuration>('5');
 
-  // Estado de generación
+  // Estado de generacion
   const [generationStatus, setGenerationStatus] = useState<VideoGenerationStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  // Videos generados
-  const [generatedVideos, setGeneratedVideos] = useState<GeneratedVideo[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<GeneratedVideo | null>(null);
+  // Videos pendientes (no guardados en galeria)
+  const [pendingVideos, setPendingVideos] = useState<PendingVideo[]>([]);
 
-  // Cargar videos al montar
+  // Videos guardados en galeria
+  const [savedVideos, setSavedVideos] = useState<GeneratedVideo[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<GeneratedVideo | PendingVideo | null>(null);
+
+  // Pestaña activa
+  const [activeTab, setActiveTab] = useState<'pending' | 'saved'>('pending');
+
+  // Cargar videos al montar o cambiar identidad
   useEffect(() => {
-    loadVideos();
-  }, [deviceId]);
+    loadSavedVideos();
+  }, [deviceId, selectedIdentity]);
 
-  const loadVideos = async () => {
+  const loadSavedVideos = async () => {
     try {
-      const videos = await getAllGeneratedVideos(deviceId);
-      setGeneratedVideos(videos);
+      let videos: GeneratedVideo[];
+      if (selectedIdentity) {
+        videos = await getGeneratedVideosByIdentity(selectedIdentity.id);
+      } else {
+        videos = await getAllGeneratedVideos(deviceId);
+      }
+      setSavedVideos(videos);
     } catch (err) {
       console.error('Error cargando videos:', err);
     }
@@ -66,26 +95,31 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
         }
       );
 
-      // Guardar el video
-      await saveGeneratedVideo(
-        deviceId,
-        selectedImage.imageUrl,
+      // Crear video pendiente (NO guardar automaticamente)
+      const pendingVideo: PendingVideo = {
+        id: `pending-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        sourceImageId: selectedImage.id,
+        sourceImageUrl: selectedImage.imageUrl,
+        sourceImageThumbnail: selectedImage.imageUrl,
+        identityId: selectedImage.identityId,
+        identityName: selectedImage.identityName,
         prompt,
-        result.videoUrl,
-        result.duration,
-        result.taskId,
+        videoUrl: result.videoUrl,
+        duration: result.duration,
+        klingTaskId: result.taskId,
         model,
         mode,
-        selectedImage.id
-      );
+        createdAt: Date.now()
+      };
 
-      // Recargar lista
-      await loadVideos();
-      onRefresh();
+      // Agregar a videos pendientes
+      setPendingVideos(prev => [pendingVideo, ...prev]);
+
+      // Cambiar a pestaña de pendientes
+      setActiveTab('pending');
 
       // Limpiar formulario
       setPrompt('');
-      setSelectedImage(null);
       setGenerationStatus('idle');
       setProgress(0);
     } catch (err) {
@@ -95,11 +129,52 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
     }
   };
 
-  const handleDeleteVideo = async (id: string) => {
-    if (!confirm('¿Eliminar este video?')) return;
+  const handleSaveVideo = async (pendingVideo: PendingVideo) => {
+    try {
+      // Guardar en IndexedDB con identidad
+      await saveGeneratedVideo(
+        deviceId,
+        pendingVideo.sourceImageUrl,
+        pendingVideo.prompt,
+        pendingVideo.videoUrl,
+        pendingVideo.duration,
+        pendingVideo.klingTaskId,
+        pendingVideo.model,
+        pendingVideo.mode,
+        pendingVideo.sourceImageId,
+        pendingVideo.identityId,
+        pendingVideo.identityName,
+        pendingVideo.sourceImageThumbnail
+      );
+
+      // Remover de pendientes
+      setPendingVideos(prev => prev.filter(v => v.id !== pendingVideo.id));
+
+      // Recargar guardados
+      await loadSavedVideos();
+      onRefresh();
+
+      // Si estaba seleccionado, deseleccionar
+      if (selectedVideo?.id === pendingVideo.id) {
+        setSelectedVideo(null);
+      }
+    } catch (err) {
+      console.error('Error guardando video:', err);
+      setError(err instanceof Error ? err.message : 'Error al guardar video');
+    }
+  };
+
+  const handleDiscardPending = (id: string) => {
+    if (!confirm('¿Descartar este video? No se podra recuperar.')) return;
+    setPendingVideos(prev => prev.filter(v => v.id !== id));
+    if (selectedVideo?.id === id) setSelectedVideo(null);
+  };
+
+  const handleDeleteSaved = async (id: string) => {
+    if (!confirm('¿Eliminar este video de la galeria?')) return;
     await deleteGeneratedVideo(id);
     if (selectedVideo?.id === id) setSelectedVideo(null);
-    await loadVideos();
+    await loadSavedVideos();
   };
 
   const formatDate = (timestamp: number) => {
@@ -122,7 +197,12 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
     }
   };
 
-  // Verificar configuración de Kling
+  // Filtrar imagenes de la galeria por identidad seleccionada
+  const filteredGalleryImages = selectedIdentity
+    ? galleryImages.filter(img => img.identityId === selectedIdentity.id)
+    : galleryImages;
+
+  // Verificar configuracion de Kling
   if (!isKlingConfigured()) {
     return (
       <div className="video-generator">
@@ -154,16 +234,21 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
     <div className="video-generator">
       <div className="panel-header">
         <h2>Generador de Video (Kling AI)</h2>
+        {selectedIdentity && (
+          <span className="selected-identity-badge">
+            {selectedIdentity.name}
+          </span>
+        )}
       </div>
 
       <div className="video-generator-content">
-        {/* Panel de generación */}
+        {/* Panel de generacion */}
         <div className="video-form-section">
           <h3>Crear Video desde Imagen</h3>
 
           {/* Selector de imagen */}
           <div className="form-group">
-            <label>Imagen de origen</label>
+            <label>Imagen de origen {selectedIdentity && `(de ${selectedIdentity.name})`}</label>
             {selectedImage ? (
               <div className="selected-image-preview">
                 <img src={selectedImage.imageUrl} alt="Imagen seleccionada" />
@@ -218,7 +303,7 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
                 <option value="kling-v1-6">Kling V1.6</option>
                 <option value="kling-v2-master">Kling V2 Master</option>
                 <option value="kling-v2-1">Kling V2.1</option>
-                <option value="kling-v2-1-master">Kling V2.1 Master</option>
+                <option value="kling-v2-1-master">Kling V2.1 Master (Recomendado)</option>
               </select>
             </div>
 
@@ -241,6 +326,7 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
                 onChange={(e) => setDuration(e.target.value as KlingVideoDuration)}
                 disabled={generationStatus !== 'idle' && generationStatus !== 'failed'}
               >
+                <option value="3">3 segundos</option>
                 <option value="5">5 segundos</option>
                 <option value="10">10 segundos</option>
               </select>
@@ -269,7 +355,7 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
             </div>
           )}
 
-          {/* Botón de generar */}
+          {/* Boton de generar */}
           <button
             className="btn-generate-video"
             onClick={handleGenerate}
@@ -295,61 +381,150 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
           </button>
         </div>
 
-        {/* Galería de videos */}
+        {/* Galeria de videos */}
         <div className="video-gallery-section">
-          <h3>Videos Generados ({generatedVideos.length})</h3>
+          {/* Tabs */}
+          <div className="video-gallery-tabs">
+            <button
+              className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pending')}
+            >
+              Pendientes ({pendingVideos.length})
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'saved' ? 'active' : ''}`}
+              onClick={() => setActiveTab('saved')}
+            >
+              Guardados ({savedVideos.length})
+              {selectedIdentity && ` - ${selectedIdentity.name}`}
+            </button>
+          </div>
 
-          {generatedVideos.length === 0 ? (
-            <div className="video-gallery-empty">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-              </svg>
-              <p>No hay videos generados todavia</p>
-            </div>
-          ) : (
-            <div className="video-grid">
-              {generatedVideos.map((video) => (
-                <div
-                  key={video.id}
-                  className="video-item"
-                  onClick={() => setSelectedVideo(video)}
-                >
-                  <div className="video-thumbnail">
-                    <img src={video.sourceImageThumbnail || video.sourceImageUrl} alt="Thumbnail" />
-                    <div className="video-play-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                      </svg>
-                    </div>
-                    <span className="video-duration">{video.duration}s</span>
-                  </div>
-                  <div className="video-item-info">
-                    <p className="video-prompt">{video.prompt}</p>
-                    <span className="video-date">{formatDate(video.createdAt)}</span>
-                  </div>
+          {/* Contenido de tabs */}
+          {activeTab === 'pending' ? (
+            <>
+              {pendingVideos.length === 0 ? (
+                <div className="video-gallery-empty">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                  </svg>
+                  <p>No hay videos pendientes</p>
+                  <span className="hint">Los videos generados apareceran aqui para que decidas si guardarlos</span>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="video-grid">
+                  {pendingVideos.map((video) => (
+                    <div
+                      key={video.id}
+                      className="video-item pending"
+                      onClick={() => setSelectedVideo(video)}
+                    >
+                      <div className="video-thumbnail">
+                        <img src={video.sourceImageThumbnail || video.sourceImageUrl} alt="Thumbnail" />
+                        <div className="video-play-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                          </svg>
+                        </div>
+                        <span className="video-duration">{video.duration}s</span>
+                        <span className="pending-badge">Pendiente</span>
+                      </div>
+                      <div className="video-item-info">
+                        <p className="video-prompt">{video.prompt}</p>
+                        <span className="video-identity">{video.identityName}</span>
+                        <div className="video-item-actions">
+                          <button
+                            className="btn-save-video"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveVideo(video);
+                            }}
+                            title="Guardar en galeria"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                              <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Guardar
+                          </button>
+                          <button
+                            className="btn-discard-video"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDiscardPending(video.id);
+                            }}
+                            title="Descartar"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {savedVideos.length === 0 ? (
+                <div className="video-gallery-empty">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                  </svg>
+                  <p>No hay videos guardados{selectedIdentity ? ` para ${selectedIdentity.name}` : ''}</p>
+                </div>
+              ) : (
+                <div className="video-grid">
+                  {savedVideos.map((video) => (
+                    <div
+                      key={video.id}
+                      className="video-item"
+                      onClick={() => setSelectedVideo(video)}
+                    >
+                      <div className="video-thumbnail">
+                        <img src={video.sourceImageThumbnail || video.sourceImageUrl} alt="Thumbnail" />
+                        <div className="video-play-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                          </svg>
+                        </div>
+                        <span className="video-duration">{video.duration}s</span>
+                      </div>
+                      <div className="video-item-info">
+                        <p className="video-prompt">{video.prompt}</p>
+                        <span className="video-identity">{video.identityName}</span>
+                        <span className="video-date">{formatDate(video.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
-      {/* Modal de selección de imagen */}
+      {/* Modal de seleccion de imagen */}
       {showImagePicker && (
         <div className="modal-overlay" onClick={() => setShowImagePicker(false)}>
           <div className="modal-content image-picker-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Seleccionar imagen</h3>
-              <button className="modal-close" onClick={() => setShowImagePicker(false)}>×</button>
+              <h3>Seleccionar imagen {selectedIdentity && `de ${selectedIdentity.name}`}</h3>
+              <button className="modal-close" onClick={() => setShowImagePicker(false)}>x</button>
             </div>
             <div className="image-picker-grid">
-              {galleryImages.length === 0 ? (
+              {filteredGalleryImages.length === 0 ? (
                 <div className="image-picker-empty">
-                  <p>No hay imagenes en la galeria. Genera algunas primero.</p>
+                  <p>No hay imagenes en la galeria{selectedIdentity ? ` para ${selectedIdentity.name}` : ''}. Genera algunas primero.</p>
                 </div>
               ) : (
-                galleryImages.map((image) => (
+                filteredGalleryImages.map((image) => (
                   <div
                     key={image.id}
                     className="image-picker-item"
@@ -371,7 +546,7 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
       {selectedVideo && (
         <div className="modal-overlay" onClick={() => setSelectedVideo(null)}>
           <div className="modal-content video-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedVideo(null)}>×</button>
+            <button className="modal-close" onClick={() => setSelectedVideo(null)}>x</button>
             <div className="video-player-container">
               <video
                 src={selectedVideo.videoUrl}
@@ -383,6 +558,9 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
             </div>
             <div className="video-modal-info">
               <p className="video-modal-prompt">{selectedVideo.prompt}</p>
+              {'identityName' in selectedVideo && selectedVideo.identityName && (
+                <p className="video-modal-identity">Identidad: {selectedVideo.identityName}</p>
+              )}
               <div className="video-modal-meta">
                 <span>Duracion: {selectedVideo.duration}s</span>
                 <span>Modelo: {selectedVideo.model}</span>
@@ -390,26 +568,50 @@ export function VideoGenerator({ deviceId, galleryImages, onRefresh }: Props) {
                 <span>{formatDate(selectedVideo.createdAt)}</span>
               </div>
               <div className="video-modal-actions">
-                <a
-                  href={selectedVideo.videoUrl}
-                  download={`video-${selectedVideo.id}.mp4`}
-                  className="btn-download-video"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  Descargar
-                </a>
-                <button
-                  className="btn-danger"
-                  onClick={() => handleDeleteVideo(selectedVideo.id)}
-                >
-                  Eliminar
-                </button>
+                {'id' in selectedVideo && selectedVideo.id.startsWith('pending-') ? (
+                  <>
+                    <button
+                      className="btn-save-video-large"
+                      onClick={() => handleSaveVideo(selectedVideo as PendingVideo)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      Guardar en Galeria
+                    </button>
+                    <button
+                      className="btn-danger"
+                      onClick={() => handleDiscardPending(selectedVideo.id)}
+                    >
+                      Descartar
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <a
+                      href={selectedVideo.videoUrl}
+                      download={`video-${selectedVideo.id}.mp4`}
+                      className="btn-download-video"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      Descargar
+                    </a>
+                    <button
+                      className="btn-danger"
+                      onClick={() => handleDeleteSaved(selectedVideo.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

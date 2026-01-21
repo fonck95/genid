@@ -194,6 +194,7 @@ function App() {
                 <VideoGenerator
                   deviceId={deviceId}
                   galleryImages={generatedImages}
+                  selectedIdentity={selectedIdentity}
                   onRefresh={loadData}
                 />
               )}
