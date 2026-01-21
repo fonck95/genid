@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Identity, GeneratedImage, GeneratedVideo } from '../types';
-import { generateVideoFromImage, setAccessToken, hasValidAuth } from '../services/veo';
+import { generateVideoFromImage, setAccessToken } from '../services/veo';
 import {
   getAllGeneratedVideos,
   saveGeneratedVideo,
