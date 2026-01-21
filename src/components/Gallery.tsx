@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { GeneratedImage, Identity } from '../types';
 import { deleteGeneratedImage } from '../services/identityStore';
+import { DownloadNotification, useDownload } from './DownloadNotification';
 
 interface Props {
   images: GeneratedImage[];
@@ -12,6 +13,7 @@ interface Props {
 export function Gallery({ images, identities, onRefresh, onStartEditingThread }: Props) {
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const { downloadState, downloadImage, resetDownload } = useDownload();
 
   // Obtener identidades únicas de las imágenes
   const uniqueIdentityIds = [...new Set(images.map(img => img.identityId))];
@@ -37,10 +39,8 @@ export function Gallery({ images, identities, onRefresh, onStartEditingThread }:
   };
 
   const handleDownload = (image: GeneratedImage) => {
-    const link = document.createElement('a');
-    link.href = image.imageUrl;
-    link.download = `genid-${image.identityName}-${image.id}.png`;
-    link.click();
+    const fileName = `genid-${image.identityName}-${image.id}.png`;
+    downloadImage(image.imageUrl, fileName);
   };
 
   const formatDate = (timestamp: number) => {
@@ -144,10 +144,16 @@ export function Gallery({ images, identities, onRefresh, onStartEditingThread }:
               <p className="lightbox-date">{formatDate(selectedImage.createdAt)}</p>
               <div className="lightbox-actions">
                 <button
-                  className="btn-secondary"
+                  className="btn-download-fancy"
                   onClick={() => handleDownload(selectedImage)}
+                  disabled={downloadState.status === 'downloading'}
                 >
-                  Descargar
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span>Descargar</span>
                 </button>
                 {onStartEditingThread && (
                   <button
@@ -176,6 +182,11 @@ export function Gallery({ images, identities, onRefresh, onStartEditingThread }:
           </div>
         </div>
       )}
+
+      <DownloadNotification
+        downloadState={downloadState}
+        onClose={resetDownload}
+      />
     </div>
   );
 }
