@@ -42,12 +42,30 @@ const FALLBACK_ACCESS_TOKEN = isValidAccessToken(RAW_FALLBACK_TOKEN) ? RAW_FALLB
 
 // Log warning si hay un token inválido configurado
 if (RAW_FALLBACK_TOKEN && !FALLBACK_ACCESS_TOKEN) {
+  // Mostrar los primeros caracteres del token para ayudar al usuario a identificar el problema
+  const tokenPreview = RAW_FALLBACK_TOKEN.length > 10
+    ? RAW_FALLBACK_TOKEN.substring(0, 10) + '...'
+    : RAW_FALLBACK_TOKEN;
+
   console.warn(
-    '[GenID] VITE_APP_API_KEY_VERTEX contiene un valor que NO es un access token válido.\n' +
-    'Los access tokens de Google empiezan con "ya29." y expiran en ~1 hora.\n' +
-    'Para Vertex AI, debes:\n' +
-    '1. Iniciar sesión con Google OAuth (recomendado), o\n' +
-    '2. Generar un token con: gcloud auth print-access-token'
+    '╔══════════════════════════════════════════════════════════════════╗\n' +
+    '║  [GenID] ERROR: Token de Vertex AI Inválido                      ║\n' +
+    '╚══════════════════════════════════════════════════════════════════╝\n\n' +
+    '❌ PROBLEMA:\n' +
+    `   VITE_APP_API_KEY_VERTEX contiene: "${tokenPreview}"\n` +
+    '   Esto NO es un access token válido de Google OAuth2.\n\n' +
+    '✅ FORMATO CORRECTO:\n' +
+    '   Los access tokens de Google SIEMPRE empiezan con "ya29." o "ya39."\n' +
+    '   Ejemplo: ya29.a0AfH6SMBxxxxxxxxxxxxxxxxxxxxxxxx\n\n' +
+    '🔧 SOLUCIÓN:\n' +
+    '   OPCIÓN 1 (Recomendada): Usar OAuth\n' +
+    '   → Haz clic en "Iniciar sesión con Google" en la app\n\n' +
+    '   OPCIÓN 2: Generar token manual\n' +
+    '   → Ejecuta en terminal: gcloud auth print-access-token\n' +
+    '   → Copia el token que empieza con "ya29."\n' +
+    '   → Configura: VITE_APP_API_KEY_VERTEX=ya29.xxx...\n\n' +
+    '⚠️ IMPORTANTE: Los access tokens expiran en ~1 hora.\n' +
+    '   Si usas un token manual, deberás regenerarlo periódicamente.'
   );
 }
 
@@ -300,10 +318,22 @@ export async function startVideoGeneration(
     let errorMessage = '⚠️ Autenticacion Requerida para Vertex AI\n\n';
 
     if (hasInvalidFallbackToken) {
+      // Mostrar preview del token inválido para ayudar a identificar el problema
+      const tokenPreview = RAW_FALLBACK_TOKEN && RAW_FALLBACK_TOKEN.length > 10
+        ? RAW_FALLBACK_TOKEN.substring(0, 10) + '...'
+        : RAW_FALLBACK_TOKEN || '';
+
       errorMessage +=
-        '❌ VITE_APP_API_KEY_VERTEX contiene un valor INVALIDO.\n' +
-        'Los access tokens de Google empiezan con "ya29." y expiran en ~1 hora.\n' +
-        'El valor actual NO es un access token valido.\n\n';
+        '╔══════════════════════════════════════════════════════════════╗\n' +
+        '║  ❌ TOKEN INVALIDO DETECTADO                                   ║\n' +
+        '╚══════════════════════════════════════════════════════════════╝\n\n' +
+        `Valor actual: "${tokenPreview}"\n\n` +
+        '• Esto NO es un access token valido de Google OAuth2\n' +
+        '• Los tokens validos SIEMPRE empiezan con "ya29." o "ya39."\n' +
+        '• Parece que configuraste una API key en lugar de un access token\n\n' +
+        '💡 DIFERENCIA IMPORTANTE:\n' +
+        '   • API Key: AIzaSy... (NO funciona con Vertex AI)\n' +
+        '   • Access Token: ya29.a0... (REQUERIDO para Vertex AI)\n\n';
     }
 
     errorMessage +=
