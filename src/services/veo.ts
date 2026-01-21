@@ -4,8 +4,8 @@ import { downscaleImage } from './imageOptimizer';
 // API Key desde variable de entorno (misma que Gemini, es la API de Google AI)
 const GOOGLE_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
 
-// Modelo de Veo 3 para generación de video
-const VEO_MODEL = 'veo-3.0-generate-preview';
+// Modelo de Veo 3.1 para generación de video
+const VEO_MODEL = 'veo-3.1-generate-preview';
 
 // URL base para la API de generación de video
 const VEO_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${VEO_MODEL}:predictLongRunning`;
@@ -189,10 +189,11 @@ export async function startVideoGeneration(
     }
   };
 
-  const response = await fetch(`${VEO_API_URL}?key=${GOOGLE_API_KEY}`, {
+  const response = await fetch(VEO_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'x-goog-api-key': GOOGLE_API_KEY || ''
     },
     body: JSON.stringify(requestBody)
   });
@@ -215,10 +216,11 @@ export async function startVideoGeneration(
  * Verifica el estado de una operación de generación de video
  */
 export async function checkVideoGenerationStatus(operationName: string): Promise<VeoResponse> {
-  const response = await fetch(`${getOperationUrl(operationName)}?key=${GOOGLE_API_KEY}`, {
+  const response = await fetch(getOperationUrl(operationName), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'x-goog-api-key': GOOGLE_API_KEY || ''
     }
   });
 
