@@ -463,9 +463,17 @@ export async function generateImageWithIdentity(
 ): Promise<string> {
   const parts: ContentPart[] = [];
 
-  // Construir la descripción de la identidad si existe
+  // Construir la descripción de la identidad si existe - DEBE SER PROMINENTE
   const descriptionContext = identityDescription
-    ? `\n\nDESCRIPCIÓN GENERAL DE LA PERSONA:\n${identityDescription}`
+    ? `
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  DESCRIPCIÓN DE LA IDENTIDAD "${identityName}" (USAR COMO REFERENCIA CLAVE)  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+${identityDescription}
+
+IMPORTANTE: La descripción anterior es información CLAVE sobre "${identityName}".
+Asegúrate de que la persona generada sea CONSISTENTE con esta descripción.`
     : '';
 
   // Extraer descripciones faciales antropométricas de las fotos
@@ -531,8 +539,9 @@ SITUACIÓN/ESCENARIO A GENERAR:
 ${prompt}
 
 REQUISITOS DE GENERACIÓN:
-1. IDENTIDAD FACIAL (CRÍTICO):
-   - Mantén la identidad visual EXACTA de "${identityName}" basándote en las fotos de referencia${faceDescriptions ? ' y el análisis antropométrico proporcionado' : ''}
+1. IDENTIDAD FACIAL Y FÍSICA (CRÍTICO):
+   - Mantén la identidad visual EXACTA de "${identityName}" basándote en las fotos de referencia${faceDescriptions ? ' y el análisis antropométrico proporcionado' : ''}${identityDescription ? `
+   - TAMBIÉN considera la descripción de la identidad proporcionada arriba para detalles adicionales` : ''}
    - La persona debe ser INMEDIATAMENTE RECONOCIBLE como "${identityName}"
    - NO alteres los rasgos faciales característicos bajo ninguna circunstancia
 
@@ -545,7 +554,8 @@ REQUISITOS DE GENERACIÓN:
 
 3. RESULTADO FINAL:
    - El resultado debe ser INDISTINGUIBLE de una fotografía real donde la persona estuvo presente
-   - "${identityName}" debe mantener su identidad facial exacta de las fotos de referencia`
+   - "${identityName}" debe mantener su identidad facial exacta de las fotos de referencia${identityDescription ? `
+   - Asegúrate de que la persona sea CONSISTENTE con la descripción proporcionada` : ''}`
   });
 
   const requestBody = {
@@ -657,18 +667,24 @@ export async function generateWithAttachedImages(
     ? MULTI_ELEMENT_COMPOSITION_PROMPT
     : SCENE_INTEGRATION_REALISM_PROMPT;
 
+  // Determinar si tenemos información de identidad (descripción y/o fotos)
+  const hasIdentityInfo = identityName && (identityDescription || (referencePhotos && referencePhotos.length > 0));
+  const hasReferencePhotos = referencePhotos && referencePhotos.length > 0;
+
   // Instrucciones del sistema según el contexto
-  if (identityName && referencePhotos && referencePhotos.length > 0) {
+  if (hasIdentityInfo) {
     // Construir la descripción de la identidad si existe
     const descriptionContext = identityDescription
       ? `\n\nDESCRIPCIÓN GENERAL DE LA PERSONA "${identityName}":\n${identityDescription}`
       : '';
 
-    // Extraer descripciones faciales antropométricas de las fotos
-    const faceDescriptions = referencePhotos
-      .filter(photo => photo.faceDescription)
-      .map((photo, index) => `[Análisis Foto ${index + 1}]\n${photo.faceDescription}`)
-      .join('\n\n');
+    // Extraer descripciones faciales antropométricas de las fotos (si hay fotos)
+    const faceDescriptions = hasReferencePhotos
+      ? referencePhotos
+          .filter(photo => photo.faceDescription)
+          .map((photo, index) => `[Análisis Foto ${index + 1}]\n${photo.faceDescription}`)
+          .join('\n\n')
+      : '';
 
     const faceDescriptionContext = faceDescriptions
       ? `\n\nANÁLISIS ANTROPOMÉTRICO FACIAL (usar para consistencia absoluta):\n${faceDescriptions}`
@@ -687,14 +703,22 @@ Analiza cada imagen y clasifícala según el sistema de la FASE 1:
 
 IMPORTANTE: La persona de identidad "${identityName}" debe ser el SUJETO PRINCIPAL de la composición.
 Todos los demás elementos deben integrarse alrededor de esta persona manteniendo su identidad exacta.`
-      : `
+      : attachedImages.length > 0
+        ? `
 CONTEXTO:
 - El usuario ha adjuntado ${attachedImages.length} imagen(es) para que las analices, edites o uses como referencia.
-- También tienes fotos de referencia de "${identityName}" para mantener la identidad si es necesario.`;
+${hasReferencePhotos ? `- También tienes fotos de referencia de "${identityName}" para mantener la identidad.` : `- Tienes la descripción de "${identityName}" para guiar la generación.`}`
+        : `
+CONTEXTO:
+- Vas a generar una imagen de "${identityName}" basándote en la descripción proporcionada.
+${hasReferencePhotos ? '- Usa las fotos de referencia como guía visual.' : '- IMPORTANTE: Sigue fielmente la descripción para representar a la persona.'}`;
 
     // Construir instrucciones de consistencia facial según la información disponible
-    const faceConsistencyInstructions = faceDescriptions
-      ? `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (CON ANÁLISIS ANTROPOMÉTRICO):
+    let faceConsistencyInstructions: string;
+
+    if (faceDescriptions) {
+      // Tenemos análisis antropométrico de las fotos
+      faceConsistencyInstructions = `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (CON ANÁLISIS ANTROPOMÉTRICO):
 - PRESERVA EXACTAMENTE la identidad facial de "${identityName}" en la composición final
 - Si el usuario pide editar o modificar las imágenes, hazlo manteniendo la identidad intacta
 - IMPORTANTE: Sigue estrictamente el análisis antropométrico para la consistencia facial:
@@ -704,8 +728,10 @@ CONTEXTO:
   * Forma y grosor de labios
   * Tono de piel (fototipo de Fitzpatrick) y cualquier marca distintiva
 - Los catchlights en los ojos deben reflejar las fuentes de luz del escenario final
-- La persona debe ser INMEDIATAMENTE RECONOCIBLE como la misma de las fotos de referencia`
-      : `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (ANÁLISIS VISUAL DE FOTOS):
+- La persona debe ser INMEDIATAMENTE RECONOCIBLE como la misma de las fotos de referencia`;
+    } else if (hasReferencePhotos) {
+      // Tenemos fotos pero no análisis antropométrico
+      faceConsistencyInstructions = `INSTRUCCIONES CRÍTICAS DE CONSISTENCIA FACIAL (ANÁLISIS VISUAL DE FOTOS):
 - ANALIZA CUIDADOSAMENTE las fotos de referencia de "${identityName}" adjuntas a continuación
 - PRESERVA EXACTAMENTE la identidad facial observada en esas fotos:
   * Forma del rostro y estructura ósea (mandíbula, pómulos, mentón)
@@ -719,9 +745,23 @@ CONTEXTO:
 - Los catchlights en los ojos deben reflejar las fuentes de luz del escenario final
 - La persona debe ser INMEDIATAMENTE RECONOCIBLE como la misma de las fotos de referencia
 - CRÍTICO: Usa las fotos de referencia como tu guía PRINCIPAL para la identidad facial`;
+    } else {
+      // Solo tenemos descripción, no fotos
+      faceConsistencyInstructions = `INSTRUCCIONES CRÍTICAS DE GENERACIÓN BASADA EN DESCRIPCIÓN:
+- SIGUE FIELMENTE la descripción de "${identityName}" proporcionada arriba
+- Genera una persona que coincida EXACTAMENTE con los rasgos descritos:
+  * Género, edad aproximada y etnia mencionados en la descripción
+  * Características faciales específicas descritas
+  * Tono de piel, color de ojos y cabello según la descripción
+  * Cualquier rasgo distintivo mencionado (marcas, estilo, etc.)
+- La persona generada debe ser CONSISTENTE con la descripción en todos los aspectos
+- Si no hay suficiente detalle en la descripción, usa tu mejor juicio manteniendo coherencia
+- IMPORTANTE: Mantén la misma apariencia si se hacen múltiples generaciones`;
+    }
 
-    parts.push({
-      text: `Eres un COMPOSITOR DE IMÁGENES FOTORREALISTAS de nivel profesional, especializado en:
+    // Construir el texto principal del prompt
+    const mainPromptText = hasReferencePhotos
+      ? `Eres un COMPOSITOR DE IMÁGENES FOTORREALISTAS de nivel profesional, especializado en:
 - Mantener consistencia facial absoluta
 - Fusionar múltiples elementos de diferentes fuentes
 - Técnicas avanzadas de INPAINTING y composición por capas
@@ -741,20 +781,43 @@ OBJETIVO FINAL:
 - LA IDENTIDAD FACIAL DE "${identityName}" ES SAGRADA - NO DEBE CAMBIAR
 
 Fotos de referencia de "${identityName}" (USAR COMO GUÍA PRINCIPAL DE IDENTIDAD):`
-    });
+      : `Eres un GENERADOR DE IMÁGENES FOTORREALISTAS de nivel profesional, especializado en:
+- Crear representaciones visuales fieles a descripciones textuales
+- Mantener consistencia de personajes entre generaciones
+- Integración fotorrealista indistinguible de fotografía real
+- Composiciones naturales y realistas
 
-    // Añadir fotos de referencia de identidad (optimizadas)
-    const photosToUse = referencePhotos.slice(0, 3);
-    const refPhotoUrls = photosToUse.map(p => p.dataUrl);
-    const optimizedRefPhotos = await optimizeImagesForAPI(refPhotoUrls);
+${attachedImagesContext}${descriptionContext}
 
-    for (const optimizedUrl of optimizedRefPhotos) {
-      parts.push(createImagePart(optimizedUrl, 'image/jpeg'));
+${faceConsistencyInstructions}
+
+${compositionPrompt}
+
+OBJETIVO FINAL:
+- Genera una imagen fotorrealista de "${identityName}" siguiendo fielmente la descripción proporcionada
+- "${identityName}" debe aparecer NATURALMENTE INTEGRADO/A en el escenario
+- La imagen debe ser INDISTINGUIBLE de una fotografía real
+- Mantén coherencia con la descripción de la identidad en todos los aspectos visuales`;
+
+    parts.push({ text: mainPromptText });
+
+    // Añadir fotos de referencia de identidad si existen (optimizadas)
+    if (hasReferencePhotos) {
+      const photosToUse = referencePhotos!.slice(0, 3);
+      const refPhotoUrls = photosToUse.map(p => p.dataUrl);
+      const optimizedRefPhotos = await optimizeImagesForAPI(refPhotoUrls);
+
+      for (const optimizedUrl of optimizedRefPhotos) {
+        parts.push(createImagePart(optimizedUrl, 'image/jpeg'));
+      }
     }
 
-    parts.push({ text: `\n═══════════════════════════════════════════════════════════════
+    // Añadir separador para las imágenes adjuntas si hay alguna
+    if (attachedImages.length > 0) {
+      parts.push({ text: `\n═══════════════════════════════════════════════════════════════
 IMÁGENES ADJUNTAS POR EL USUARIO (${attachedImages.length} elemento${attachedImages.length > 1 ? 's' : ''} para ${isMultiElementComposition ? 'COMPOSICIÓN' : 'referencia'}):
 ═══════════════════════════════════════════════════════════════` });
+    }
   } else {
     // Sin identidad de referencia - composición general
     const generalCompositionContext = isMultiElementComposition
@@ -785,15 +848,17 @@ Imágenes adjuntadas:`;
   }
 
   // Añadir las imágenes adjuntas por el usuario (optimizadas para reducir tokens)
-  const attachedUrls = attachedImages.map(img => img.dataUrl);
-  const optimizedAttached = await optimizeImagesForAPI(attachedUrls);
+  if (attachedImages.length > 0) {
+    const attachedUrls = attachedImages.map(img => img.dataUrl);
+    const optimizedAttached = await optimizeImagesForAPI(attachedUrls);
 
-  for (let i = 0; i < attachedImages.length; i++) {
-    // Etiquetar cada imagen adjunta para mejor contexto
-    if (isMultiElementComposition) {
-      parts.push({ text: `\n[ELEMENTO ${i + 1} de ${attachedImages.length}]:` });
+    for (let i = 0; i < attachedImages.length; i++) {
+      // Etiquetar cada imagen adjunta para mejor contexto
+      if (isMultiElementComposition) {
+        parts.push({ text: `\n[ELEMENTO ${i + 1} de ${attachedImages.length}]:` });
+      }
+      parts.push(createImagePart(optimizedAttached[i], attachedImages[i].mimeType));
     }
-    parts.push(createImagePart(optimizedAttached[i], attachedImages[i].mimeType));
   }
 
   // Construir instrucciones finales según el tipo de composición
@@ -854,12 +919,19 @@ REQUISITOS DE INTEGRACIÓN FOTORREALISTA:
 - Aplica el mismo color grading y tonos de luz ambiente a la piel
 - Mantén perspectiva, escala y profundidad de campo consistentes
 - La persona debe interactuar naturalmente con el entorno (viento, reflejos, clima si aplica)
-${identityName ? `
-RECORDATORIO CRÍTICO DE IDENTIDAD:
-- MANTÉN la identidad facial EXACTA de "${identityName}" según las fotos de referencia
-- La persona debe ser RECONOCIBLE como la misma de las fotos de referencia
+${hasIdentityInfo ? (hasReferencePhotos ? `
+RECORDATORIO CRÍTICO DE IDENTIDAD (CON FOTOS DE REFERENCIA):
+- MANTÉN la identidad facial EXACTA de "${identityName}" según las fotos de referencia adjuntas arriba
+- La persona debe ser INMEDIATAMENTE RECONOCIBLE como la misma de las fotos de referencia
 - Cualquier modificación solicitada NO DEBE alterar los rasgos faciales característicos
-- Usa las fotos de referencia como tu guía principal para la identidad facial` : ''}
+- CRÍTICO: Las fotos de referencia son tu guía PRINCIPAL para la identidad facial
+- Si hay descripción adicional, úsala para complementar la información visual de las fotos` : `
+RECORDATORIO CRÍTICO DE IDENTIDAD (CON DESCRIPCIÓN):
+- GENERA a "${identityName}" siguiendo FIELMENTE la descripción proporcionada arriba
+- La persona debe coincidir EXACTAMENTE con los rasgos descritos (género, edad, etnia, características físicas)
+- Mantén CONSISTENCIA con la descripción en todos los aspectos visuales
+- IMPORTANTE: La descripción es tu guía PRINCIPAL para la identidad de "${identityName}"
+- Asegúrate de que la persona generada sea coherente con futuras generaciones basadas en la misma descripción`) : ''}
 
 Genera una imagen donde la persona aparezca como si REALMENTE hubiera estado en ese lugar.`;
 

@@ -225,8 +225,15 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
           selectedIdentity.description
         );
       } else {
-        // Generar con imágenes adjuntas solamente
-        imageUrl = await generateWithAttachedImages(prompt, attachedImages);
+        // Generar sin fotos pero con descripción de identidad si existe
+        // Usar generateWithAttachedImages con array vacío pero pasando la info de identidad
+        imageUrl = await generateWithAttachedImages(
+          prompt,
+          [],
+          [],
+          selectedIdentity.name,
+          selectedIdentity.description
+        );
       }
 
       // Upscale con WebGPU si está habilitado
