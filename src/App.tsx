@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Identity, GeneratedImage } from './types';
-import { getAllIdentities, getAllGeneratedImages, getIdentity, createEditingThread, getActiveEditingThreads } from './services/identityStore';
+import type { Identity, GeneratedImage, GeneratedVideo } from './types';
+import { getAllIdentities, getAllGeneratedImages, getAllGeneratedVideos, getIdentity, createEditingThread, getActiveEditingThreads } from './services/identityStore';
 import { getDeviceId } from './services/deviceStore';
 import { IdentityManager } from './components/IdentityManager';
 import { ImageGenerator } from './components/ImageGenerator';
@@ -17,6 +17,7 @@ function App() {
   const [identities, setIdentities] = useState<Identity[]>([]);
   const [selectedIdentity, setSelectedIdentity] = useState<Identity | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [generatedVideos, setGeneratedVideos] = useState<GeneratedVideo[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('generate');
   const [isLoading, setIsLoading] = useState(true);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -32,13 +33,15 @@ function App() {
     if (!deviceId) return;
 
     try {
-      const [ids, imgs, activeThreads] = await Promise.all([
+      const [ids, imgs, videos, activeThreads] = await Promise.all([
         getAllIdentities(deviceId),
         getAllGeneratedImages(deviceId),
+        getAllGeneratedVideos(deviceId),
         getActiveEditingThreads(deviceId)
       ]);
       setIdentities(ids);
       setGeneratedImages(imgs);
+      setGeneratedVideos(videos);
       setActiveThreadsCount(activeThreads.length);
 
       // Actualizar identidad seleccionada si existe
@@ -146,7 +149,7 @@ function App() {
                 className={`tab ${activeTab === 'gallery' ? 'active' : ''}`}
                 onClick={() => setActiveTab('gallery')}
               >
-                Galeria ({generatedImages.length})
+                Galeria ({generatedImages.length + generatedVideos.length})
               </button>
               <button
                 className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
@@ -176,6 +179,7 @@ function App() {
               {activeTab === 'gallery' && (
                 <Gallery
                   images={generatedImages}
+                  videos={generatedVideos}
                   identities={identities}
                   onRefresh={loadData}
                   onStartEditingThread={handleStartEditingThread}
