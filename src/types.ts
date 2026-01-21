@@ -164,6 +164,92 @@ export interface GeneratedVideo {
   updatedAt: number;
 }
 
+/** Modelo Veo disponible */
+export interface VeoModel {
+  id: string;
+  name: string;
+  version: '2.0' | '3.0' | '3.1';
+  supportsAudio: boolean;
+  supportsEnhancePrompt: boolean;
+  durationRange: {
+    min: number;
+    max: number;
+    allowed?: number[];
+  };
+  defaultDuration: number;
+  resolutions: string[];
+  supportsReferenceImages: boolean;
+  supportsStyleImages?: boolean;
+  supportsLastFrame?: boolean;
+  supportsVideoExtension?: boolean;
+  supportsMask?: boolean;
+}
+
+/** Tipo de imagen de referencia para Veo */
+export type VeoReferenceType = 'asset' | 'style';
+
+/** Imagen de referencia para generación de video */
+export interface VeoReferenceImage {
+  imageUrl: string;
+  referenceType: VeoReferenceType;
+}
+
+/** Opciones de generación de video Veo */
+export interface VeoGenerationOptions {
+  /** ID del modelo a usar (default: veo-3.1-generate-preview) */
+  modelId?: string;
+  /** Relación de aspecto del video ("16:9" | "9:16") */
+  aspectRatio?: '16:9' | '9:16';
+  /** Duración del video en segundos */
+  durationSeconds?: number;
+  /** Generar audio con el video (requerido para Veo 3+) */
+  generateAudio?: boolean;
+  /** Resolución del video ("720p" | "1080p" | "4k") */
+  resolution?: '720p' | '1080p' | '4k';
+  /** Número de videos a generar (1-4) */
+  sampleCount?: number;
+  /** Control de generación de personas */
+  personGeneration?: 'allow_adult' | 'dont_allow' | 'allow_all';
+  /** Prompt negativo para evitar ciertos elementos */
+  negativePrompt?: string;
+  /** Mejorar prompt con Gemini (solo Veo 2) */
+  enhancePrompt?: boolean;
+  /** Seed para reproducibilidad */
+  seed?: number;
+  /** URI de Google Cloud Storage para guardar resultados */
+  storageUri?: string;
+  /** Modo de redimensionado para imagen a video (solo Veo 3) */
+  resizeMode?: 'pad' | 'crop';
+  /** Calidad de compresión */
+  compressionQuality?: 'optimized' | 'lossless';
+  // Identity context
+  /** Nombre de la identidad para consistencia facial */
+  identityName?: string;
+  /** Descripción de la identidad */
+  identityDescription?: string;
+  /** Descripciones faciales de las fotos de referencia */
+  faceDescriptions?: string[];
+  // Reference images
+  /** Imágenes de referencia (asset o style) */
+  referenceImages?: VeoReferenceImage[];
+  /** Último frame para interpolación */
+  lastFrame?: string;
+}
+
+/** Video generado en la respuesta de Veo */
+export interface VeoGeneratedVideo {
+  /** URI de Google Cloud Storage del video */
+  gcsUri?: string;
+  /** Video codificado en base64 */
+  bytesBase64Encoded?: string;
+  /** Tipo MIME del video */
+  mimeType?: string;
+  /** URI del video (formato anterior) */
+  uri?: string;
+  /** Codificación del video */
+  encoding?: string;
+}
+
 /** Respuesta de la API de Veo para generación de video */
 export interface VeoResponse {
   name?: string;
@@ -172,6 +258,14 @@ export interface VeoResponse {
     '@type': string;
   };
   response?: {
+    '@type'?: string;
+    /** Número de videos filtrados por políticas de IA responsable */
+    raiMediaFilteredCount?: number;
+    /** Razones de filtrado */
+    raiMediaFilteredReasons?: string[];
+    /** Videos generados (formato nuevo) */
+    videos?: VeoGeneratedVideo[];
+    /** Formato anterior de respuesta */
     generateVideoResponse?: {
       generatedSamples?: Array<{
         video?: {
@@ -185,5 +279,10 @@ export interface VeoResponse {
     code: number;
     message: string;
     status: string;
+    details?: Array<{
+      '@type'?: string;
+      reason?: string;
+      metadata?: Record<string, string>;
+    }>;
   };
 }
