@@ -199,6 +199,8 @@ function App() {
                   deviceId={deviceId}
                   galleryImages={generatedImages}
                   selectedIdentity={selectedIdentity}
+                  identities={identities}
+                  onSelectIdentity={handleSelectIdentity}
                   onRefresh={loadData}
                 />
               )}
