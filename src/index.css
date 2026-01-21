@@ -2577,3 +2577,336 @@ textarea {
     max-width: 95vw;
   }
 }
+
+/* ==========================================================================
+   Video Generator Module - Generacion de Videos con Veo 3
+   ========================================================================== */
+
+.video-generator {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.video-generator .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+  border-bottom: none;
+  margin-bottom: 1.5rem;
+}
+
+.video-generator .panel-header h2 {
+  font-size: 1.25rem;
+}
+
+/* Source Section */
+.video-source-section {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.video-source-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.video-source-section h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.identity-badge {
+  padding: 0.25rem 0.75rem;
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--primary-light);
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.selected-source {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.source-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.source-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.source-identity {
+  font-weight: 600;
+  color: var(--primary-light);
+  font-size: 0.9rem;
+}
+
+.source-prompt {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.source-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  border: 2px dashed var(--border);
+  border-radius: 0.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 0.75rem;
+}
+
+.source-placeholder:hover {
+  border-color: var(--primary);
+  color: var(--text-secondary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.source-placeholder p {
+  font-size: 0.875rem;
+}
+
+/* Prompt Section */
+.video-prompt-section {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.video-prompt-section h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.video-prompt-section textarea {
+  min-height: 100px;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Video Preview Section */
+.video-preview-section {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.video-preview-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.video-preview-section h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.video-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.video-player-container {
+  position: relative;
+  width: 100%;
+  background: var(--bg-dark);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.video-player-container video {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  display: block;
+}
+
+.video-player-container canvas {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  display: block;
+}
+
+.video-info {
+  padding: 0.5rem 0;
+}
+
+.video-identity {
+  font-weight: 600;
+  color: var(--primary-light);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.video-prompt {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.video-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Videos Gallery */
+.videos-gallery {
+  margin-top: 2rem;
+}
+
+.videos-gallery h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.video-card {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.video-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.video-card.selected {
+  border-color: var(--primary);
+}
+
+.video-thumbnail {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: var(--bg-dark);
+  overflow: hidden;
+}
+
+.video-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.video-card:hover .video-play-icon {
+  opacity: 1;
+  background: var(--primary);
+}
+
+.video-card-info {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.video-card-identity {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-card-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Gallery Filter in Modal */
+.gallery-filter {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.gallery-filter select {
+  width: 100%;
+}
+
+/* Video Generator Responsive */
+@media (max-width: 768px) {
+  .video-generator {
+    padding: 0 0.5rem;
+  }
+
+  .selected-source {
+    flex-direction: column;
+  }
+
+  .source-preview {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+  }
+
+  .videos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .video-player-container video,
+  .video-player-container canvas {
+    max-height: 250px;
+  }
+}

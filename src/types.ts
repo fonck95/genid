@@ -130,3 +130,58 @@ export interface EditingThread {
   createdAt: number;
   updatedAt: number;
 }
+
+/** Estado de generación de video */
+export type VideoGenerationStatus = 'pending' | 'generating' | 'processing' | 'completed' | 'failed';
+
+/** Representa un video generado */
+export interface GeneratedVideo {
+  id: string;
+  deviceId: string;
+  /** ID de la identidad asociada */
+  identityId?: string;
+  /** Nombre de la identidad para referencia rápida */
+  identityName?: string;
+  /** Prompt usado para generar el video */
+  prompt: string;
+  /** URL de la imagen base usada para generar el video */
+  sourceImageUrl: string;
+  /** Thumbnail de la imagen base */
+  sourceImageThumbnail: string;
+  /** URL del video generado (Cloudinary o base64) */
+  videoUrl: string;
+  /** ID de Cloudinary del video */
+  cloudinaryId?: string;
+  /** Duración del video en segundos */
+  duration: number;
+  /** Estado de la generación */
+  status: VideoGenerationStatus;
+  /** Mensaje de error si falló */
+  errorMessage?: string;
+  /** Timestamp de creación */
+  createdAt: number;
+  /** Timestamp de última actualización */
+  updatedAt: number;
+}
+
+/** Respuesta de la API de Veo para generación de video */
+export interface VeoResponse {
+  name?: string;
+  done?: boolean;
+  metadata?: {
+    '@type': string;
+  };
+  response?: {
+    generatedSamples?: Array<{
+      video?: {
+        uri?: string;
+        encoding?: string;
+      };
+    }>;
+  };
+  error?: {
+    code: number;
+    message: string;
+    status: string;
+  };
+}
