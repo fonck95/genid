@@ -7,12 +7,20 @@ const VERTEX_API_KEY = import.meta.env.VITE_APP_API_KEY_VERTEX;
 // Modelo de Veo 3.1 para generación de video
 const VEO_MODEL = 'veo-3.1-generate-preview';
 
-// URL base para la API de generación de video
-const VEO_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${VEO_MODEL}:predictLongRunning`;
+// URL base para la API de generación de video usando Vertex AI Express Mode
+// Express mode soporta autenticación con API Key (no requiere OAuth2)
+// Formato: https://aiplatform.googleapis.com/v1beta1/publishers/google/models/{model}:predictLongRunning
+const VEO_API_URL = `https://aiplatform.googleapis.com/v1beta1/publishers/google/models/${VEO_MODEL}:predictLongRunning`;
 
-// URL para verificar el estado de operaciones
-const getOperationUrl = (operationName: string) =>
-  `https://generativelanguage.googleapis.com/v1beta/${operationName}`;
+// URL para verificar el estado de operaciones en Vertex AI Express Mode
+const getOperationUrl = (operationName: string) => {
+  // Si el operationName ya incluye el path completo, usar el endpoint base
+  if (operationName.startsWith('operations/')) {
+    return `https://aiplatform.googleapis.com/v1beta1/${operationName}`;
+  }
+  // Si es solo un ID, construir el path completo
+  return `https://aiplatform.googleapis.com/v1beta1/operations/${operationName}`;
+};
 
 // System prompt para consistencia de rostro en generación de video
 const VIDEO_FACE_CONSISTENCY_PROMPT = `
@@ -211,43 +219,58 @@ export async function startVideoGeneration(
   if (!response.ok) {
     const errorText = await response.text();
 
-    // Check for API key not supported error (401 UNAUTHENTICATED)
+    // Check for authentication errors (401 UNAUTHENTICATED)
     if (response.status === 401) {
       try {
         const errorData = JSON.parse(errorText);
         const errorInfo = errorData?.error;
 
-        // Check if it's the "API keys not supported" error
+        // Check for API key issues
         if (errorInfo?.status === 'UNAUTHENTICATED' || errorInfo?.code === 401) {
-          const isApiKeyNotSupported = errorInfo?.message?.includes('API keys are not supported') ||
-            errorInfo?.details?.some((d: { reason?: string }) => d.reason === 'CREDENTIALS_MISSING');
+          const isInvalidApiKey = errorInfo?.message?.includes('API key not valid') ||
+            errorInfo?.message?.includes('invalid') ||
+            errorInfo?.details?.some((d: { reason?: string }) => d.reason === 'API_KEY_INVALID');
 
-          if (isApiKeyNotSupported) {
+          if (isInvalidApiKey) {
             throw new Error(
-              '⚠️ Autenticación No Compatible\n\n' +
-              'La API de generación de video (Veo) requiere autenticación OAuth2 y no soporta API Keys.\n\n' +
+              '⚠️ API Key Inválida\n\n' +
+              'La API Key proporcionada no es válida o no tiene permisos para Vertex AI.\n\n' +
               'Para resolver este problema:\n\n' +
-              '1. **Opción Recomendada - Usar Vertex AI:**\n' +
-              '   • Habilita Vertex AI API en tu proyecto de Google Cloud\n' +
-              '   • Configura una cuenta de servicio con credenciales OAuth2\n' +
-              '   • Más info: https://cloud.google.com/vertex-ai/docs/authentication\n\n' +
-              '2. **Opción Alternativa - Google AI Studio:**\n' +
-              '   • Usa Google AI Studio para generar videos manualmente\n' +
-              '   • https://aistudio.google.com/\n\n' +
-              'Nota: La generación de video con Veo actualmente requiere autenticación OAuth2,\n' +
-              'no es posible usar solo una API Key para este endpoint específico.'
+              '1. **Verifica tu API Key:**\n' +
+              '   • Ve a https://console.cloud.google.com/apis/credentials\n' +
+              '   • Asegúrate de que la API Key esté activa\n' +
+              '   • Verifica que no tenga restricciones que bloqueen Vertex AI\n\n' +
+              '2. **Habilita Vertex AI API:**\n' +
+              '   • Ve a https://console.cloud.google.com/apis/library/aiplatform.googleapis.com\n' +
+              '   • Haz clic en "Habilitar" si no está habilitada\n\n' +
+              '3. **Asegúrate de usar una API Key de Express Mode:**\n' +
+              '   • Visita https://aistudio.google.com/apikey\n' +
+              '   • Genera una nueva API Key si es necesario'
             );
           }
-        }
-      } catch (parseError) {
-        // If parsing fails but error text mentions API keys
-        if (errorText.includes('API keys are not supported') || errorText.includes('CREDENTIALS_MISSING')) {
+
+          // Generic authentication error
           throw new Error(
-            '⚠️ Autenticación No Compatible\n\n' +
-            'La API de generación de video requiere OAuth2, no API Keys.\n' +
-            'Visita https://cloud.google.com/vertex-ai/docs/authentication para más información.'
+            '⚠️ Error de Autenticación\n\n' +
+            'No se pudo autenticar con la API de Vertex AI.\n\n' +
+            'Verifica que:\n' +
+            '• Tu API Key (VITE_APP_API_KEY_VERTEX) sea correcta\n' +
+            '• Vertex AI API esté habilitada en tu proyecto\n' +
+            '• La API Key tenga los permisos necesarios\n\n' +
+            `Detalle: ${errorInfo?.message || 'Error de autenticación'}`
           );
         }
+      } catch (parseError) {
+        // If parseError is our thrown error, rethrow it
+        if (parseError instanceof Error && parseError.message.includes('⚠️')) {
+          throw parseError;
+        }
+        // Generic auth error for unparseable responses
+        throw new Error(
+          '⚠️ Error de Autenticación\n\n' +
+          'No se pudo autenticar con la API de Vertex AI.\n' +
+          'Verifica tu API Key y que Vertex AI esté habilitada en tu proyecto.'
+        );
       }
     }
 
@@ -264,24 +287,28 @@ export async function startVideoGeneration(
           )?.metadata;
 
           const activationUrl = metadata?.activationUrl;
-          const serviceName = metadata?.serviceTitle || 'Generative Language API';
+          const serviceName = metadata?.serviceTitle || 'Vertex AI API';
 
           throw new Error(
             `⚠️ API No Habilitada: ${serviceName}\n\n` +
             `Para usar la generación de video, necesitas habilitar la API en Google Cloud:\n\n` +
-            `1. Visita: ${activationUrl || 'https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com'}\n` +
+            `1. Visita: ${activationUrl || 'https://console.cloud.google.com/apis/library/aiplatform.googleapis.com'}\n` +
             `2. Haz clic en "Habilitar" o "Enable"\n` +
             `3. Espera 2-3 minutos para que se propague\n` +
             `4. Intenta generar el video nuevamente`
           );
         }
       } catch (parseError) {
+        // If parseError is our thrown error, rethrow it
+        if (parseError instanceof Error && parseError.message.includes('⚠️')) {
+          throw parseError;
+        }
         // If parsing fails, check if error message contains key indicators
         if (errorText.includes('SERVICE_DISABLED') || errorText.includes('has not been used')) {
           throw new Error(
             `⚠️ API No Habilitada\n\n` +
-            `Para usar la generación de video, habilita la Generative Language API:\n` +
-            `https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com\n\n` +
+            `Para usar la generación de video, habilita Vertex AI API:\n` +
+            `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com\n\n` +
             `Después de habilitarla, espera 2-3 minutos e intenta de nuevo.`
           );
         }
@@ -315,23 +342,22 @@ export async function checkVideoGenerationStatus(operationName: string): Promise
   if (!response.ok) {
     const errorText = await response.text();
 
-    // Handle API key not supported errors (401)
+    // Handle authentication errors (401)
     if (response.status === 401) {
-      if (errorText.includes('API keys are not supported') || errorText.includes('CREDENTIALS_MISSING')) {
-        throw new Error(
-          '⚠️ Autenticación No Compatible\n\n' +
-          'La API de generación de video requiere OAuth2, no API Keys.\n' +
-          'Visita https://cloud.google.com/vertex-ai/docs/authentication para más información.'
-        );
-      }
+      throw new Error(
+        '⚠️ Error de Autenticación\n\n' +
+        'No se pudo autenticar para verificar el estado del video.\n' +
+        'Verifica tu API Key y que Vertex AI esté habilitada en tu proyecto.\n\n' +
+        'Obtén una API Key en: https://aistudio.google.com/apikey'
+      );
     }
 
     // Handle API disabled errors
     if (response.status === 403 && (errorText.includes('SERVICE_DISABLED') || errorText.includes('has not been used'))) {
       throw new Error(
         `⚠️ API No Habilitada\n\n` +
-        `Habilita la Generative Language API:\n` +
-        `https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com`
+        `Habilita Vertex AI API:\n` +
+        `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com`
       );
     }
 
