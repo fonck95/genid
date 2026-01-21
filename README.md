@@ -14,8 +14,41 @@ A web application for generating AI videos using Google Cloud Vertex AI's Veo 3.
 
 1. **Google Cloud Project** with billing enabled
 2. **Vertex AI API** enabled
-3. **OAuth2 Credentials** configured
+3. **OAuth2 Credentials** configured (for user authentication)
 4. **IAM Permissions** for the users
+
+## Important: Vertex AI Authentication
+
+**Vertex AI does NOT use API keys like the Gemini API.** It requires OAuth2 access tokens.
+
+There are two ways to authenticate:
+
+### Option 1: Google OAuth Login (Recommended)
+
+Configure OAuth2 credentials and users will log in with their Google account. The app automatically handles token refresh.
+
+**Requirements:**
+- OAuth2 Client ID and Secret configured
+- User must have "Vertex AI User" role in the Google Cloud project
+- OAuth consent screen configured with required scopes
+
+### Option 2: Manual Access Token (Advanced/Development)
+
+For development or testing, you can use a manually generated access token:
+
+```bash
+# Install gcloud CLI: https://cloud.google.com/sdk/docs/install
+gcloud auth login
+gcloud auth print-access-token
+# Copy the token (starts with "ya29.")
+```
+
+Then set: `VITE_APP_API_KEY_VERTEX=ya29.xxx...`
+
+**Important:**
+- Access tokens expire after ~1 hour
+- You'll need to regenerate and update the token periodically
+- This is NOT a permanent API key
 
 ## Setup Instructions
 
@@ -75,8 +108,13 @@ Users need the following IAM roles to use Vertex AI:
 Create a `.env` file in the project root:
 
 ```env
-# Google Cloud Project ID
+# ═══════════════════════════════════════════════════════════════
+# GOOGLE CLOUD PROJECT CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+
+# Google Cloud Project ID (REQUIRED)
 # Can be the project ID directly or a service account email
+# Example: my-project-123 or vertex@my-project-123.iam.gserviceaccount.com
 VITE_APP_ID_VERTEX=your-project-id
 
 # Alternative project ID variables (fallback order)
@@ -87,14 +125,32 @@ VITE_APP_ID_VERTEX=your-project-id
 # See supported regions below
 VITE_VERTEX_LOCATION=us-central1
 
-# OAuth2 Credentials
+# ═══════════════════════════════════════════════════════════════
+# OAUTH2 CREDENTIALS (REQUIRED for authentication)
+# ═══════════════════════════════════════════════════════════════
+
+# Get these from Google Cloud Console > APIs & Services > Credentials
 VITE_APP_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 VITE_APP_GOOGLE_CLIENT_SECRET=your-client-secret
 
 # OAuth Callback URL (optional, defaults to {origin}/auth/callback)
 # VITE_APP_GOOGLE_CALLBACK_URL=http://localhost:5173/auth/callback
 
-# Gemini API Key (for face analysis)
+# ═══════════════════════════════════════════════════════════════
+# OPTIONAL: FALLBACK ACCESS TOKEN
+# ═══════════════════════════════════════════════════════════════
+
+# For development/testing when OAuth is not available
+# IMPORTANT: Must be a valid OAuth2 access token (starts with "ya29.")
+# Generate with: gcloud auth print-access-token
+# NOTE: Tokens expire after ~1 hour!
+# VITE_APP_API_KEY_VERTEX=ya29.xxx...
+
+# ═══════════════════════════════════════════════════════════════
+# GEMINI API (for face analysis)
+# ═══════════════════════════════════════════════════════════════
+
+# Get from: https://aistudio.google.com/app/apikey
 VITE_APP_API_KEY_GOOGLE=your-gemini-api-key
 ```
 
@@ -129,6 +185,23 @@ npm run build
 
 ## Troubleshooting
 
+### "Autenticacion Requerida" Error
+
+**Cause:** No valid authentication available
+
+**Solutions:**
+
+1. **Log in with Google OAuth** (recommended)
+   - Click "Iniciar sesión con Google" button
+   - Ensure your Google account has access to the configured project
+   - Ensure you have the "Vertex AI User" role in IAM
+
+2. **If using `VITE_APP_API_KEY_VERTEX`**
+   - This must be a valid OAuth2 access token (starts with `ya29.`)
+   - Generate with: `gcloud auth print-access-token`
+   - Tokens expire after ~1 hour - regenerate if needed
+   - **Common mistake:** Using an API key or refresh token instead of an access token
+
 ### 403 Permission Denied
 
 **Possible causes:**
@@ -139,8 +212,9 @@ npm run build
    - Wait 2-3 minutes after enabling
 
 2. **Missing IAM permissions**
-   - Your Google account needs the "Vertex AI User" role or similar
-   - Go to IAM & Admin > IAM and add the role
+   - Your Google account needs the "Vertex AI User" role
+   - Go to: IAM & Admin > IAM
+   - Add role: `roles/aiplatform.user`
 
 3. **Incorrect Project ID**
    - Verify `VITE_APP_ID_VERTEX` matches your Google Cloud project ID
@@ -148,7 +222,7 @@ npm run build
 
 4. **User not in project**
    - The logged-in Google account must have access to the project
-   - Add the user to the project IAM
+   - Add the user in IAM with appropriate role
 
 ### 401 Unauthenticated
 
@@ -159,6 +233,10 @@ npm run build
 
 2. **Invalid OAuth credentials**
    - Verify `VITE_APP_GOOGLE_CLIENT_ID` and `VITE_APP_GOOGLE_CLIENT_SECRET`
+
+3. **Expired access token** (if using `VITE_APP_API_KEY_VERTEX`)
+   - Regenerate: `gcloud auth print-access-token`
+   - Update the environment variable
 
 ### 400 Bad Request - RESOURCE_PROJECT_INVALID
 
@@ -178,6 +256,16 @@ If using a service account email, the project ID will be extracted automatically
 VITE_APP_ID_VERTEX=vertex-service@my-project-123.iam.gserviceaccount.com
 # Will extract: my-project-123
 ```
+
+### Common Mistakes
+
+| Mistake | Solution |
+|---------|----------|
+| Using Gemini API key for Vertex AI | Vertex AI requires OAuth tokens, not API keys |
+| Using `VITE_APP_API_KEY_VERTEX` with a refresh token | Must be an access token starting with `ya29.` |
+| Not logging in via OAuth | Click "Iniciar sesión con Google" button |
+| User not added to project IAM | Add user with "Vertex AI User" role |
+| Access token expired | Log out and log in again, or regenerate with gcloud |
 
 ## API Reference
 
