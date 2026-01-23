@@ -1,4 +1,14 @@
-import type { GeminiResponse, IdentityPhoto, AttachedImage, FaceVariantType } from '../types';
+import type {
+  GeminiResponse,
+  IdentityPhoto,
+  AttachedImage,
+  FaceVariantType,
+  FaceEthnicity,
+  FaceAgeRange,
+  FaceSex,
+  FacialAccessory,
+  FaceVariantOptions
+} from '../types';
 import { downscaleImage, defaultOptimizationConfig, type ImageOptimizationConfig } from './imageOptimizer';
 
 // API Key desde variable de entorno
@@ -1000,147 +1010,232 @@ export async function analyzeFaceForConsistency(imageUrl: string): Promise<strin
   throw new Error('No se generó descripción del rostro');
 }
 
-// System prompt para generación de variantes de rostro con belleza matemática
+// System prompt para generación de variantes de rostro - ENFOCADO EN REALISMO
 const FACE_VARIANTS_SYSTEM_PROMPT = `[ROL]
-Eres un experto en generación de retratos fotorrealistas con conocimientos avanzados en:
-- Antropometría y proporciones áureas faciales
-- Estándares de belleza matemática (proporción phi 1.618)
-- Características fenotípicas de diferentes grupos étnicos
-- Fotografía de retrato profesional
+Eres un experto en RETOQUE FOTOGRÁFICO REALISTA especializado en:
+- Transformación facial manteniendo la estructura ósea original
+- Adaptación étnica preservando la identidad única de cada rostro
+- Fotografía de retrato de alta gama
 
-[OBJETIVO]
-A partir de una imagen de referencia de un rostro, debes generar una NUEVA versión del rostro que:
-1. PRESERVE la esencia y estructura base del rostro original (forma general, expresión)
-2. ADAPTE los rasgos fenotípicos al grupo étnico especificado
-3. OPTIMICE las proporciones según los estándares de belleza matemática
+[OBJETIVO CRÍTICO]
+Tu tarea es crear una VARIACIÓN REALISTA del rostro de la imagen de referencia que:
+1. CONSERVE AL MÁXIMO la estructura ósea, forma del cráneo y proporciones únicas del rostro original
+2. MANTENGA la misma expresión, pose exacta y ángulo de cámara
+3. ADAPTE únicamente los rasgos fenotípicos superficiales (tono de piel, textura de cabello, color de ojos)
+4. PRESERVE los "anclajes de identidad": forma de ojos, estructura nasal base, forma de labios, línea de mandíbula
 
-[PRINCIPIOS DE BELLEZA MATEMÁTICA A APLICAR]
-- Proporción Áurea (Phi = 1.618): La distancia entre ojos debe ser aproximadamente 1/1.618 del ancho total de la cara
-- Regla de los Tercios: El rostro dividido horizontalmente en tres partes iguales (frente, nariz, mentón)
-- Simetría Bilateral: Máxima simetría posible en rasgos faciales
-- Triángulo de la Juventud: Pómulos prominentes que enmarcan el rostro
-- Ángulo Nasolabial Óptimo: Entre 90-105 grados
-- Proporción Labial: Labio inferior 1.618 veces más grueso que el superior
+[REGLAS DE CONSERVACIÓN DE ESENCIA - OBLIGATORIAS]
+- La SILUETA del rostro debe ser IDÉNTICA a la original
+- La DISTANCIA ENTRE OJOS debe mantenerse exacta
+- La PROPORCIÓN frente/nariz/mentón debe ser la misma
+- Las CICATRICES, LUNARES o MARCAS distintivas deben conservarse (son parte de la identidad)
+- La EXPRESIÓN EMOCIONAL debe ser exactamente la misma
 
-[INSTRUCCIONES TÉCNICAS DE IMAGEN]
-- Mantener la MISMA pose, ángulo de cámara y expresión del rostro original
-- Iluminación profesional de estudio: luz principal suave a 45°, fill light, rim light sutil
-- Calidad de retrato profesional (equivalente a 85mm f/1.8)
-- Piel con textura natural (poros visibles pero sutiles, sin efecto "plástico")
-- Ojos con catchlights naturales que reflejen las fuentes de luz
-- Resolución y nitidez uniformes`;
+[TÉCNICA DE TRANSFORMACIÓN]
+Piensa en esto como un "cambio de casting" para una película:
+- El actor cambia pero la POSE de la foto permanece idéntica
+- La iluminación es la misma
+- Solo cambian las características étnicas superficiales
 
-// Características específicas por variante étnica
-const FACE_VARIANT_CHARACTERISTICS: Record<FaceVariantType, string> = {
-  afroamerican: `[VARIANTE AFROAMERICANA - CARACTERÍSTICAS A APLICAR]
+[CALIDAD FOTOGRÁFICA]
+- Fotografía de retrato profesional (equivalente a 85mm f/2.0)
+- Piel con TEXTURA REAL: poros visibles, imperfecciones naturales menores
+- EVITA el efecto "piel de plástico" o "aerógrafo excesivo"
+- Ojos con reflejos naturales y humedad realista
+- Iluminación coherente con la imagen original`;
 
-ESTRUCTURA FACIAL:
-- Estructura ósea definida con pómulos altos y prominentes
-- Mandíbula bien definida con ángulos suaves pero marcados
-- Frente proporcionada con línea de cabello natural
+// Características específicas por etnia - AMPLIADAS
+const FACE_ETHNICITY_CHARACTERISTICS: Record<FaceEthnicity, string> = {
+  afroamerican: `[ETNIA AFROAMERICANA]
+PIEL: Fototipo Fitzpatrick IV-VI, tonos desde marrón claro hasta ébano profundo, subtones cálidos dorados/rojizos
+RASGOS: Nariz con puente moderadamente ancho, labios con volumen natural, estructura ósea con pómulos pronunciados
+CABELLO: Textura afro (rizos tipo 3c-4c), puede estar natural, trenzado o estilizado
+OJOS: Típicamente marrones oscuros, forma almendrada`,
 
-RASGOS ESPECÍFICOS:
-- Nariz: Puente moderadamente ancho, aletas nasales suaves y proporcionadas
-- Labios: Bermellón completo y bien definido, arco de Cupido marcado
-- Ojos: Forma almendrada con pestañas naturalmente densas
-- Cejas: Arco natural, grosor medio-completo
+  latin: `[ETNIA LATINA/HISPANA]
+PIEL: Fototipo Fitzpatrick III-V, tonos oliva a canela, subtones cálidos
+RASGOS: Gran diversidad - mezcla de rasgos indígenas, europeos y africanos. Pómulos definidos, nariz variable
+CABELLO: Predominantemente oscuro (negro a castaño), texturas desde lacio a ondulado
+OJOS: Marrones predominantes, también verdes/avellana en algunas regiones`,
 
-PIEL Y TONO:
-- Fototipo Fitzpatrick IV-VI
-- Tono cálido con subtones dorados/rojizos
-- Luminosidad natural en pómulos y puente nasal
-- Textura uniforme con brillo saludable
+  caucasian: `[ETNIA CAUCÁSICA/EUROPEA]
+PIEL: Fototipo Fitzpatrick I-III, tonos porcelana a beige, subtones rosados o neutros
+RASGOS: Estructura ósea angular, nariz con puente definido, labios de grosor medio
+CABELLO: Variedad de colores (rubio, castaño, pelirrojo), texturas lacio a ondulado
+OJOS: Gran variedad de colores (azul, verde, gris, avellana, marrón)`,
 
-CABELLO (si visible):
-- Textura afro natural o estilizado (rizos definidos, trenzas, etc.)
-- Línea de cabello natural y bien definida`,
+  asian: `[ETNIA ASIÁTICA ORIENTAL]
+PIEL: Fototipo Fitzpatrick II-IV, tonos beige a dorado claro, subtones amarillos/neutros
+RASGOS: Estructura facial más plana, pliegue epicántico común, nariz con puente bajo a medio, pómulos anchos
+CABELLO: Negro o castaño muy oscuro, textura predominantemente lacia y gruesa
+OJOS: Marrones oscuros, forma almendrada con pliegue epicántico variable`,
 
-  latin: `[VARIANTE LATINA - CARACTERÍSTICAS A APLICAR]
+  middleeastern: `[ETNIA MEDIO ORIENTE/NORTE DE ÁFRICA]
+PIEL: Fototipo Fitzpatrick III-V, tonos oliva a bronce, subtones cálidos
+RASGOS: Nariz prominente con perfil definido, cejas gruesas naturales, estructura ósea marcada
+CABELLO: Negro a castaño oscuro, textura ondulada a rizada, grueso
+OJOS: Marrones oscuros a claros, forma expresiva y almendrada`,
 
-ESTRUCTURA FACIAL:
-- Rostro ovalado o ligeramente corazón
-- Pómulos altos con contorno suave
-- Mentón proporcionado y definido
+  southasian: `[ETNIA SUR DE ASIA (India, Pakistán, Bangladesh)]
+PIEL: Fototipo Fitzpatrick IV-VI, amplia gama desde trigo claro hasta marrón oscuro
+RASGOS: Estructura facial ovalada, nariz variada (desde perfilada hasta más ancha), labios definidos
+CABELLO: Negro predominante, textura desde lacio a ondulado, grueso
+OJOS: Marrones oscuros predominantes, forma expresiva grande`,
 
-RASGOS ESPECÍFICOS:
-- Nariz: Perfil recto o ligeramente aquilino, punta definida
-- Labios: Grosor medio-completo, muy bien definidos
-- Ojos: Expresivos, forma variada (almendrada a redondeada), color marrón oscuro a avellana
-- Cejas: Bien definidas, arqueadas, grosor natural
+  mixed: `[ETNIA MIXTA/MESTIZA]
+PIEL: Cualquier tono, combinación única de subtones
+RASGOS: Combinación armónica de características de múltiples orígenes étnicos
+CABELLO: Cualquier color y textura, a menudo con características únicas
+OJOS: Cualquier color, formas variadas`
+};
 
-PIEL Y TONO:
-- Fototipo Fitzpatrick III-IV
-- Tonos oliva a canela cálidos
-- Bronceado natural y uniforme
-- Subtones cálidos (dorados, melocotón)
+// Características por rango de edad
+const FACE_AGE_CHARACTERISTICS: Record<FaceAgeRange, string> = {
+  '18-25': `[EDAD 18-25 AÑOS]
+- Piel tersa con colágeno abundante, mínimas líneas de expresión
+- Contorno facial definido y juvenil
+- Labios con volumen natural máximo
+- Sin signos visibles de envejecimiento`,
 
-CABELLO (si visible):
-- Textura ondulada a lacia, negro o castaño oscuro
-- Brillo natural y saludable
-- Volumen medio a alto`,
+  '26-35': `[EDAD 26-35 AÑOS]
+- Piel madura pero todavía elástica
+- Posibles líneas finas incipientes al sonreír
+- Rostro en su plenitud adulta
+- Rasgos completamente definidos`,
 
-  caucasian: `[VARIANTE CAUCÁSICA/ANGLOSAJONA - CARACTERÍSTICAS A APLICAR]
+  '36-45': `[EDAD 36-45 AÑOS]
+- Líneas de expresión visibles (patas de gallo leves, líneas de la frente)
+- Posible inicio de pérdida de elasticidad
+- Madurez facial evidente pero atractiva
+- Puede haber leve pérdida de volumen en mejillas`,
 
-ESTRUCTURA FACIAL:
-- Estructura ósea definida con ángulos nítidos
-- Mandíbula marcada y definida
-- Pómulos altos con contorno angular
+  '46-55': `[EDAD 46-55 AÑOS]
+- Arrugas más marcadas pero naturales
+- Pérdida moderada de elasticidad facial
+- Posibles canas visibles si el cabello está incluido
+- Textura de piel más madura con carácter`,
 
-RASGOS ESPECÍFICOS:
-- Nariz: Puente recto y definido, punta proporcionada
-- Labios: Grosor medio, bermellón rosado bien definido
-- Ojos: Variedad de colores (azul, verde, avellana), forma redondeada a almendrada
-- Cejas: Bien definidas, arco natural, tonos claros a medios
+  '56+': `[EDAD 56+ AÑOS]
+- Arrugas profundas y líneas de expresión establecidas
+- Pérdida de volumen facial notoria
+- Piel con textura madura y sabia
+- Cabello probablemente canoso o encanecido`
+};
 
-PIEL Y TONO:
-- Fototipo Fitzpatrick I-III
-- Tonos porcelana a melocotón
-- Subtones fríos (rosados) o neutros
-- Pecas sutiles opcionales (aspecto natural)
+// Características por sexo
+const FACE_SEX_CHARACTERISTICS: Record<FaceSex, string> = {
+  female: `[SEXO FEMENINO]
+- Rasgos más suaves y redondeados
+- Mandíbula menos angulosa
+- Cejas más arqueadas y definidas
+- Labios proporcionalmente más llenos
+- Ausencia de vello facial visible
+- Pómulos más pronunciados`,
 
-CABELLO (si visible):
-- Texturas variadas (lacio a ondulado)
-- Colores rubio a castaño
-- Brillo natural y textura definida`
+  male: `[SEXO MASCULINO]
+- Rasgos más angulosos y definidos
+- Mandíbula más cuadrada y marcada
+- Cejas más rectas y gruesas
+- Piel con textura más gruesa
+- Puede tener barba/vello facial según accesorios
+- Frente más amplia, arcos superciliares más marcados`
+};
+
+// Descripciones de accesorios faciales
+const FACIAL_ACCESSORY_DESCRIPTIONS: Record<FacialAccessory, string> = {
+  glasses: 'Gafas de prescripción con montura elegante y lentes transparentes',
+  sunglasses: 'Gafas de sol de estilo moderno cubriendo los ojos',
+  earrings: 'Aretes/pendientes visibles (pequeños o medianos, apropiados al estilo)',
+  nose_piercing: 'Piercing pequeño en la nariz (aro delicado o stud)',
+  lip_piercing: 'Piercing en el labio (pequeño y discreto)',
+  eyebrow_piercing: 'Piercing en la ceja (barra pequeña)',
+  headscarf: 'Pañuelo o hijab cubriendo el cabello elegantemente',
+  hat: 'Sombrero o gorra apropiada al contexto',
+  headband: 'Diadema o cinta para el cabello',
+  beard: 'Barba completa bien cuidada y recortada',
+  mustache: 'Bigote bien definido y cuidado',
+  goatee: 'Perilla/chivo bien recortado'
+};
+
+// Función helper para construir la descripción de accesorios
+function buildAccessoriesDescription(accessories: FacialAccessory[]): string {
+  if (accessories.length === 0) return '';
+
+  const descriptions = accessories.map(acc => FACIAL_ACCESSORY_DESCRIPTIONS[acc]);
+  return `\n[ACCESORIOS A INCLUIR]\n${descriptions.map(d => `- ${d}`).join('\n')}`;
+}
+
+// Labels para etnias
+const ETHNICITY_LABELS: Record<FaceEthnicity, string> = {
+  afroamerican: 'Afroamericana',
+  latin: 'Latina/Hispana',
+  caucasian: 'Caucásica/Europea',
+  asian: 'Asiática Oriental',
+  middleeastern: 'Medio Oriente',
+  southasian: 'Sur de Asia',
+  mixed: 'Mixta/Mestiza'
 };
 
 /**
- * Genera una variante de rostro de un tipo étnico específico
- * basada en una imagen de referencia, optimizando proporciones de belleza matemática.
+ * Genera una variante personalizada del rostro basada en la imagen de referencia.
+ * CONSERVA la esencia y estructura del rostro original mientras adapta las características
+ * según las opciones seleccionadas (etnia, edad, sexo, accesorios).
  */
-export async function generateFaceVariant(
+export async function generateCustomFaceVariant(
   baseImageUrl: string,
-  variantType: FaceVariantType
+  options: FaceVariantOptions,
+  onProgress?: (status: 'generating' | 'completed' | 'error') => void
 ): Promise<string> {
+  onProgress?.('generating');
+
   const parts: ContentPart[] = [];
 
-  const variantCharacteristics = FACE_VARIANT_CHARACTERISTICS[variantType];
-  const variantLabel = {
-    afroamerican: 'Afroamericana',
-    latin: 'Latina',
-    caucasian: 'Caucásica/Anglosajona'
-  }[variantType];
+  // Construir las características basadas en las opciones
+  const ethnicityChar = FACE_ETHNICITY_CHARACTERISTICS[options.ethnicity];
+  const ageChar = FACE_AGE_CHARACTERISTICS[options.ageRange];
+  const sexChar = FACE_SEX_CHARACTERISTICS[options.sex];
+  const accessoriesChar = buildAccessoriesDescription(options.accessories);
+
+  const ethnicityLabel = ETHNICITY_LABELS[options.ethnicity];
 
   // System prompt con instrucciones completas
   parts.push({
     text: `${FACE_VARIANTS_SYSTEM_PROMPT}
 
-${variantCharacteristics}
+${ethnicityChar}
 
-[INSTRUCCIÓN ESPECÍFICA]
-Genera un retrato fotorrealista de alta calidad que:
-1. TOME como base la ESTRUCTURA FACIAL y EXPRESIÓN de la imagen de referencia
-2. ADAPTE los rasgos al fenotipo ${variantLabel} según las características especificadas
-3. OPTIMICE las proporciones según los principios de belleza matemática (proporción áurea)
-4. MANTENGA la misma pose, ángulo y expresión del rostro original
-5. APLIQUE iluminación profesional de estudio para resaltar los rasgos
+${ageChar}
 
-IMPORTANTE:
-- El resultado debe ser un RETRATO INDIVIDUAL (solo el rostro/busto)
-- Fondo neutro o ligeramente desenfocado (estudio fotográfico)
-- La persona debe lucir atractiva según los estándares de belleza de su grupo étnico
-- Los rasgos deben ser armoniosos y proporcionados
-- La imagen debe tener calidad de fotografía profesional de retrato
+${sexChar}
+${accessoriesChar}
+
+[INSTRUCCIÓN ESPECÍFICA - MÁXIMA PRIORIDAD]
+Genera un retrato FOTORREALISTA que:
+
+1. **PRESERVE LA ESTRUCTURA FACIAL ORIGINAL** (CRÍTICO):
+   - Mantén EXACTAMENTE la misma forma del cráneo y silueta del rostro
+   - Conserva la proporción y distancia entre los ojos
+   - Mantén la estructura base de la nariz (solo adapta rasgos superficiales étnicos)
+   - Preserva la forma de los labios y línea de la mandíbula
+   - La expresión debe ser IDÉNTICA
+
+2. **ADAPTA LAS CARACTERÍSTICAS FENOTÍPICAS**:
+   - Aplica el tono de piel correspondiente a ${ethnicityLabel}
+   - Ajusta la textura del cabello según la etnia
+   - Modifica sutilmente los rasgos según las características étnicas descritas
+   - Añade los accesorios especificados si los hay
+
+3. **APLICA LAS CARACTERÍSTICAS DE EDAD Y SEXO**:
+   - La persona debe parecer del rango de edad ${options.ageRange}
+   - Los rasgos deben corresponder al sexo ${options.sex === 'female' ? 'femenino' : 'masculino'}
+
+4. **CALIDAD TÉCNICA**:
+   - Piel con TEXTURA REAL (poros, imperfecciones naturales menores)
+   - EVITA el efecto "piel de plástico" o "filtro de belleza excesivo"
+   - Iluminación coherente con la foto original
+   - Calidad de fotografía profesional de retrato
+
+**ADVERTENCIA**: El rostro generado DEBE ser reconocible como "la misma persona" pero con diferente etnia/edad. NO generes un rostro completamente nuevo.
 
 Imagen de referencia:`
   });
@@ -1149,11 +1244,13 @@ Imagen de referencia:`
   const optimizedBase = await optimizeImageForAPI(baseImageUrl);
   parts.push(createImagePart(optimizedBase, 'image/jpeg'));
 
-  // Instrucción final
+  // Instrucción final de refuerzo
   parts.push({
     text: `
 
-Genera ahora el retrato con variante ${variantLabel}, manteniendo la estructura base del rostro de referencia pero adaptando los rasgos fenotípicos y optimizando las proporciones de belleza.`
+Genera ahora la variante con las características especificadas.
+RECUERDA: La ESTRUCTURA del rostro debe ser la misma que en la imagen de referencia. Solo cambian las características étnicas superficiales, edad aparente y accesorios.
+El resultado debe verse como la MISMA PERSONA con diferente apariencia étnica, NO como una persona completamente diferente.`
   });
 
   const requestBody = {
@@ -1162,60 +1259,80 @@ Genera ahora el retrato con variante ${variantLabel}, manteniendo la estructura 
     }],
     generationConfig: {
       responseModalities: ['TEXT', 'IMAGE'],
-      temperature: 0.8,
+      temperature: 0.6, // Reducido para mayor consistencia
     }
   };
 
-  // Usar modelo Pro para mejor calidad en generación de retratos
-  const response = await fetch(`${getApiUrl(GEMINI_IMAGE_PRO_MODEL)}?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody)
-  });
+  try {
+    // Usar modelo Pro para mejor calidad en generación de retratos
+    const response = await fetch(`${getApiUrl(GEMINI_IMAGE_PRO_MODEL)}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error de API Gemini: ${response.status} - ${errorText}`);
-  }
-
-  const data: GeminiResponse = await response.json();
-
-  if (data.error) {
-    throw new Error(`Error Gemini: ${data.error.message}`);
-  }
-
-  const candidate = data.candidates?.[0];
-  if (!candidate?.content?.parts) {
-    throw new Error('No se recibió respuesta válida de Gemini');
-  }
-
-  for (const part of candidate.content.parts) {
-    if (part.inlineData) {
-      return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error de API Gemini: ${response.status} - ${errorText}`);
     }
-  }
 
-  throw new Error('No se generó ninguna imagen en la respuesta');
+    const data: GeminiResponse = await response.json();
+
+    if (data.error) {
+      throw new Error(`Error Gemini: ${data.error.message}`);
+    }
+
+    const candidate = data.candidates?.[0];
+    if (!candidate?.content?.parts) {
+      throw new Error('No se recibió respuesta válida de Gemini');
+    }
+
+    for (const part of candidate.content.parts) {
+      if (part.inlineData) {
+        onProgress?.('completed');
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+      }
+    }
+
+    throw new Error('No se generó ninguna imagen en la respuesta');
+  } catch (error) {
+    onProgress?.('error');
+    throw error;
+  }
 }
 
 /**
- * Genera las 3 variantes de rostro (afroamericana, latina, caucásica)
- * basadas en una imagen de referencia.
- *
- * @param baseImageUrl URL de la imagen base
- * @param onProgress Callback para reportar progreso (opcional)
- * @returns Objeto con las 3 variantes generadas
+ * @deprecated Use generateCustomFaceVariant instead.
+ * Genera una variante de rostro de un tipo étnico específico (función legacy).
+ */
+export async function generateFaceVariant(
+  baseImageUrl: string,
+  variantType: FaceVariantType
+): Promise<string> {
+  // Usar la nueva función con opciones por defecto
+  return generateCustomFaceVariant(baseImageUrl, {
+    ethnicity: variantType,
+    ageRange: '26-35',
+    sex: 'female',
+    accessories: []
+  });
+}
+
+/**
+ * @deprecated Esta función ya no se usa. Ahora se genera 1 sola variante personalizada.
  */
 export async function generateAllFaceVariants(
   baseImageUrl: string,
   onProgress?: (variantType: FaceVariantType, status: 'generating' | 'completed' | 'error') => void
 ): Promise<Record<FaceVariantType, string>> {
+  // Mantener para compatibilidad pero marcar como deprecated
+  console.warn('generateAllFaceVariants está deprecada. Usa generateCustomFaceVariant en su lugar.');
+
   const variantTypes: FaceVariantType[] = ['afroamerican', 'latin', 'caucasian'];
   const results: Partial<Record<FaceVariantType, string>> = {};
 
-  // Generar variantes secuencialmente para evitar rate limiting
   for (const variantType of variantTypes) {
     try {
       onProgress?.(variantType, 'generating');

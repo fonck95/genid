@@ -1,4 +1,4 @@
-import type { Identity, IdentityPhoto, GeneratedImage, EditingThread, EditingStep, FaceVariantsSet, FaceVariant, FaceVariantType, GeneratedVideo } from '../types';
+import type { Identity, IdentityPhoto, GeneratedImage, EditingThread, EditingStep, FaceVariantsSet, FaceVariant, FaceVariantType, FaceVariantOptions, GeneratedVideo } from '../types';
 import { uploadFileToCloudinary, uploadToCloudinary, getThumbnailUrl } from './cloudinary';
 
 const DB_NAME = 'GenID_IdentityStore';
@@ -668,12 +668,13 @@ async function createThumbnail(imageUrl: string, size: number): Promise<string> 
 // === VARIANTES DE ROSTRO ===
 
 /**
- * Guarda un conjunto de variantes de rostro generadas
+ * @deprecated Use saveFaceVariantSingle instead
+ * Guarda un conjunto de variantes de rostro generadas (legacy - 3 variantes)
  */
 export async function saveFaceVariantsSet(
   identityId: string,
   baseImageUrl: string,
-  variants: Record<FaceVariantType, string>
+  variants: Record<string, string>
 ): Promise<FaceVariantsSet> {
   const database = await openDB();
   const now = Date.now();
@@ -682,10 +683,14 @@ export async function saveFaceVariantsSet(
   const baseImageThumbnail = await createThumbnail(baseImageUrl, 150);
 
   // Procesar cada variante: subir a Cloudinary y crear thumbnail
-  const variantLabels: Record<FaceVariantType, string> = {
+  const variantLabels: Record<string, string> = {
     afroamerican: 'Afroamericana',
     latin: 'Latina',
-    caucasian: 'Caucásica'
+    caucasian: 'Caucásica',
+    asian: 'Asiática Oriental',
+    middleeastern: 'Medio Oriente',
+    southasian: 'Sur de Asia',
+    mixed: 'Mixta/Mestiza'
   };
 
   const processedVariants: FaceVariant[] = [];
@@ -705,7 +710,7 @@ export async function saveFaceVariantsSet(
     processedVariants.push({
       id: generateId(),
       type: variantType,
-      label: variantLabels[variantType],
+      label: variantLabels[variantType] || variantType,
       imageUrl: uploadResult.secure_url,
       thumbnail,
       cloudinaryId: uploadResult.public_id,
@@ -713,12 +718,102 @@ export async function saveFaceVariantsSet(
     });
   }
 
+  // Para compatibilidad: usar la primera variante como 'variant' principal
   const variantsSet: FaceVariantsSet = {
     id: generateId(),
     identityId,
     baseImageUrl,
     baseImageThumbnail,
+    variant: processedVariants[0],
     variants: processedVariants,
+    createdAt: now
+  };
+
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(FACE_VARIANTS_STORE, 'readwrite');
+    const store = transaction.objectStore(FACE_VARIANTS_STORE);
+    const request = store.add(variantsSet);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(variantsSet);
+  });
+}
+
+// Helper para generar label descriptivo de la variante
+function getVariantLabel(options: FaceVariantOptions): string {
+  const ethnicityLabels: Record<string, string> = {
+    afroamerican: 'Afroamericana',
+    latin: 'Latina/Hispana',
+    caucasian: 'Caucásica/Europea',
+    asian: 'Asiática Oriental',
+    middleeastern: 'Medio Oriente',
+    southasian: 'Sur de Asia',
+    mixed: 'Mixta/Mestiza'
+  };
+
+  const ageLabels: Record<string, string> = {
+    '18-25': '18-25 años',
+    '26-35': '26-35 años',
+    '36-45': '36-45 años',
+    '46-55': '46-55 años',
+    '56+': '56+ años'
+  };
+
+  const sexLabels: Record<string, string> = {
+    female: 'Femenino',
+    male: 'Masculino'
+  };
+
+  const ethnicity = ethnicityLabels[options.ethnicity] || options.ethnicity;
+  const age = ageLabels[options.ageRange] || options.ageRange;
+  const sex = sexLabels[options.sex] || options.sex;
+
+  return `${ethnicity}, ${sex}, ${age}`;
+}
+
+/**
+ * Guarda una única variante de rostro personalizada
+ */
+export async function saveFaceVariantSingle(
+  identityId: string,
+  baseImageUrl: string,
+  variantImageUrl: string,
+  options: FaceVariantOptions
+): Promise<FaceVariantsSet> {
+  const database = await openDB();
+  const now = Date.now();
+
+  // Crear thumbnail de la imagen base
+  const baseImageThumbnail = await createThumbnail(baseImageUrl, 150);
+
+  // Subir variante a Cloudinary
+  const uploadResult = await uploadToCloudinary(
+    variantImageUrl,
+    `genid/face_variants/${identityId}`
+  );
+
+  // Crear thumbnail de la variante
+  const thumbnail = await createThumbnail(variantImageUrl, 150);
+
+  // Crear el objeto variante con las opciones
+  const variant: FaceVariant = {
+    id: generateId(),
+    type: options.ethnicity,
+    label: getVariantLabel(options),
+    imageUrl: uploadResult.secure_url,
+    thumbnail,
+    cloudinaryId: uploadResult.public_id,
+    options,
+    createdAt: now
+  };
+
+  // Usar el nuevo formato con variant único
+  const variantsSet: FaceVariantsSet = {
+    id: generateId(),
+    identityId,
+    baseImageUrl,
+    baseImageThumbnail,
+    variant, // Nuevo campo: variante única
     createdAt: now
   };
 

@@ -20,8 +20,52 @@ export interface IdentityPhoto {
   faceDescriptionGeneratedAt?: number;
 }
 
-/** Tipo de variante étnica para generación de rostros */
-export type FaceVariantType = 'afroamerican' | 'latin' | 'caucasian';
+/** Tipo de etnia para generación de rostros */
+export type FaceEthnicity =
+  | 'afroamerican'
+  | 'latin'
+  | 'caucasian'
+  | 'asian'
+  | 'middleeastern'
+  | 'southasian'
+  | 'mixed';
+
+/** Tipo de variante étnica (alias para compatibilidad) */
+export type FaceVariantType = FaceEthnicity;
+
+/** Rango de edad para generación de rostros */
+export type FaceAgeRange =
+  | '18-25'
+  | '26-35'
+  | '36-45'
+  | '46-55'
+  | '56+';
+
+/** Sexo biológico para generación de rostros */
+export type FaceSex = 'female' | 'male';
+
+/** Accesorios faciales disponibles */
+export type FacialAccessory =
+  | 'glasses'
+  | 'sunglasses'
+  | 'earrings'
+  | 'nose_piercing'
+  | 'lip_piercing'
+  | 'eyebrow_piercing'
+  | 'headscarf'
+  | 'hat'
+  | 'headband'
+  | 'beard'
+  | 'mustache'
+  | 'goatee';
+
+/** Opciones de personalización para generar una variante */
+export interface FaceVariantOptions {
+  ethnicity: FaceEthnicity;
+  ageRange: FaceAgeRange;
+  sex: FaceSex;
+  accessories: FacialAccessory[];
+}
 
 /** Información de una variante de rostro generada */
 export interface FaceVariant {
@@ -35,6 +79,8 @@ export interface FaceVariant {
   thumbnail: string;
   /** ID de Cloudinary si está almacenada */
   cloudinaryId?: string;
+  /** Opciones usadas para generar esta variante */
+  options?: FaceVariantOptions;
   /** Timestamp de creación */
   createdAt: number;
 }
@@ -48,8 +94,10 @@ export interface FaceVariantsSet {
   baseImageUrl: string;
   /** Thumbnail de la imagen base */
   baseImageThumbnail: string;
-  /** Variantes generadas */
-  variants: FaceVariant[];
+  /** Variante generada (ahora es una sola) */
+  variant: FaceVariant;
+  /** @deprecated Mantener para compatibilidad con datos antiguos */
+  variants?: FaceVariant[];
   /** Timestamp de creación */
   createdAt: number;
 }
