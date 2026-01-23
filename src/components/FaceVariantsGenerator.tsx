@@ -1,8 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import type { Identity, FaceVariantsSet, FaceVariant, FaceVariantType } from '../types';
-import { generateAllFaceVariants } from '../services/gemini';
+import type {
+  Identity,
+  FaceVariantsSet,
+  FaceVariant,
+  FaceEthnicity,
+  FaceAgeRange,
+  FaceSex,
+  FacialAccessory,
+  FaceVariantOptions
+} from '../types';
+import { generateCustomFaceVariant } from '../services/gemini';
 import {
-  saveFaceVariantsSet,
+  saveFaceVariantSingle,
   getFaceVariantsByIdentity,
   deleteFaceVariantsSet,
   useVariantAsIdentityPhoto
@@ -14,35 +23,110 @@ interface Props {
 }
 
 type GenerationStatus = 'idle' | 'generating' | 'completed' | 'error';
-type VariantStatus = 'pending' | 'generating' | 'completed' | 'error';
 
-const VARIANT_LABELS: Record<FaceVariantType, string> = {
-  afroamerican: 'Afroamericana',
-  latin: 'Latina',
-  caucasian: 'Caucásica'
-};
+// Opciones de etnia
+const ETHNICITY_OPTIONS: { value: FaceEthnicity; label: string }[] = [
+  { value: 'afroamerican', label: 'Afroamericana' },
+  { value: 'latin', label: 'Latina/Hispana' },
+  { value: 'caucasian', label: 'Caucásica/Europea' },
+  { value: 'asian', label: 'Asiática Oriental' },
+  { value: 'middleeastern', label: 'Medio Oriente' },
+  { value: 'southasian', label: 'Sur de Asia' },
+  { value: 'mixed', label: 'Mixta/Mestiza' }
+];
 
-const VARIANT_DESCRIPTIONS: Record<FaceVariantType, string> = {
-  afroamerican: 'Rasgos afroamericanos con proporciones de belleza optimizadas',
-  latin: 'Rasgos latinos con proporciones de belleza optimizadas',
-  caucasian: 'Rasgos caucásicos/anglosajones con proporciones de belleza optimizadas'
-};
+// Opciones de rango de edad
+const AGE_RANGE_OPTIONS: { value: FaceAgeRange; label: string }[] = [
+  { value: '18-25', label: '18-25 años' },
+  { value: '26-35', label: '26-35 años' },
+  { value: '36-45', label: '36-45 años' },
+  { value: '46-55', label: '46-55 años' },
+  { value: '56+', label: '56+ años' }
+];
+
+// Opciones de sexo
+const SEX_OPTIONS: { value: FaceSex; label: string }[] = [
+  { value: 'female', label: 'Femenino' },
+  { value: 'male', label: 'Masculino' }
+];
+
+// Opciones de accesorios faciales agrupados
+const ACCESSORY_GROUPS = [
+  {
+    title: 'Gafas',
+    options: [
+      { value: 'glasses' as FacialAccessory, label: 'Gafas de ver' },
+      { value: 'sunglasses' as FacialAccessory, label: 'Gafas de sol' }
+    ]
+  },
+  {
+    title: 'Joyería',
+    options: [
+      { value: 'earrings' as FacialAccessory, label: 'Aretes/Pendientes' }
+    ]
+  },
+  {
+    title: 'Piercings',
+    options: [
+      { value: 'nose_piercing' as FacialAccessory, label: 'Piercing nariz' },
+      { value: 'lip_piercing' as FacialAccessory, label: 'Piercing labio' },
+      { value: 'eyebrow_piercing' as FacialAccessory, label: 'Piercing ceja' }
+    ]
+  },
+  {
+    title: 'Cabeza',
+    options: [
+      { value: 'headscarf' as FacialAccessory, label: 'Pañuelo/Hijab' },
+      { value: 'hat' as FacialAccessory, label: 'Sombrero/Gorra' },
+      { value: 'headband' as FacialAccessory, label: 'Diadema/Cinta' }
+    ]
+  },
+  {
+    title: 'Vello facial',
+    options: [
+      { value: 'beard' as FacialAccessory, label: 'Barba completa' },
+      { value: 'mustache' as FacialAccessory, label: 'Bigote' },
+      { value: 'goatee' as FacialAccessory, label: 'Perilla/Chivo' }
+    ]
+  }
+];
+
+// Helper para obtener la descripción de la variante
+function getVariantDescription(options: FaceVariantOptions): string {
+  const ethnicity = ETHNICITY_OPTIONS.find(e => e.value === options.ethnicity)?.label || options.ethnicity;
+  const age = AGE_RANGE_OPTIONS.find(a => a.value === options.ageRange)?.label || options.ageRange;
+  const sex = SEX_OPTIONS.find(s => s.value === options.sex)?.label || options.sex;
+
+  let desc = `${ethnicity}, ${sex}, ${age}`;
+  if (options.accessories.length > 0) {
+    const accLabels = options.accessories.map(acc => {
+      for (const group of ACCESSORY_GROUPS) {
+        const found = group.options.find(o => o.value === acc);
+        if (found) return found.label;
+      }
+      return acc;
+    });
+    desc += ` + ${accLabels.join(', ')}`;
+  }
+  return desc;
+}
 
 export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [baseImage, setBaseImage] = useState<string | null>(null);
   const [baseImageThumbnail, setBaseImageThumbnail] = useState<string | null>(null);
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>('idle');
-  const [variantStatuses, setVariantStatuses] = useState<Record<FaceVariantType, VariantStatus>>({
-    afroamerican: 'pending',
-    latin: 'pending',
-    caucasian: 'pending'
-  });
-  const [generatedVariants, setGeneratedVariants] = useState<Record<FaceVariantType, string> | null>(null);
+  const [generatedVariant, setGeneratedVariant] = useState<{ imageUrl: string; options: FaceVariantOptions } | null>(null);
   const [savedVariantsSets, setSavedVariantsSets] = useState<FaceVariantsSet[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedVariantForView, setSelectedVariantForView] = useState<FaceVariant | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Estados para las opciones de personalización
+  const [selectedEthnicity, setSelectedEthnicity] = useState<FaceEthnicity>('latin');
+  const [selectedAgeRange, setSelectedAgeRange] = useState<FaceAgeRange>('26-35');
+  const [selectedSex, setSelectedSex] = useState<FaceSex>('female');
+  const [selectedAccessories, setSelectedAccessories] = useState<FacialAccessory[]>([]);
 
   // Cargar variantes guardadas al montar
   useEffect(() => {
@@ -62,29 +146,20 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Convertir a base64
     const reader = new FileReader();
     reader.onload = async (event) => {
       const dataUrl = event.target?.result as string;
       setBaseImage(dataUrl);
 
-      // Crear thumbnail
       const thumbnail = await createThumbnail(dataUrl, 150);
       setBaseImageThumbnail(thumbnail);
 
-      // Resetear estados
       setGenerationStatus('idle');
-      setGeneratedVariants(null);
+      setGeneratedVariant(null);
       setError(null);
-      setVariantStatuses({
-        afroamerican: 'pending',
-        latin: 'pending',
-        caucasian: 'pending'
-      });
     };
     reader.readAsDataURL(file);
 
-    // Limpiar input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -116,33 +191,36 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
 
     setGenerationStatus('generating');
     setError(null);
-    setVariantStatuses({
-      afroamerican: 'pending',
-      latin: 'pending',
-      caucasian: 'pending'
-    });
+    setGeneratedVariant(null);
+
+    const options: FaceVariantOptions = {
+      ethnicity: selectedEthnicity,
+      ageRange: selectedAgeRange,
+      sex: selectedSex,
+      accessories: selectedAccessories
+    };
 
     try {
-      const variants = await generateAllFaceVariants(
+      const imageUrl = await generateCustomFaceVariant(
         baseImage,
-        (variantType, status) => {
-          setVariantStatuses(prev => ({
-            ...prev,
-            [variantType]: status === 'generating' ? 'generating' : status === 'completed' ? 'completed' : 'error'
-          }));
+        options,
+        (status) => {
+          if (status === 'error') {
+            setGenerationStatus('error');
+          }
         }
       );
 
-      setGeneratedVariants(variants);
+      setGeneratedVariant({ imageUrl, options });
       setGenerationStatus('completed');
 
       // Guardar en el store
-      await saveFaceVariantsSet(identity.id, baseImage, variants);
+      await saveFaceVariantSingle(identity.id, baseImage, imageUrl, options);
       await loadSavedVariants();
 
     } catch (err) {
-      console.error('Error generando variantes:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido al generar variantes');
+      console.error('Error generando variante:', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido al generar variante');
       setGenerationStatus('error');
     }
   };
@@ -151,7 +229,7 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
     try {
       await useVariantAsIdentityPhoto(identity.id, variant);
       onRefresh();
-      alert(`Variante ${variant.label} agregada como foto de referencia`);
+      alert(`Variante agregada como foto de referencia`);
     } catch (err) {
       console.error('Error al usar variante como foto:', err);
       alert('Error al agregar la variante como foto de referencia');
@@ -159,31 +237,30 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
   };
 
   const handleDeleteVariantsSet = async (setId: string) => {
-    if (!confirm('¿Eliminar este conjunto de variantes?')) return;
+    if (!confirm('¿Eliminar esta variante?')) return;
 
     try {
       await deleteFaceVariantsSet(setId);
       await loadSavedVariants();
     } catch (err) {
-      console.error('Error eliminando variantes:', err);
+      console.error('Error eliminando variante:', err);
     }
   };
 
   const handleClearBaseImage = () => {
     setBaseImage(null);
     setBaseImageThumbnail(null);
-    setGeneratedVariants(null);
+    setGeneratedVariant(null);
     setGenerationStatus('idle');
     setError(null);
   };
 
-  const getStatusIcon = (status: VariantStatus): string => {
-    switch (status) {
-      case 'pending': return '⏳';
-      case 'generating': return '🔄';
-      case 'completed': return '✅';
-      case 'error': return '❌';
-    }
+  const toggleAccessory = (accessory: FacialAccessory) => {
+    setSelectedAccessories(prev =>
+      prev.includes(accessory)
+        ? prev.filter(a => a !== accessory)
+        : [...prev, accessory]
+    );
   };
 
   return (
@@ -194,7 +271,7 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
       >
         <div className="face-variants-title">
           <span className="face-variants-icon">🎭</span>
-          <span>Definir Rostro</span>
+          <span>Generar Variante de Rostro</span>
           {savedVariantsSets.length > 0 && (
             <span className="variants-count">({savedVariantsSets.length})</span>
           )}
@@ -205,14 +282,14 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
       {isExpanded && (
         <div className="face-variants-content">
           <p className="face-variants-description">
-            Genera 3 variantes del rostro (Afroamericana, Latina, Caucásica)
-            con proporciones de belleza matemática optimizadas.
+            Genera una variante personalizada del rostro seleccionando etnia, edad, sexo y accesorios.
+            La variante conservará la esencia y estructura del rostro original.
           </p>
 
           {/* Sección de carga de imagen */}
           <div className="base-image-section">
             <div className="base-image-header">
-              <span>Imagen Base</span>
+              <span>1. Imagen Base</span>
               {!baseImage && (
                 <label className="btn-secondary btn-small">
                   Cargar Imagen
@@ -230,48 +307,116 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
             {baseImage && (
               <div className="base-image-preview">
                 <img src={baseImageThumbnail || baseImage} alt="Imagen base" />
-                <div className="base-image-actions">
-                  <button
-                    className="btn-secondary btn-small"
-                    onClick={handleClearBaseImage}
-                  >
-                    Cambiar
-                  </button>
-                  <button
-                    className="btn-primary"
-                    onClick={handleGenerate}
-                    disabled={generationStatus === 'generating'}
-                  >
-                    {generationStatus === 'generating' ? 'Generando...' : 'Generar Variantes'}
-                  </button>
-                </div>
+                <button
+                  className="btn-secondary btn-small"
+                  onClick={handleClearBaseImage}
+                >
+                  Cambiar
+                </button>
               </div>
             )}
 
             {!baseImage && (
               <div className="base-image-placeholder">
-                <span>Carga una imagen de rostro para generar variantes</span>
+                <span>Carga una imagen de rostro para generar la variante</span>
               </div>
             )}
           </div>
 
-          {/* Progreso de generación */}
-          {generationStatus === 'generating' && (
-            <div className="generation-progress">
-              <h4>Generando variantes...</h4>
-              <div className="variants-progress-list">
-                {(['afroamerican', 'latin', 'caucasian'] as FaceVariantType[]).map(type => (
-                  <div key={type} className={`variant-progress-item ${variantStatuses[type]}`}>
-                    <span className="variant-status-icon">{getStatusIcon(variantStatuses[type])}</span>
-                    <span className="variant-label">{VARIANT_LABELS[type]}</span>
-                    <span className="variant-status-text">
-                      {variantStatuses[type] === 'pending' && 'En espera'}
-                      {variantStatuses[type] === 'generating' && 'Generando...'}
-                      {variantStatuses[type] === 'completed' && 'Completada'}
-                      {variantStatuses[type] === 'error' && 'Error'}
-                    </span>
-                  </div>
-                ))}
+          {/* Selectores de personalización - Solo se muestran si hay imagen cargada */}
+          {baseImage && (
+            <div className="variant-customization-section">
+              <div className="customization-header">
+                <span>2. Personalizar Variante</span>
+              </div>
+
+              {/* Selector de Etnia */}
+              <div className="customization-group">
+                <label className="customization-label">Etnia</label>
+                <div className="option-buttons">
+                  {ETHNICITY_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      className={`option-btn ${selectedEthnicity === option.value ? 'selected' : ''}`}
+                      onClick={() => setSelectedEthnicity(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selector de Sexo */}
+              <div className="customization-group">
+                <label className="customization-label">Sexo</label>
+                <div className="option-buttons">
+                  {SEX_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      className={`option-btn ${selectedSex === option.value ? 'selected' : ''}`}
+                      onClick={() => setSelectedSex(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selector de Edad */}
+              <div className="customization-group">
+                <label className="customization-label">Rango de Edad</label>
+                <div className="option-buttons">
+                  {AGE_RANGE_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      className={`option-btn ${selectedAgeRange === option.value ? 'selected' : ''}`}
+                      onClick={() => setSelectedAgeRange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selector de Accesorios */}
+              <div className="customization-group">
+                <label className="customization-label">Accesorios (opcionales)</label>
+                <div className="accessories-groups">
+                  {ACCESSORY_GROUPS.map(group => (
+                    <div key={group.title} className="accessory-group">
+                      <span className="accessory-group-title">{group.title}</span>
+                      <div className="accessory-options">
+                        {group.options.map(option => (
+                          <button
+                            key={option.value}
+                            className={`accessory-btn ${selectedAccessories.includes(option.value) ? 'selected' : ''}`}
+                            onClick={() => toggleAccessory(option.value)}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botón de generar */}
+              <div className="generate-action">
+                <button
+                  className="btn-primary btn-generate"
+                  onClick={handleGenerate}
+                  disabled={generationStatus === 'generating'}
+                >
+                  {generationStatus === 'generating' ? (
+                    <>
+                      <span className="spinner"></span>
+                      Generando variante...
+                    </>
+                  ) : (
+                    'Generar Variante'
+                  )}
+                </button>
               </div>
             </div>
           )}
@@ -286,33 +431,37 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
             </div>
           )}
 
-          {/* Variantes generadas (resultado actual) */}
-          {generatedVariants && generationStatus === 'completed' && (
-            <div className="generated-variants">
-              <h4>Variantes Generadas</h4>
-              <div className="variants-grid">
-                {(['afroamerican', 'latin', 'caucasian'] as FaceVariantType[]).map(type => (
-                  <div key={type} className="variant-card">
-                    <div className="variant-image-container">
-                      <img
-                        src={generatedVariants[type]}
-                        alt={VARIANT_LABELS[type]}
-                        onClick={() => setSelectedVariantForView({
-                          id: type,
-                          type,
-                          label: VARIANT_LABELS[type],
-                          imageUrl: generatedVariants[type],
-                          thumbnail: generatedVariants[type],
-                          createdAt: Date.now()
-                        })}
-                      />
-                    </div>
-                    <div className="variant-info">
-                      <span className="variant-label">{VARIANT_LABELS[type]}</span>
-                      <span className="variant-description">{VARIANT_DESCRIPTIONS[type]}</span>
-                    </div>
+          {/* Variante generada (resultado actual) */}
+          {generatedVariant && generationStatus === 'completed' && (
+            <div className="generated-variant-result">
+              <h4>Variante Generada</h4>
+              <div className="variant-result-card">
+                <div className="variant-comparison">
+                  <div className="comparison-image original">
+                    <img src={baseImageThumbnail || baseImage || ''} alt="Original" />
+                    <span className="comparison-label">Original</span>
                   </div>
-                ))}
+                  <div className="comparison-arrow">→</div>
+                  <div className="comparison-image generated">
+                    <img
+                      src={generatedVariant.imageUrl}
+                      alt="Variante generada"
+                      onClick={() => setSelectedVariantForView({
+                        id: 'current',
+                        type: generatedVariant.options.ethnicity,
+                        label: getVariantDescription(generatedVariant.options),
+                        imageUrl: generatedVariant.imageUrl,
+                        thumbnail: generatedVariant.imageUrl,
+                        options: generatedVariant.options,
+                        createdAt: Date.now()
+                      })}
+                    />
+                    <span className="comparison-label">Variante</span>
+                  </div>
+                </div>
+                <div className="variant-result-info">
+                  <p className="variant-description">{getVariantDescription(generatedVariant.options)}</p>
+                </div>
               </div>
             </div>
           )}
@@ -321,51 +470,59 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
           {savedVariantsSets.length > 0 && (
             <div className="saved-variants-section">
               <h4>Variantes Guardadas</h4>
-              {savedVariantsSets.map(set => (
-                <div key={set.id} className="saved-variants-set">
-                  <div className="saved-set-header">
-                    <div className="saved-set-base">
-                      <img src={set.baseImageThumbnail} alt="Base" />
-                      <span className="saved-set-date">
-                        {new Date(set.createdAt).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
-                    </div>
-                    <button
-                      className="btn-delete-set"
-                      onClick={() => handleDeleteVariantsSet(set.id)}
-                      title="Eliminar conjunto"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="saved-variants-grid">
-                    {set.variants.map(variant => (
-                      <div key={variant.id} className="saved-variant-item">
+              <div className="saved-variants-list">
+                {savedVariantsSets.map(set => {
+                  // Soporte para formato antiguo (variants array) y nuevo (variant single)
+                  const variant = set.variant || (set.variants && set.variants[0]);
+                  if (!variant) return null;
+
+                  return (
+                    <div key={set.id} className="saved-variant-item-card">
+                      <div className="saved-variant-images">
+                        <img
+                          src={set.baseImageThumbnail}
+                          alt="Base"
+                          className="saved-base-thumb"
+                        />
+                        <span className="saved-arrow">→</span>
                         <img
                           src={variant.thumbnail}
                           alt={variant.label}
+                          className="saved-variant-thumb"
                           onClick={() => setSelectedVariantForView(variant)}
                         />
-                        <div className="saved-variant-overlay">
-                          <span className="saved-variant-label">{variant.label}</span>
-                          <button
-                            className="btn-use-variant"
-                            onClick={() => handleUseAsPhoto(variant)}
-                            title="Usar como foto de referencia"
-                          >
-                            +
-                          </button>
-                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                      <div className="saved-variant-meta">
+                        <span className="saved-variant-label">{variant.label}</span>
+                        <span className="saved-variant-date">
+                          {new Date(set.createdAt).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <div className="saved-variant-actions">
+                        <button
+                          className="btn-use-saved"
+                          onClick={() => handleUseAsPhoto(variant)}
+                          title="Usar como foto de referencia"
+                        >
+                          +
+                        </button>
+                        <button
+                          className="btn-delete-saved"
+                          onClick={() => handleDeleteVariantsSet(set.id)}
+                          title="Eliminar"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -381,8 +538,8 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
                 </button>
                 <img src={selectedVariantForView.imageUrl} alt={selectedVariantForView.label} />
                 <div className="variant-modal-info">
-                  <h3>{selectedVariantForView.label}</h3>
-                  <p>{VARIANT_DESCRIPTIONS[selectedVariantForView.type]}</p>
+                  <h3>Variante Generada</h3>
+                  <p>{selectedVariantForView.label}</p>
                   <button
                     className="btn-primary"
                     onClick={() => {
