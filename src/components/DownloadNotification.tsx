@@ -2,6 +2,64 @@ import { useState, useEffect, useCallback } from 'react';
 
 export type DownloadStatus = 'idle' | 'downloading' | 'success' | 'error';
 
+/**
+ * Elimina todos los metadatos (EXIF, GPS, información de cámara, etc.) de una imagen
+ * usando Canvas API. Al redibujar la imagen en un canvas, solo se preservan los píxeles,
+ * eliminando automáticamente cualquier metadata incrustada.
+ */
+async function stripImageMetadata(blob: Blob): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          URL.revokeObjectURL(url);
+          // Si no hay contexto 2D, devolver el blob original
+          resolve(blob);
+          return;
+        }
+
+        // Establecer dimensiones del canvas igual a la imagen
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+
+        // Dibujar la imagen en el canvas (esto elimina todos los metadatos)
+        ctx.drawImage(img, 0, 0);
+
+        // Convertir a blob PNG (sin metadatos)
+        canvas.toBlob(
+          (newBlob) => {
+            URL.revokeObjectURL(url);
+            if (newBlob) {
+              resolve(newBlob);
+            } else {
+              // Si falla la conversión, devolver el original
+              resolve(blob);
+            }
+          },
+          'image/png',
+          1.0
+        );
+      } catch (error) {
+        URL.revokeObjectURL(url);
+        reject(error);
+      }
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Error al cargar la imagen para eliminar metadatos'));
+    };
+
+    img.src = url;
+  });
+}
+
 interface DownloadState {
   status: DownloadStatus;
   progress: number;
@@ -152,9 +210,18 @@ export function useDownload() {
         }
       }
 
-      // Crear blob y descargar
-      const blob = new Blob(chunks);
-      const url = URL.createObjectURL(blob);
+      // Crear blob y eliminar metadatos antes de descargar
+      const originalBlob = new Blob(chunks);
+
+      // Actualizar estado indicando que se están procesando los metadatos
+      setDownloadState(prev => ({
+        ...prev,
+        progress: 95,
+      }));
+
+      // Eliminar metadatos de la imagen usando Canvas
+      const cleanBlob = await stripImageMetadata(originalBlob);
+      const url = URL.createObjectURL(cleanBlob);
 
       const link = document.createElement('a');
       link.href = url;
