@@ -35,6 +35,22 @@ html, body, #root {
   height: 100%;
 }
 
+/* Mejoras táctiles globales */
+button, label, .clickable, [role="button"] {
+  -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
+  touch-action: manipulation;
+}
+
+/* Prevenir zoom en inputs en iOS */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="file"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 body {
   background: var(--bg-dark);
   color: var(--text-primary);
@@ -2129,13 +2145,60 @@ textarea {
 
   .sidebar {
     width: 100%;
-    max-height: 40vh;
+    max-height: none;
     border-right: none;
     border-bottom: 1px solid var(--border-light);
+    overflow-y: visible;
   }
 
+  /* Mostrar identity-details en móvil */
   .identity-details {
-    display: none;
+    display: block;
+    border-top: 1px solid var(--border-light);
+    padding: 0.75rem;
+    max-height: none;
+  }
+
+  .identity-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  /* Hacer visibles los botones de acción de fotos en móvil (sin hover) */
+  .photo-actions {
+    opacity: 1;
+  }
+
+  .photo-delete {
+    opacity: 0.8;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  .btn-generate-description,
+  .btn-remove-description {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .face-description-indicator {
+    font-size: 1rem;
+    padding: 0.25rem;
+  }
+
+  /* Botón de usar variante siempre visible en móvil */
+  .btn-use-variant {
+    opacity: 1;
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Fotos grid responsivo */
+  .photos-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.375rem;
   }
 
   .gallery-grid {
@@ -2975,7 +3038,7 @@ textarea {
   color: white;
 }
 
-/* Responsive */
+/* Responsive - Face Variants Generator */
 @media (max-width: 768px) {
   .variants-grid,
   .saved-variants-grid {
@@ -2988,36 +3051,326 @@ textarea {
   }
 
   .base-image-preview {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .base-image-preview img {
-    width: 100%;
-    height: auto;
-    max-height: 150px;
+    width: 80px;
+    height: 80px;
+    max-height: none;
+    object-fit: cover;
+  }
+
+  /* Modal de variantes para móvil */
+  .variant-modal {
+    padding: 0.5rem;
   }
 
   .variant-modal-content {
-    max-width: 95vw;
+    max-width: 100%;
+    width: 100%;
+    max-height: 95vh;
+    border-radius: 0.75rem;
   }
 
+  .variant-modal-content img {
+    max-height: 50vh;
+  }
+
+  .variant-modal-close {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .variant-modal-info {
+    padding: 1rem;
+  }
+
+  .variant-modal-info h3 {
+    font-size: 1rem;
+  }
+
+  .variant-modal-info .btn-primary {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  /* Botones de opción más grandes para táctil */
   .option-buttons {
-    gap: 0.25rem;
+    gap: 0.375rem;
   }
 
   .option-btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.65rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  /* Accesorios más fáciles de tocar */
+  .accessory-btn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+    min-height: 34px;
+  }
+
+  /* Imágenes de comparación */
   .comparison-image img {
     width: 100px;
     height: 100px;
   }
 
+  .comparison-arrow {
+    font-size: 1.25rem;
+  }
+
   .saved-variant-label {
     max-width: 150px;
+  }
+
+  /* Botones de acción más grandes en variantes guardadas */
+  .btn-use-saved,
+  .btn-delete-saved {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  /* Sección de base image */
+  .base-image-section {
+    padding: 0.75rem;
+  }
+
+  .base-image-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .base-image-placeholder {
+    padding: 1.5rem 1rem;
+  }
+
+  /* Sección de personalización */
+  .variant-customization-section {
+    padding: 0.75rem;
+  }
+
+  .customization-group {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Botón de generar más grande */
+  .btn-generate {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  /* Tarjeta de variante guardada */
+  .saved-variant-item-card {
+    padding: 0.625rem;
+  }
+
+  .saved-base-thumb,
+  .saved-variant-thumb {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* Descripción de variantes */
+  .face-variants-description {
+    font-size: 0.75rem;
+  }
+
+  /* Resultado generado */
+  .variant-result-card {
+    padding: 0.75rem;
+  }
+
+  .variant-result-info .variant-description {
+    font-size: 0.7rem;
+  }
+}
+
+/* Breakpoint para móviles pequeños */
+@media (max-width: 480px) {
+  .face-variants-header {
+    padding: 0.75rem;
+  }
+
+  .face-variants-content {
+    padding: 0.75rem;
+  }
+
+  /* Etnias en 2 columnas para móviles pequeños */
+  .customization-group:first-of-type .option-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.375rem;
+  }
+
+  .customization-group:first-of-type .option-btn {
+    width: 100%;
+  }
+
+  /* Comparación vertical en móviles pequeños */
+  .variant-comparison {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .comparison-arrow {
+    transform: rotate(90deg);
+  }
+
+  .comparison-image img {
+    width: 120px;
+    height: 120px;
+  }
+
+  /* Tarjetas de variantes guardadas más compactas */
+  .saved-variant-item-card {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .saved-variant-meta {
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  .saved-variant-actions {
+    order: 2;
+  }
+
+  /* Accesorios en scroll horizontal */
+  .accessory-options {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .accessory-btn {
+    flex-shrink: 0;
+  }
+
+  /* Grupos de accesorios más compactos */
+  .accessories-groups {
+    gap: 0.5rem;
+  }
+
+  .accessory-group-title {
+    font-size: 0.6rem;
+  }
+
+  /* Panel de descripción facial en móvil pequeño */
+  .face-description-panel {
+    margin-top: 0.5rem;
+  }
+
+  .face-description-content {
+    max-height: 200px;
+    padding: 0.5rem;
+  }
+
+  .face-description-content pre {
+    font-size: 0.7rem;
+  }
+
+  .face-description-header {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .btn-close-panel {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  .face-description-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .btn-regenerate {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Botones de carga más grandes */
+  .base-image-header .btn-secondary {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .photos-header .btn-secondary {
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Grid de fotos 2 columnas */
+  .photos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Botones de acción de fotos más grandes */
+  .photo-delete {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .btn-generate-description,
+  .btn-remove-description {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  /* Modal de variantes pantalla completa en móvil pequeño */
+  .variant-modal {
+    padding: 0;
+  }
+
+  .variant-modal-content {
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100%;
+  }
+
+  .variant-modal-content img {
+    max-height: 45vh;
+  }
+
+  /* Identity list más compacto */
+  .identity-item {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .identity-preview {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Panel header */
+  .panel-header {
+    padding: 0.75rem;
+  }
+
+  .panel-header h2 {
+    font-size: 0.9rem;
   }
 }
 
