@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Identity, FeedComment } from '../types';
 import { generateFeedComments } from '../services/gemini';
 
@@ -14,16 +14,17 @@ export function FeedGenerator({ identities }: Props) {
   const [comments, setComments] = useState<FeedComment[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState<string>('');
+  const [expandedComment, setExpandedComment] = useState<FeedComment | null>(null);
+  const [copiedCommentId, setCopiedCommentId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Identidades que tienen contexto definido
   const identitiesWithContext = identities.filter(id => id.context);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
+  // Función para procesar archivo de imagen
+  const processImageFile = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
 
-    // Leer imagen como data URL
     const reader = new FileReader();
     reader.onloadend = () => {
       const dataUrl = reader.result as string;
@@ -58,6 +59,38 @@ export function FeedGenerator({ identities }: Props) {
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
+  };
+
+  // Manejar pegado de imágenes desde el portapapeles
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      // Solo permitir pegado si no hay imagen ya cargada
+      if (postImage) return;
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          e.preventDefault();
+          const file = items[i].getAsFile();
+          if (file) {
+            processImageFile(file);
+          }
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [postImage]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    processImageFile(file);
 
     // Limpiar input
     if (fileInputRef.current) {
@@ -132,6 +165,17 @@ export function FeedGenerator({ identities }: Props) {
     return `comment-sentiment comment-sentiment-${sentiment}`;
   };
 
+  // Copiar comentario al portapapeles
+  const handleCopyComment = async (comment: FeedComment) => {
+    try {
+      await navigator.clipboard.writeText(comment.content);
+      setCopiedCommentId(comment.id);
+      setTimeout(() => setCopiedCommentId(null), 2000);
+    } catch (error) {
+      console.error('Error al copiar comentario:', error);
+    }
+  };
+
   return (
     <div className="feed-generator">
       <div className="feed-header">
@@ -153,6 +197,7 @@ export function FeedGenerator({ identities }: Props) {
                   <span className="feed-upload-icon">📷</span>
                   <span className="feed-upload-text">Haz clic para subir una imagen</span>
                   <span className="feed-upload-hint">Esta será la publicación que las identidades van a comentar</span>
+                  <span className="feed-upload-paste-hint">Ctrl+V para pegar desde el portapapeles</span>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -259,7 +304,7 @@ export function FeedGenerator({ identities }: Props) {
         {/* Sección de comentarios generados */}
         {comments.length > 0 && (
           <div className="feed-comments-section">
-            <h3>Comentarios Generados</h3>
+            <h3>Comentarios Generados ({comments.length})</h3>
             <div className="feed-comments-list">
               {comments.map(comment => (
                 <div key={comment.id} className="feed-comment">
@@ -278,12 +323,72 @@ export function FeedGenerator({ identities }: Props) {
                       </span>
                     </div>
                     <p className="feed-comment-text">{comment.content}</p>
-                    <span className="feed-comment-time">
-                      {new Date(comment.createdAt).toLocaleTimeString()}
-                    </span>
+                    <div className="feed-comment-footer">
+                      <span className="feed-comment-time">
+                        {new Date(comment.createdAt).toLocaleTimeString()}
+                      </span>
+                      <div className="feed-comment-actions">
+                        <button
+                          className={`feed-comment-action-btn ${copiedCommentId === comment.id ? 'copied' : ''}`}
+                          onClick={() => handleCopyComment(comment)}
+                          title="Copiar comentario"
+                        >
+                          {copiedCommentId === comment.id ? '✓ Copiado' : '📋 Copiar'}
+                        </button>
+                        <button
+                          className="feed-comment-action-btn"
+                          onClick={() => setExpandedComment(comment)}
+                          title="Ver comentario completo"
+                        >
+                          🔍 Ver completo
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Modal para ver comentario completo */}
+        {expandedComment && (
+          <div className="feed-comment-modal-overlay" onClick={() => setExpandedComment(null)}>
+            <div className="feed-comment-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="feed-comment-modal-header">
+                <div className="feed-comment-modal-identity">
+                  <div className="feed-comment-modal-avatar">
+                    {expandedComment.identityThumbnail ? (
+                      <img src={expandedComment.identityThumbnail} alt={expandedComment.identityName} />
+                    ) : (
+                      <div className="feed-comment-no-avatar">?</div>
+                    )}
+                  </div>
+                  <div className="feed-comment-modal-info">
+                    <span className="feed-comment-modal-name">{expandedComment.identityName}</span>
+                    <span className={getSentimentClass(expandedComment.sentiment)}>
+                      {getSentimentEmoji(expandedComment.sentiment)} {expandedComment.sentiment}
+                    </span>
+                  </div>
+                </div>
+                <button className="feed-comment-modal-close" onClick={() => setExpandedComment(null)}>
+                  ×
+                </button>
+              </div>
+              <div className="feed-comment-modal-body">
+                <p className="feed-comment-modal-text">{expandedComment.content}</p>
+              </div>
+              <div className="feed-comment-modal-footer">
+                <span className="feed-comment-time">
+                  {new Date(expandedComment.createdAt).toLocaleTimeString()}
+                </span>
+                <button
+                  className={`btn-secondary ${copiedCommentId === expandedComment.id ? 'copied' : ''}`}
+                  onClick={() => handleCopyComment(expandedComment)}
+                >
+                  {copiedCommentId === expandedComment.id ? '✓ Copiado al portapapeles' : '📋 Copiar comentario'}
+                </button>
+              </div>
             </div>
           </div>
         )}
