@@ -126,6 +126,7 @@ export interface GeminiResponse {
         };
       }>;
     };
+    finishReason?: string;
   }>;
   error?: {
     message: string;
