@@ -1519,10 +1519,33 @@ function extractCommentFromIncompleteJson(text: string): string | null {
   cleanText = cleanText.trim();
 
   // Intentar extraer el valor de "comment" usando regex
-  // Busca el patrón "comment": "valor" incluso si el JSON está incompleto
-  const commentMatch = cleanText.match(/"comment"\s*:\s*"([^"]*)/);
+  // Busca el patrón "comment": "valor" manejando caracteres escapados
+  // Esta regex maneja secuencias escapadas como \" dentro del string
+  const commentMatch = cleanText.match(/"comment"\s*:\s*"((?:[^"\\]|\\.)*)"/);
   if (commentMatch && commentMatch[1]) {
-    return commentMatch[1];
+    // Decodificar caracteres escapados
+    return commentMatch[1]
+      .replace(/\\n/g, '\n')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
+  }
+
+  // Si el JSON está truncado y no tiene comilla de cierre, extraer todo lo que hay después de "comment": "
+  const truncatedMatch = cleanText.match(/"comment"\s*:\s*"((?:[^"\\]|\\.)*)/);
+  if (truncatedMatch && truncatedMatch[1]) {
+    // El comentario está truncado, extraer lo que tengamos
+    let extractedComment = truncatedMatch[1]
+      .replace(/\\n/g, '\n')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
+
+    // Limpiar posibles caracteres incompletos al final (por truncamiento)
+    // Remover caracteres sueltos que pueden indicar truncamiento
+    extractedComment = extractedComment.replace(/[\s,}\]]+$/, '').trim();
+
+    if (extractedComment.length > 0) {
+      return extractedComment;
+    }
   }
 
   // Si no encontramos un patrón válido, devolver null
@@ -1587,7 +1610,7 @@ Recuerda responder SOLO con el JSON especificado.`
         }],
         generationConfig: {
           temperature: 0.8, // Mayor variabilidad para comentarios más diversos
-          maxOutputTokens: 1024, // Aumentado para evitar truncamiento de respuestas
+          maxOutputTokens: 2048, // Aumentado para evitar truncamiento de respuestas
         }
       };
 
