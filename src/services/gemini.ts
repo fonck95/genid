@@ -1501,6 +1501,35 @@ Responde ÚNICAMENTE con un JSON válido con esta estructura:
 NO incluyas explicaciones adicionales, SOLO el JSON.`;
 
 /**
+ * Extrae el texto del comentario de un JSON incompleto o malformado.
+ * Útil cuando la respuesta de la API se trunca antes de completar el JSON.
+ */
+function extractCommentFromIncompleteJson(text: string): string | null {
+  // Limpiar el texto de marcadores de código
+  let cleanText = text.trim();
+  if (cleanText.startsWith('```json')) {
+    cleanText = cleanText.slice(7);
+  }
+  if (cleanText.startsWith('```')) {
+    cleanText = cleanText.slice(3);
+  }
+  if (cleanText.endsWith('```')) {
+    cleanText = cleanText.slice(0, -3);
+  }
+  cleanText = cleanText.trim();
+
+  // Intentar extraer el valor de "comment" usando regex
+  // Busca el patrón "comment": "valor" incluso si el JSON está incompleto
+  const commentMatch = cleanText.match(/"comment"\s*:\s*"([^"]*)/);
+  if (commentMatch && commentMatch[1]) {
+    return commentMatch[1];
+  }
+
+  // Si no encontramos un patrón válido, devolver null
+  return null;
+}
+
+/**
  * Genera comentarios de feed para múltiples identidades basándose en una imagen.
  * @param postImageUrl - URL de la imagen del post/publicación
  * @param postDescription - Descripción opcional del post
@@ -1558,7 +1587,7 @@ Recuerda responder SOLO con el JSON especificado.`
         }],
         generationConfig: {
           temperature: 0.8, // Mayor variabilidad para comentarios más diversos
-          maxOutputTokens: 512,
+          maxOutputTokens: 1024, // Aumentado para evitar truncamiento de respuestas
         }
       };
 
@@ -1590,6 +1619,12 @@ Recuerda responder SOLO con el JSON especificado.`
         continue;
       }
 
+      // Detectar si la respuesta fue truncada
+      const wasTruncated = candidate.finishReason === 'MAX_TOKENS' || candidate.finishReason === 'LENGTH';
+      if (wasTruncated) {
+        console.warn(`Respuesta truncada para ${identity.name}, finishReason: ${candidate.finishReason}`);
+      }
+
       for (const part of candidate.content.parts) {
         if (part.text) {
           try {
@@ -1619,16 +1654,19 @@ Recuerda responder SOLO con el JSON especificado.`
             });
           } catch (parseError) {
             console.error(`Error parseando respuesta para ${identity.name}:`, parseError);
-            // Si falla el parseo, usar el texto directamente
-            comments.push({
-              id: `${identity.id}-${Date.now()}`,
-              identityId: identity.id,
-              identityName: identity.name,
-              identityThumbnail: identity.photos[0]?.thumbnail,
-              content: part.text.trim(),
-              sentiment: 'neutral',
-              createdAt: Date.now()
-            });
+            // Intentar extraer el comentario del JSON incompleto
+            const extractedComment = extractCommentFromIncompleteJson(part.text);
+            if (extractedComment) {
+              comments.push({
+                id: `${identity.id}-${Date.now()}`,
+                identityId: identity.id,
+                identityName: identity.name,
+                identityThumbnail: identity.photos[0]?.thumbnail,
+                content: extractedComment,
+                sentiment: 'neutral',
+                createdAt: Date.now()
+              });
+            }
           }
           break;
         }
