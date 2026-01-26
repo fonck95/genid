@@ -5451,3 +5451,209 @@ textarea {
     padding: 0.75rem;
   }
 }
+
+/* Hint de pegar desde portapapeles */
+.feed-upload-paste-hint {
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  margin-top: 0.5rem;
+  opacity: 0.8;
+}
+
+/* Footer del comentario con acciones */
+.feed-comment-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.feed-comment-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.feed-comment-action-btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.feed-comment-action-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary-light);
+  color: var(--text-primary);
+}
+
+.feed-comment-action-btn.copied {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: rgba(46, 204, 113, 0.5);
+  color: #2ecc71;
+}
+
+/* Modal para comentario expandido */
+.feed-comment-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.feed-comment-modal {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.feed-comment-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+.feed-comment-modal-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.feed-comment-modal-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.feed-comment-modal-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feed-comment-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.feed-comment-modal-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.feed-comment-modal-close {
+  width: 36px;
+  height: 36px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.feed-comment-modal-close:hover {
+  background: var(--danger-color);
+  border-color: var(--danger-color);
+  color: white;
+}
+
+.feed-comment-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.feed-comment-modal-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.feed-comment-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.feed-comment-modal-footer .btn-secondary {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.feed-comment-modal-footer .btn-secondary.copied {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: rgba(46, 204, 113, 0.5);
+  color: #2ecc71;
+}
+
+/* Responsive para modal */
+@media (max-width: 480px) {
+  .feed-comment-modal {
+    max-height: 90vh;
+  }
+
+  .feed-comment-modal-header,
+  .feed-comment-modal-footer {
+    padding: 0.75rem 1rem;
+  }
+
+  .feed-comment-modal-body {
+    padding: 1rem;
+  }
+
+  .feed-comment-modal-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .feed-comment-action-btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+  }
+
+  .feed-comment-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
