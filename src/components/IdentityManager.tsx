@@ -11,7 +11,7 @@ import {
   deleteGeneratedImagesByIdentity,
   deleteFaceVariantsByIdentity
 } from '../services/identityStore';
-import { analyzeFaceForConsistency } from '../services/gemini';
+import { analyzeFaceForConsistency, generateIdentityContext } from '../services/gemini';
 import { FaceVariantsGenerator } from './FaceVariantsGenerator';
 
 interface Props {
@@ -33,6 +33,13 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
   const [analyzingPhotoId, setAnalyzingPhotoId] = useState<string | null>(null);
   const [expandedPhotoId, setExpandedPhotoId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Estados para el contexto de identidad
+  const [isEditingContext, setIsEditingContext] = useState(false);
+  const [contextIdeas, setContextIdeas] = useState('');
+  const [editedContext, setEditedContext] = useState('');
+  const [isGeneratingContext, setIsGeneratingContext] = useState(false);
+  const [showContextPanel, setShowContextPanel] = useState(false);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -155,6 +162,67 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
     setNewDescription('');
   };
 
+  // Funciones para manejo del contexto de identidad
+  const handleStartEditContext = () => {
+    if (!selectedIdentity) return;
+    setEditedContext(selectedIdentity.context || '');
+    setContextIdeas('');
+    setIsEditingContext(true);
+    setShowContextPanel(true);
+  };
+
+  const handleSaveContext = async () => {
+    if (!selectedIdentity) return;
+
+    const updated = {
+      ...selectedIdentity,
+      context: editedContext.trim() || undefined
+    };
+    await updateIdentity(updated);
+    setIsEditingContext(false);
+    onRefresh();
+  };
+
+  const handleCancelEditContext = () => {
+    setIsEditingContext(false);
+    setContextIdeas('');
+    setEditedContext('');
+  };
+
+  const handleGenerateContext = async () => {
+    if (!contextIdeas.trim()) {
+      alert('Por favor, escribe algunas ideas principales para generar el contexto.');
+      return;
+    }
+
+    setIsGeneratingContext(true);
+    try {
+      const generatedContext = await generateIdentityContext(
+        contextIdeas,
+        selectedIdentity?.name
+      );
+      setEditedContext(generatedContext);
+    } catch (error) {
+      console.error('Error generando contexto:', error);
+      alert('Error al generar el contexto. Por favor, intenta de nuevo.');
+    } finally {
+      setIsGeneratingContext(false);
+    }
+  };
+
+  const handleRemoveContext = async () => {
+    if (!selectedIdentity) return;
+    if (!confirm('¿Eliminar el contexto de esta identidad?')) return;
+
+    const updated = {
+      ...selectedIdentity,
+      context: undefined
+    };
+    await updateIdentity(updated);
+    setShowContextPanel(false);
+    onRefresh();
+  };
+
   return (
     <div className="identity-manager">
       <div className="panel-header">
@@ -265,6 +333,117 @@ export function IdentityManager({ deviceId, identities, selectedIdentity, onSele
                   Editar
                 </button>
               </>
+            )}
+          </div>
+
+          {/* Sección de Contexto de Identidad */}
+          <div className="context-section">
+            <div className="context-header">
+              <span className="context-title">
+                Contexto de Personalidad
+                {selectedIdentity.context && <span className="context-badge">Definido</span>}
+              </span>
+              {!isEditingContext && (
+                <div className="context-actions">
+                  {selectedIdentity.context ? (
+                    <>
+                      <button
+                        className="btn-secondary btn-small"
+                        onClick={() => setShowContextPanel(!showContextPanel)}
+                      >
+                        {showContextPanel ? 'Ocultar' : 'Ver'}
+                      </button>
+                      <button
+                        className="btn-secondary btn-small"
+                        onClick={handleStartEditContext}
+                      >
+                        Editar
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="btn-primary btn-small"
+                      onClick={handleStartEditContext}
+                    >
+                      + Agregar Contexto
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Panel de visualización del contexto */}
+            {showContextPanel && selectedIdentity.context && !isEditingContext && (
+              <div className="context-view-panel">
+                <pre className="context-content">{selectedIdentity.context}</pre>
+                <div className="context-view-actions">
+                  <button
+                    className="btn-danger btn-small"
+                    onClick={handleRemoveContext}
+                  >
+                    Eliminar Contexto
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Panel de edición del contexto */}
+            {isEditingContext && (
+              <div className="context-edit-panel">
+                <div className="context-ideas-section">
+                  <label className="context-label">
+                    Ideas principales (escribe notas breves y genera un contexto completo):
+                  </label>
+                  <textarea
+                    className="context-ideas-input"
+                    placeholder="Ej: Mujer de 35 años, ingeniera de software, escéptica, usa sarcasmo, le gusta el café, odia las fotos de comida..."
+                    value={contextIdeas}
+                    onChange={(e) => setContextIdeas(e.target.value)}
+                    rows={3}
+                    disabled={isGeneratingContext}
+                  />
+                  <button
+                    className="btn-generate-context"
+                    onClick={handleGenerateContext}
+                    disabled={isGeneratingContext || !contextIdeas.trim()}
+                  >
+                    {isGeneratingContext ? 'Generando...' : 'Generar Contexto Completo'}
+                  </button>
+                </div>
+
+                <div className="context-divider">
+                  <span>o edita directamente:</span>
+                </div>
+
+                <div className="context-editor-section">
+                  <label className="context-label">Contexto detallado:</label>
+                  <textarea
+                    className="context-editor-input"
+                    placeholder="Describe la personalidad, sesgos, intereses, estilo de comunicación, etc. Este contexto se usará para generar comentarios realistas en el Feed."
+                    value={editedContext}
+                    onChange={(e) => setEditedContext(e.target.value)}
+                    rows={10}
+                    disabled={isGeneratingContext}
+                  />
+                </div>
+
+                <div className="context-form-actions">
+                  <button
+                    className="btn-secondary"
+                    onClick={handleCancelEditContext}
+                    disabled={isGeneratingContext}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="btn-primary"
+                    onClick={handleSaveContext}
+                    disabled={isGeneratingContext}
+                  >
+                    Guardar Contexto
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 

@@ -7,10 +7,11 @@ import { ImageGenerator } from './components/ImageGenerator';
 import { Gallery } from './components/Gallery';
 import { ImageEditor } from './components/ImageEditor';
 import { VideoGenerator } from './components/VideoGenerator';
+import { FeedGenerator } from './components/FeedGenerator';
 import { AuthProvider } from './contexts/AuthContext';
 import { GoogleLoginButton } from './components/GoogleLoginButton';
 
-type Tab = 'generate' | 'gallery' | 'editor' | 'video';
+type Tab = 'generate' | 'gallery' | 'editor' | 'video' | 'feed';
 
 function App() {
   const [deviceId, setDeviceId] = useState<string>('');
@@ -163,6 +164,12 @@ function App() {
               >
                 Video
               </button>
+              <button
+                className={`tab ${activeTab === 'feed' ? 'active' : ''}`}
+                onClick={() => setActiveTab('feed')}
+              >
+                Feed
+              </button>
             </nav>
 
             <div className="tab-content">
@@ -202,6 +209,11 @@ function App() {
                   identities={identities}
                   onSelectIdentity={handleSelectIdentity}
                   onRefresh={loadData}
+                />
+              )}
+              {activeTab === 'feed' && (
+                <FeedGenerator
+                  identities={identities}
                 />
               )}
             </div>

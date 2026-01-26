@@ -7,7 +7,9 @@ import type {
   FaceAgeRange,
   FaceSex,
   FacialAccessory,
-  FaceVariantOptions
+  FaceVariantOptions,
+  Identity,
+  FeedComment
 } from '../types';
 import { downscaleImage, defaultOptimizationConfig, type ImageOptimizationConfig } from './imageOptimizer';
 
@@ -1347,4 +1349,294 @@ export async function generateAllFaceVariants(
   }
 
   return results as Record<FaceVariantType, string>;
+}
+
+// ============================================================
+// FUNCIONES PARA CONTEXTO DE IDENTIDAD Y FEED DE COMENTARIOS
+// ============================================================
+
+// System prompt para generación de contexto de identidad
+const IDENTITY_CONTEXT_SYSTEM_PROMPT = `[ROL]
+Eres un experto en creación de perfiles de personajes detallados y realistas. Tu tarea es expandir ideas básicas proporcionadas por el usuario en un contexto completo y coherente que defina a una persona ficticia.
+
+[OBJETIVO]
+A partir de ideas principales o notas breves, genera un perfil detallado que incluya:
+
+1. **PERSONALIDAD Y CARÁCTER**
+   - Rasgos de personalidad dominantes (introvertido/extrovertido, analítico/emocional, etc.)
+   - Fortalezas y debilidades de carácter
+   - Valores fundamentales y principios
+   - Miedos e inseguridades
+
+2. **TRASFONDO Y CONTEXTO**
+   - Origen socioeconómico aproximado
+   - Nivel educativo y área de conocimiento
+   - Experiencias formativas que moldearon su perspectiva
+   - Influencias culturales
+
+3. **SESGOS Y PERSPECTIVAS**
+   - Opiniones políticas generales (sin ser extremista)
+   - Actitud hacia la tecnología y redes sociales
+   - Visión del mundo (optimista/pesimista/realista)
+   - Prejuicios inconscientes comunes
+
+4. **ESTILO DE COMUNICACIÓN**
+   - Tono al escribir (formal/informal/sarcástico/entusiasta)
+   - Uso de emojis (mucho/poco/ninguno)
+   - Longitud típica de comentarios (breve/moderado/extenso)
+   - Tipo de humor preferido
+
+5. **INTERESES Y TEMAS**
+   - Temas que le apasionan
+   - Temas que le molestan o evita
+   - Áreas de expertise o conocimiento
+   - Hobbies e intereses
+
+[FORMATO DE SALIDA]
+Genera el perfil en formato estructurado con secciones claras. El contexto debe ser:
+- Coherente y creíble
+- Útil para simular respuestas realistas
+- Sin estereotipos ofensivos
+- Aproximadamente 300-500 palabras
+
+[RESTRICCIONES]
+- NO incluyas datos personales reales (direcciones, teléfonos, etc.)
+- Evita extremismos políticos, religiosos o ideológicos
+- Mantén un tono profesional y respetuoso
+- El perfil debe ser versátil para diferentes situaciones`;
+
+/**
+ * Genera un contexto detallado para una identidad a partir de ideas principales.
+ * @param mainIdeas - Ideas principales o notas breves sobre la identidad
+ * @param identityName - Nombre de la identidad (opcional, para personalizar)
+ * @returns Contexto completo y detallado generado por IA
+ */
+export async function generateIdentityContext(
+  mainIdeas: string,
+  identityName?: string
+): Promise<string> {
+  const nameContext = identityName
+    ? `\n\nNombre de la persona: ${identityName}`
+    : '';
+
+  const requestBody = {
+    contents: [{
+      parts: [{
+        text: `${IDENTITY_CONTEXT_SYSTEM_PROMPT}${nameContext}
+
+IDEAS PRINCIPALES PROPORCIONADAS POR EL USUARIO:
+${mainIdeas}
+
+Genera ahora un perfil detallado y coherente basándote en estas ideas. Expande y enriquece cada aspecto manteniendo consistencia con las ideas originales.`
+      }]
+    }],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 2048,
+    }
+  };
+
+  const response = await fetch(
+    `${getApiUrl(GEMINI_TEXT_MODEL)}?key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error de API Gemini: ${response.status} - ${errorText}`);
+  }
+
+  const data: GeminiResponse = await response.json();
+
+  if (data.error) {
+    throw new Error(`Error Gemini: ${data.error.message}`);
+  }
+
+  const candidate = data.candidates?.[0];
+  if (!candidate?.content?.parts) {
+    throw new Error('No se recibió respuesta válida de Gemini');
+  }
+
+  for (const part of candidate.content.parts) {
+    if (part.text) {
+      return part.text;
+    }
+  }
+
+  throw new Error('No se generó el contexto de identidad');
+}
+
+// System prompt para generación de comentarios de feed
+const FEED_COMMENTS_SYSTEM_PROMPT = `[ROL]
+Eres un simulador de comentarios de redes sociales. Tu tarea es generar comentarios REALISTAS y DIVERSOS como si fueran escritos por personas reales con diferentes personalidades y perspectivas.
+
+[OBJETIVO]
+Dado el contexto/perfil de una persona y una imagen de publicación de redes sociales, genera un comentario que:
+1. Sea CONSISTENTE con la personalidad y sesgos descritos en el contexto
+2. Reaccione de manera NATURAL a lo que se ve en la imagen
+3. Use el ESTILO DE COMUNICACIÓN apropiado para esa persona
+4. Sea CREÍBLE como un comentario real de redes sociales
+
+[REGLAS DE GENERACIÓN]
+- El comentario debe reflejar la perspectiva única de la persona según su contexto
+- Puede ser positivo, negativo, neutral, controversial o humorístico según la personalidad
+- Debe considerar los sesgos e intereses de la persona
+- La longitud debe ser apropiada para redes sociales (1-3 oraciones típicamente)
+- Puede incluir emojis SI el perfil indica que la persona los usa
+- El tono debe coincidir con el estilo de comunicación descrito
+
+[FORMATO DE RESPUESTA]
+Responde ÚNICAMENTE con un JSON válido con esta estructura:
+{
+  "comment": "El texto del comentario",
+  "sentiment": "positive|negative|neutral|controversial|humorous"
+}
+
+NO incluyas explicaciones adicionales, SOLO el JSON.`;
+
+/**
+ * Genera comentarios de feed para múltiples identidades basándose en una imagen.
+ * @param postImageUrl - URL de la imagen del post/publicación
+ * @param postDescription - Descripción opcional del post
+ * @param identities - Array de identidades que van a "comentar"
+ * @returns Array de comentarios generados
+ */
+export async function generateFeedComments(
+  postImageUrl: string,
+  postDescription: string | undefined,
+  identities: Identity[]
+): Promise<FeedComment[]> {
+  const comments: FeedComment[] = [];
+
+  // Optimizar la imagen una sola vez
+  const optimizedImage = await optimizeImageForAPI(postImageUrl);
+
+  for (const identity of identities) {
+    // Solo generar comentario si la identidad tiene contexto
+    if (!identity.context) {
+      continue;
+    }
+
+    try {
+      const parts: ContentPart[] = [];
+
+      // System prompt + contexto de la identidad
+      parts.push({
+        text: `${FEED_COMMENTS_SYSTEM_PROMPT}
+
+PERFIL DE LA PERSONA QUE VA A COMENTAR:
+Nombre: ${identity.name}
+${identity.description ? `Descripción breve: ${identity.description}` : ''}
+
+CONTEXTO DETALLADO:
+${identity.context}
+
+${postDescription ? `DESCRIPCIÓN DEL POST: ${postDescription}` : ''}
+
+IMAGEN DEL POST/PUBLICACIÓN:`
+      });
+
+      // Añadir la imagen
+      parts.push(createImagePart(optimizedImage, 'image/jpeg'));
+
+      // Instrucción final
+      parts.push({
+        text: `
+Ahora genera un comentario como si fueras "${identity.name}" reaccionando a esta publicación.
+Recuerda responder SOLO con el JSON especificado.`
+      });
+
+      const requestBody = {
+        contents: [{
+          parts
+        }],
+        generationConfig: {
+          temperature: 0.8, // Mayor variabilidad para comentarios más diversos
+          maxOutputTokens: 512,
+        }
+      };
+
+      const response = await fetch(
+        `${getApiUrl(GEMINI_TEXT_MODEL)}?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      if (!response.ok) {
+        console.error(`Error generando comentario para ${identity.name}`);
+        continue;
+      }
+
+      const data: GeminiResponse = await response.json();
+
+      if (data.error) {
+        console.error(`Error Gemini para ${identity.name}:`, data.error.message);
+        continue;
+      }
+
+      const candidate = data.candidates?.[0];
+      if (!candidate?.content?.parts) {
+        continue;
+      }
+
+      for (const part of candidate.content.parts) {
+        if (part.text) {
+          try {
+            // Limpiar el texto de posibles marcadores de código
+            let jsonText = part.text.trim();
+            if (jsonText.startsWith('```json')) {
+              jsonText = jsonText.slice(7);
+            }
+            if (jsonText.startsWith('```')) {
+              jsonText = jsonText.slice(3);
+            }
+            if (jsonText.endsWith('```')) {
+              jsonText = jsonText.slice(0, -3);
+            }
+            jsonText = jsonText.trim();
+
+            const parsed = JSON.parse(jsonText);
+
+            comments.push({
+              id: `${identity.id}-${Date.now()}`,
+              identityId: identity.id,
+              identityName: identity.name,
+              identityThumbnail: identity.photos[0]?.thumbnail,
+              content: parsed.comment,
+              sentiment: parsed.sentiment || 'neutral',
+              createdAt: Date.now()
+            });
+          } catch (parseError) {
+            console.error(`Error parseando respuesta para ${identity.name}:`, parseError);
+            // Si falla el parseo, usar el texto directamente
+            comments.push({
+              id: `${identity.id}-${Date.now()}`,
+              identityId: identity.id,
+              identityName: identity.name,
+              identityThumbnail: identity.photos[0]?.thumbnail,
+              content: part.text.trim(),
+              sentiment: 'neutral',
+              createdAt: Date.now()
+            });
+          }
+          break;
+        }
+      }
+    } catch (error) {
+      console.error(`Error generando comentario para ${identity.name}:`, error);
+    }
+  }
+
+  return comments;
 }

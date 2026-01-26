@@ -3,6 +3,8 @@ export interface Identity {
   deviceId: string;
   name: string;
   description: string;
+  /** Contexto detallado que define la personalidad, sesgos y características de la identidad */
+  context?: string;
   photos: IdentityPhoto[];
   createdAt: number;
   updatedAt: number;
@@ -253,4 +255,39 @@ export interface MotionControlOptions {
   character_orientation: MotionControlOrientation;
   /** Modo de generación */
   mode: 'std' | 'pro';
+}
+
+// === TIPOS PARA FEED DE COMENTARIOS ===
+
+/** Comentario generado por una identidad en el feed */
+export interface FeedComment {
+  id: string;
+  /** ID de la identidad que "escribe" el comentario */
+  identityId: string;
+  /** Nombre de la identidad */
+  identityName: string;
+  /** Avatar/thumbnail de la identidad */
+  identityThumbnail?: string;
+  /** Texto del comentario generado */
+  content: string;
+  /** Tipo de reacción/sentimiento del comentario */
+  sentiment: 'positive' | 'negative' | 'neutral' | 'controversial' | 'humorous';
+  /** Timestamp de generación */
+  createdAt: number;
+}
+
+/** Sesión de feed con imagen y comentarios */
+export interface FeedSession {
+  id: string;
+  deviceId: string;
+  /** URL de la imagen del post/publicación */
+  postImageUrl: string;
+  /** Thumbnail de la imagen */
+  postImageThumbnail: string;
+  /** Descripción opcional del post */
+  postDescription?: string;
+  /** Comentarios generados */
+  comments: FeedComment[];
+  /** Timestamp de creación */
+  createdAt: number;
 }
