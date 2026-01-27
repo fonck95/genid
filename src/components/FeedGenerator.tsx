@@ -10,6 +10,7 @@ export function FeedGenerator({ identities }: Props) {
   const [postImage, setPostImage] = useState<string | null>(null);
   const [postImageThumbnail, setPostImageThumbnail] = useState<string | null>(null);
   const [postDescription, setPostDescription] = useState('');
+  const [opinionBias, setOpinionBias] = useState('');
   const [selectedIdentityIds, setSelectedIdentityIds] = useState<Set<string>>(new Set());
   const [comments, setComments] = useState<FeedComment[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -137,7 +138,8 @@ export function FeedGenerator({ identities }: Props) {
       const generatedComments = await generateFeedComments(
         postImage,
         postDescription || undefined,
-        selectedIdentities
+        selectedIdentities,
+        opinionBias || undefined
       );
 
       setComments(generatedComments);
@@ -230,6 +232,13 @@ export function FeedGenerator({ identities }: Props) {
                 value={postDescription}
                 onChange={(e) => setPostDescription(e.target.value)}
                 rows={2}
+              />
+              <textarea
+                className="feed-opinion-bias"
+                placeholder="Sesgo de opinión (opcional) - Ej: 'Las identidades deben defender la política X', 'Debatir sobre el tema Y', 'Mostrar escepticismo hacia Z', etc."
+                value={opinionBias}
+                onChange={(e) => setOpinionBias(e.target.value)}
+                rows={3}
               />
             </div>
           )}

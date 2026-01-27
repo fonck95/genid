@@ -7,7 +7,10 @@ import type {
   FaceAgeRange,
   FaceSex,
   FacialAccessory,
-  FaceVariantOptions
+  FaceVariantOptions,
+  IrisColor,
+  HairColor,
+  HairType
 } from '../types';
 import { generateCustomFaceVariant } from '../services/gemini';
 import {
@@ -91,6 +94,45 @@ const ACCESSORY_GROUPS = [
   }
 ];
 
+// Opciones de color de iris
+const IRIS_COLOR_OPTIONS: { value: IrisColor | ''; label: string }[] = [
+  { value: '', label: 'Automático (según etnia)' },
+  { value: 'brown', label: 'Marrón' },
+  { value: 'dark_brown', label: 'Marrón oscuro' },
+  { value: 'light_brown', label: 'Marrón claro' },
+  { value: 'hazel', label: 'Avellana' },
+  { value: 'green', label: 'Verde' },
+  { value: 'blue', label: 'Azul' },
+  { value: 'gray', label: 'Gris' },
+  { value: 'amber', label: 'Ámbar' }
+];
+
+// Opciones de color de cabello
+const HAIR_COLOR_OPTIONS: { value: HairColor | ''; label: string }[] = [
+  { value: '', label: 'Automático (según etnia)' },
+  { value: 'black', label: 'Negro' },
+  { value: 'dark_brown', label: 'Castaño oscuro' },
+  { value: 'medium_brown', label: 'Castaño medio' },
+  { value: 'light_brown', label: 'Castaño claro' },
+  { value: 'blonde', label: 'Rubio' },
+  { value: 'platinum_blonde', label: 'Rubio platino' },
+  { value: 'red', label: 'Pelirrojo' },
+  { value: 'auburn', label: 'Caoba/Cobrizo' },
+  { value: 'gray', label: 'Canoso' },
+  { value: 'white', label: 'Blanco' }
+];
+
+// Opciones de tipo de cabello
+const HAIR_TYPE_OPTIONS: { value: HairType | ''; label: string }[] = [
+  { value: '', label: 'Automático (según etnia)' },
+  { value: 'straight', label: 'Liso' },
+  { value: 'wavy', label: 'Ondulado' },
+  { value: 'curly', label: 'Rizado' },
+  { value: 'coily', label: 'Afro/Crespo' },
+  { value: 'bald', label: 'Calvo' },
+  { value: 'short_cropped', label: 'Rapado/Muy corto' }
+];
+
 // Helper para obtener la descripción de la variante
 function getVariantDescription(options: FaceVariantOptions): string {
   const ethnicity = ETHNICITY_OPTIONS.find(e => e.value === options.ethnicity)?.label || options.ethnicity;
@@ -98,6 +140,26 @@ function getVariantDescription(options: FaceVariantOptions): string {
   const sex = SEX_OPTIONS.find(s => s.value === options.sex)?.label || options.sex;
 
   let desc = `${ethnicity}, ${sex}, ${age}`;
+
+  // Añadir características de iris y cabello si están definidas
+  const extras: string[] = [];
+  if (options.irisColor) {
+    const irisLabel = IRIS_COLOR_OPTIONS.find(i => i.value === options.irisColor)?.label;
+    if (irisLabel) extras.push(`ojos ${irisLabel.toLowerCase()}`);
+  }
+  if (options.hairColor) {
+    const hairColorLabel = HAIR_COLOR_OPTIONS.find(h => h.value === options.hairColor)?.label;
+    if (hairColorLabel) extras.push(`cabello ${hairColorLabel.toLowerCase()}`);
+  }
+  if (options.hairType) {
+    const hairTypeLabel = HAIR_TYPE_OPTIONS.find(h => h.value === options.hairType)?.label;
+    if (hairTypeLabel) extras.push(hairTypeLabel.toLowerCase());
+  }
+
+  if (extras.length > 0) {
+    desc += ` (${extras.join(', ')})`;
+  }
+
   if (options.accessories.length > 0) {
     const accLabels = options.accessories.map(acc => {
       for (const group of ACCESSORY_GROUPS) {
@@ -127,6 +189,9 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
   const [selectedAgeRange, setSelectedAgeRange] = useState<FaceAgeRange>('26-35');
   const [selectedSex, setSelectedSex] = useState<FaceSex>('female');
   const [selectedAccessories, setSelectedAccessories] = useState<FacialAccessory[]>([]);
+  const [selectedIrisColor, setSelectedIrisColor] = useState<IrisColor | ''>('');
+  const [selectedHairColor, setSelectedHairColor] = useState<HairColor | ''>('');
+  const [selectedHairType, setSelectedHairType] = useState<HairType | ''>('');
 
   // Cargar variantes guardadas al montar
   useEffect(() => {
@@ -197,7 +262,10 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
       ethnicity: selectedEthnicity,
       ageRange: selectedAgeRange,
       sex: selectedSex,
-      accessories: selectedAccessories
+      accessories: selectedAccessories,
+      ...(selectedIrisColor && { irisColor: selectedIrisColor }),
+      ...(selectedHairColor && { hairColor: selectedHairColor }),
+      ...(selectedHairType && { hairType: selectedHairType })
     };
 
     try {
@@ -371,6 +439,54 @@ export function FaceVariantsGenerator({ identity, onRefresh }: Props) {
                       key={option.value}
                       className={`option-btn ${selectedAgeRange === option.value ? 'selected' : ''}`}
                       onClick={() => setSelectedAgeRange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selector de Color de Iris */}
+              <div className="customization-group">
+                <label className="customization-label">Color de Iris (ojos)</label>
+                <div className="option-buttons option-buttons-wrap">
+                  {IRIS_COLOR_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      className={`option-btn ${selectedIrisColor === option.value ? 'selected' : ''}`}
+                      onClick={() => setSelectedIrisColor(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selector de Color de Cabello */}
+              <div className="customization-group">
+                <label className="customization-label">Color de Cabello</label>
+                <div className="option-buttons option-buttons-wrap">
+                  {HAIR_COLOR_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      className={`option-btn ${selectedHairColor === option.value ? 'selected' : ''}`}
+                      onClick={() => setSelectedHairColor(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selector de Tipo de Cabello */}
+              <div className="customization-group">
+                <label className="customization-label">Tipo de Cabello</label>
+                <div className="option-buttons option-buttons-wrap">
+                  {HAIR_TYPE_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      className={`option-btn ${selectedHairType === option.value ? 'selected' : ''}`}
+                      onClick={() => setSelectedHairType(option.value)}
                     >
                       {option.label}
                     </button>
