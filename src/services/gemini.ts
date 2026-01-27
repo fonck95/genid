@@ -9,7 +9,10 @@ import type {
   FacialAccessory,
   FaceVariantOptions,
   Identity,
-  FeedComment
+  FeedComment,
+  IrisColor,
+  HairColor,
+  HairType
 } from '../types';
 import { downscaleImage, defaultOptimizationConfig, type ImageOptimizationConfig } from './imageOptimizer';
 
@@ -1159,6 +1162,63 @@ const FACIAL_ACCESSORY_DESCRIPTIONS: Record<FacialAccessory, string> = {
   goatee: 'Perilla/chivo bien recortado'
 };
 
+// Descripciones de colores de iris
+const IRIS_COLOR_DESCRIPTIONS: Record<IrisColor, string> = {
+  brown: 'Ojos de color marrón medio, cálido y natural',
+  dark_brown: 'Ojos de color marrón muy oscuro, casi negros',
+  light_brown: 'Ojos de color marrón claro, con tonos dorados',
+  hazel: 'Ojos avellana con mezcla de marrón, verde y dorado',
+  green: 'Ojos de color verde intenso y brillante',
+  blue: 'Ojos de color azul claro a medio',
+  gray: 'Ojos de color gris acero o gris azulado',
+  amber: 'Ojos de color ámbar/dorado, similar al miel'
+};
+
+// Descripciones de colores de cabello
+const HAIR_COLOR_DESCRIPTIONS: Record<HairColor, string> = {
+  black: 'Cabello negro azabache',
+  dark_brown: 'Cabello castaño oscuro',
+  medium_brown: 'Cabello castaño medio',
+  light_brown: 'Cabello castaño claro',
+  blonde: 'Cabello rubio dorado',
+  platinum_blonde: 'Cabello rubio platino/casi blanco',
+  red: 'Cabello pelirrojo/cobrizo intenso',
+  auburn: 'Cabello caoba/cobrizo oscuro',
+  gray: 'Cabello canoso/gris',
+  white: 'Cabello completamente blanco'
+};
+
+// Descripciones de tipos de cabello
+const HAIR_TYPE_DESCRIPTIONS: Record<HairType, string> = {
+  straight: 'Cabello completamente liso (tipo 1)',
+  wavy: 'Cabello ondulado con ondas suaves (tipo 2)',
+  curly: 'Cabello rizado con rizos definidos (tipo 3)',
+  coily: 'Cabello afro/crespo con rizos muy apretados (tipo 4)',
+  bald: 'Sin cabello, calvo completamente',
+  short_cropped: 'Cabello muy corto/rapado (menos de 1cm)'
+};
+
+// Función helper para construir la descripción de características de cabello e iris
+function buildHairAndIrisDescription(options: FaceVariantOptions): string {
+  const lines: string[] = [];
+
+  if (options.irisColor) {
+    lines.push(`- COLOR DE IRIS: ${IRIS_COLOR_DESCRIPTIONS[options.irisColor]}`);
+  }
+
+  if (options.hairColor) {
+    lines.push(`- COLOR DE CABELLO: ${HAIR_COLOR_DESCRIPTIONS[options.hairColor]}`);
+  }
+
+  if (options.hairType) {
+    lines.push(`- TIPO DE CABELLO: ${HAIR_TYPE_DESCRIPTIONS[options.hairType]}`);
+  }
+
+  if (lines.length === 0) return '';
+
+  return `\n[CARACTERÍSTICAS DE CABELLO E IRIS ESPECIFICADAS]\n${lines.join('\n')}`;
+}
+
 // Función helper para construir la descripción de accesorios
 function buildAccessoriesDescription(accessories: FacialAccessory[]): string {
   if (accessories.length === 0) return '';
@@ -1197,6 +1257,7 @@ export async function generateCustomFaceVariant(
   const ageChar = FACE_AGE_CHARACTERISTICS[options.ageRange];
   const sexChar = FACE_SEX_CHARACTERISTICS[options.sex];
   const accessoriesChar = buildAccessoriesDescription(options.accessories);
+  const hairAndIrisChar = buildHairAndIrisDescription(options);
 
   const ethnicityLabel = ETHNICITY_LABELS[options.ethnicity];
 
@@ -1210,6 +1271,7 @@ ${ageChar}
 
 ${sexChar}
 ${accessoriesChar}
+${hairAndIrisChar}
 
 [INSTRUCCIÓN ESPECÍFICA - MÁXIMA PRIORIDAD]
 Genera un retrato FOTORREALISTA que:
@@ -1223,7 +1285,9 @@ Genera un retrato FOTORREALISTA que:
 
 2. **ADAPTA LAS CARACTERÍSTICAS FENOTÍPICAS**:
    - Aplica el tono de piel correspondiente a ${ethnicityLabel}
-   - Ajusta la textura del cabello según la etnia
+   - ${options.hairColor ? `USA el color de cabello especificado: ${HAIR_COLOR_DESCRIPTIONS[options.hairColor]}` : 'Ajusta el color del cabello según la etnia'}
+   - ${options.hairType ? `USA el tipo de cabello especificado: ${HAIR_TYPE_DESCRIPTIONS[options.hairType]}` : 'Ajusta la textura del cabello según la etnia'}
+   - ${options.irisColor ? `USA el color de iris especificado: ${IRIS_COLOR_DESCRIPTIONS[options.irisColor]}` : 'Ajusta el color de ojos según la etnia'}
    - Modifica sutilmente los rasgos según las características étnicas descritas
    - Añade los accesorios especificados si los hay
 
@@ -1557,12 +1621,14 @@ function extractCommentFromIncompleteJson(text: string): string | null {
  * @param postImageUrl - URL de la imagen del post/publicación
  * @param postDescription - Descripción opcional del post
  * @param identities - Array de identidades que van a "comentar"
+ * @param opinionBias - Sesgo de opinión opcional para dirigir el enfoque de los comentarios
  * @returns Array de comentarios generados
  */
 export async function generateFeedComments(
   postImageUrl: string,
   postDescription: string | undefined,
-  identities: Identity[]
+  identities: Identity[],
+  opinionBias?: string
 ): Promise<FeedComment[]> {
   const comments: FeedComment[] = [];
 
@@ -1590,7 +1656,13 @@ CONTEXTO DETALLADO:
 ${identity.context}
 
 ${postDescription ? `DESCRIPCIÓN DEL POST: ${postDescription}` : ''}
+${opinionBias ? `
+[SESGO DE OPINIÓN - DIRECTIVA IMPORTANTE]
+El comentario debe seguir esta orientación o enfoque específico:
+${opinionBias}
 
+Esta directiva tiene PRIORIDAD sobre la personalidad natural de la identidad. El comentario debe reflejar este sesgo de opinión mientras mantiene el estilo de comunicación característico de la persona.
+` : ''}
 IMAGEN DEL POST/PUBLICACIÓN:`
       });
 

@@ -61,12 +61,51 @@ export type FacialAccessory =
   | 'mustache'
   | 'goatee';
 
+/** Color de iris/ojos */
+export type IrisColor =
+  | 'brown'
+  | 'dark_brown'
+  | 'light_brown'
+  | 'hazel'
+  | 'green'
+  | 'blue'
+  | 'gray'
+  | 'amber';
+
+/** Color de cabello */
+export type HairColor =
+  | 'black'
+  | 'dark_brown'
+  | 'medium_brown'
+  | 'light_brown'
+  | 'blonde'
+  | 'platinum_blonde'
+  | 'red'
+  | 'auburn'
+  | 'gray'
+  | 'white';
+
+/** Tipo/textura de cabello */
+export type HairType =
+  | 'straight'
+  | 'wavy'
+  | 'curly'
+  | 'coily'
+  | 'bald'
+  | 'short_cropped';
+
 /** Opciones de personalización para generar una variante */
 export interface FaceVariantOptions {
   ethnicity: FaceEthnicity;
   ageRange: FaceAgeRange;
   sex: FaceSex;
   accessories: FacialAccessory[];
+  /** Color de iris/ojos (opcional - si no se especifica, se adapta a la etnia) */
+  irisColor?: IrisColor;
+  /** Color de cabello (opcional - si no se especifica, se adapta a la etnia) */
+  hairColor?: HairColor;
+  /** Tipo/textura de cabello (opcional - si no se especifica, se adapta a la etnia) */
+  hairType?: HairType;
 }
 
 /** Información de una variante de rostro generada */
