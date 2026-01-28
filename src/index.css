@@ -1524,6 +1524,89 @@ textarea {
   color: var(--primary-light);
 }
 
+/* Preset Selector */
+.preset-selector {
+  margin-bottom: 1rem;
+}
+
+.preset-selector > label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.preset-buttons {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.7rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.preset-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  color: var(--text-primary);
+}
+
+.preset-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.preset-description {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* Select dropdown styling */
+.optimization-sliders select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.optimization-sliders select:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.optimization-sliders select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+}
+
+.optimization-sliders select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .optimization-sliders {
   display: flex;
   flex-direction: column;

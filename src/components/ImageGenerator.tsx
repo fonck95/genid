@@ -1,9 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Identity, AttachedImage } from '../types';
-import { generateImageWithIdentity, generateWithAttachedImages, setOptimizationConfig, getOptimizationConfig } from '../services/gemini';
+import {
+  generateImageWithIdentity,
+  generateWithAttachedImages,
+  setOptimizationConfig,
+  getOptimizationConfig,
+  applyPreset,
+  getCurrentPreset,
+} from '../services/gemini';
 import { saveGeneratedImage } from '../services/identityStore';
 import { processDataUrlWithWebGPU, initWebGPU, isWebGPUAvailable } from '../services/webgpu';
-import { upscaleImageWebGPU, estimateTokenSavings, getImageDimensions } from '../services/imageOptimizer';
+import {
+  upscaleImageAdvanced,
+  estimateTokenSavings,
+  getImageDimensions,
+  getPresetDescription,
+  type OptimizationPreset,
+  type UpscaleAlgorithm,
+} from '../services/imageOptimizer';
 
 interface Props {
   deviceId: string;
@@ -29,11 +43,23 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
 
   // Optimization settings
   const [showOptimizationSettings, setShowOptimizationSettings] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<OptimizationPreset | 'custom'>(getCurrentPreset());
   const [maxInputDimension, setMaxInputDimension] = useState(getOptimizationConfig().maxInputDimension);
   const [targetOutputDimension, setTargetOutputDimension] = useState(getOptimizationConfig().targetOutputDimension);
   const [enableUpscaling, setEnableUpscaling] = useState(getOptimizationConfig().enableUpscaling);
+  const [upscaleAlgorithm, setUpscaleAlgorithm] = useState<UpscaleAlgorithm>(getOptimizationConfig().upscaleAlgorithm);
+  const [sharpeningIntensity, setSharpeningIntensity] = useState(getOptimizationConfig().sharpeningIntensity);
+  const [edgeEnhancement, setEdgeEnhancement] = useState(getOptimizationConfig().edgeEnhancement);
   const [tokenSavingsInfo, setTokenSavingsInfo] = useState<string | null>(null);
   const [processingStatus, setProcessingStatus] = useState<string>('');
+
+  // Preset labels for UI
+  const presetLabels: Record<OptimizationPreset, string> = {
+    ultra: 'Ultra (máx. ahorro)',
+    high: 'Alto ahorro',
+    balanced: 'Balanceado',
+    quality: 'Calidad',
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const promptAreaRef = useRef<HTMLDivElement>(null);
@@ -44,8 +70,28 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
       maxInputDimension,
       targetOutputDimension,
       enableUpscaling,
+      upscaleAlgorithm,
+      sharpeningIntensity,
+      edgeEnhancement,
     });
-  }, [maxInputDimension, targetOutputDimension, enableUpscaling]);
+  }, [maxInputDimension, targetOutputDimension, enableUpscaling, upscaleAlgorithm, sharpeningIntensity, edgeEnhancement]);
+
+  // Handle preset change
+  const handlePresetChange = (preset: OptimizationPreset) => {
+    const config = applyPreset(preset);
+    setSelectedPreset(preset);
+    setMaxInputDimension(config.maxInputDimension);
+    setTargetOutputDimension(config.targetOutputDimension);
+    setEnableUpscaling(config.enableUpscaling);
+    setUpscaleAlgorithm(config.upscaleAlgorithm);
+    setSharpeningIntensity(config.sharpeningIntensity);
+    setEdgeEnhancement(config.edgeEnhancement);
+  };
+
+  // Mark as custom when individual settings change
+  const handleCustomSettingChange = () => {
+    setSelectedPreset('custom');
+  };
 
   // Calculate token savings when attached images change
   useEffect(() => {
@@ -229,10 +275,17 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
         imageUrl = await generateWithAttachedImages(prompt, attachedImages);
       }
 
-      // Upscale con WebGPU si está habilitado
+      // Upscale con WebGPU si está habilitado (super-resolución avanzada)
       if (enableUpscaling && isWebGPUAvailable()) {
-        setProcessingStatus('Escalando imagen con WebGPU (bicubico)...');
-        const upscaled = await upscaleImageWebGPU(imageUrl, targetOutputDimension);
+        const algorithmName = upscaleAlgorithm === 'superres' ? 'super-resolucion' :
+                              upscaleAlgorithm === 'lanczos' ? 'Lanczos-3' : 'bicubico';
+        setProcessingStatus(`Escalando imagen con WebGPU (${algorithmName})...`);
+        const upscaled = await upscaleImageAdvanced(imageUrl, {
+          targetDimension: targetOutputDimension,
+          algorithm: upscaleAlgorithm,
+          sharpeningIntensity,
+          edgeEnhancement,
+        });
         if (upscaled) {
           imageUrl = upscaled;
         }
@@ -517,7 +570,31 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
             <div className="optimization-info">
               <strong>Ahorro de tokens:</strong> Las imagenes se comprimen antes de enviar al modelo.
               <br />
-              <strong>Upscaling GPU:</strong> Las imagenes generadas se escalan localmente usando tu GPU.
+              <strong>Upscaling GPU:</strong> Las imagenes generadas se escalan localmente usando tu GPU con super-resolucion.
+            </div>
+
+            {/* Preset Selector */}
+            <div className="preset-selector">
+              <label>Preset de optimizacion:</label>
+              <div className="preset-buttons">
+                {(Object.keys(presetLabels) as OptimizationPreset[]).map((preset) => (
+                  <button
+                    key={preset}
+                    className={`preset-btn ${selectedPreset === preset ? 'active' : ''}`}
+                    onClick={() => handlePresetChange(preset)}
+                    disabled={isGenerating}
+                    title={getPresetDescription(preset)}
+                  >
+                    {presetLabels[preset]}
+                  </button>
+                ))}
+              </div>
+              {selectedPreset !== 'custom' && (
+                <span className="preset-description">{getPresetDescription(selectedPreset)}</span>
+              )}
+              {selectedPreset === 'custom' && (
+                <span className="preset-description">Configuracion personalizada</span>
+              )}
             </div>
 
             <div className="optimization-sliders">
@@ -529,10 +606,10 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
                   max="1024"
                   step="64"
                   value={maxInputDimension}
-                  onChange={(e) => setMaxInputDimension(parseInt(e.target.value))}
+                  onChange={(e) => { setMaxInputDimension(parseInt(e.target.value)); handleCustomSettingChange(); }}
                   disabled={isGenerating}
                 />
-                <span className="slider-hint">Menor = menos tokens</span>
+                <span className="slider-hint">Menor = menos tokens (256px ahorra ~90%)</span>
               </label>
 
               <label>
@@ -543,7 +620,7 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
                   max="2048"
                   step="128"
                   value={targetOutputDimension}
-                  onChange={(e) => setTargetOutputDimension(parseInt(e.target.value))}
+                  onChange={(e) => { setTargetOutputDimension(parseInt(e.target.value)); handleCustomSettingChange(); }}
                   disabled={isGenerating}
                 />
                 <span className="slider-hint">Mayor = mejor calidad final</span>
@@ -553,11 +630,55 @@ export function ImageGenerator({ deviceId, selectedIdentity, identities, onImage
                 <input
                   type="checkbox"
                   checked={enableUpscaling}
-                  onChange={(e) => setEnableUpscaling(e.target.checked)}
+                  onChange={(e) => { setEnableUpscaling(e.target.checked); handleCustomSettingChange(); }}
                   disabled={isGenerating}
                 />
-                Upscaling bicubico WebGPU
+                Habilitar upscaling WebGPU
               </label>
+
+              {enableUpscaling && (
+                <>
+                  <label>
+                    Algoritmo de upscaling:
+                    <select
+                      value={upscaleAlgorithm}
+                      onChange={(e) => { setUpscaleAlgorithm(e.target.value as UpscaleAlgorithm); handleCustomSettingChange(); }}
+                      disabled={isGenerating}
+                    >
+                      <option value="superres">Super-Resolucion (mejor calidad)</option>
+                      <option value="lanczos">Lanczos-3 (rapido, alta calidad)</option>
+                      <option value="bicubic">Bicubico (mas rapido)</option>
+                    </select>
+                  </label>
+
+                  {upscaleAlgorithm === 'superres' && (
+                    <>
+                      <label>
+                        Intensidad de nitidez: {(sharpeningIntensity * 100).toFixed(0)}%
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={sharpeningIntensity}
+                          onChange={(e) => { setSharpeningIntensity(parseFloat(e.target.value)); handleCustomSettingChange(); }}
+                          disabled={isGenerating}
+                        />
+                      </label>
+
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={edgeEnhancement}
+                          onChange={(e) => { setEdgeEnhancement(e.target.checked); handleCustomSettingChange(); }}
+                          disabled={isGenerating}
+                        />
+                        Mejora de bordes (edge-aware)
+                      </label>
+                    </>
+                  )}
+                </>
+              )}
             </div>
 
             {isWebGPUAvailable() && (

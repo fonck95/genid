@@ -98,16 +98,69 @@ function getKlingErrorMessage(code: number, defaultMessage: string): string {
 
 
 /**
- * Convierte una imagen a base64 sin el prefijo data:
+ * Optimiza una imagen para Kling API
+ * Redimensiona imágenes muy grandes para reducir bytes transferidos
+ * mantiendo buena calidad para generación de video
  */
+async function optimizeImageForKling(imageUrl: string): Promise<string> {
+  const MAX_DIMENSION = 1280; // Kling funciona bien con imágenes de 1280px
+  const QUALITY = 0.92; // Alta calidad para video
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      // Si la imagen ya es pequeña, devolver sin cambios
+      if (img.width <= MAX_DIMENSION && img.height <= MAX_DIMENSION) {
+        resolve(imageUrl);
+        return;
+      }
+
+      // Calcular nuevas dimensiones manteniendo aspecto
+      let newWidth = img.width;
+      let newHeight = img.height;
+
+      if (img.width > img.height) {
+        newWidth = MAX_DIMENSION;
+        newHeight = Math.round((img.height / img.width) * MAX_DIMENSION);
+      } else {
+        newHeight = MAX_DIMENSION;
+        newWidth = Math.round((img.width / img.height) * MAX_DIMENSION);
+      }
+
+      // Redimensionar con canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      const ctx = canvas.getContext('2d')!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+      resolve(canvas.toDataURL('image/jpeg', QUALITY));
+    };
+
+    img.onerror = () => {
+      // Si hay error, devolver la URL original
+      resolve(imageUrl);
+    };
+
+    img.src = imageUrl;
+  });
+}
+
 async function imageToBase64(imageUrl: string): Promise<string> {
+  // Primero optimizar la imagen
+  const optimizedUrl = await optimizeImageForKling(imageUrl);
+
   // Si ya es base64, extraer solo los datos
-  if (imageUrl.startsWith('data:')) {
-    return imageUrl.replace(/^data:image\/\w+;base64,/, '');
+  if (optimizedUrl.startsWith('data:')) {
+    return optimizedUrl.replace(/^data:image\/\w+;base64,/, '');
   }
 
   // Si es una URL, descargar y convertir
-  const response = await fetch(imageUrl);
+  const response = await fetch(optimizedUrl);
   const blob = await response.blob();
 
   return new Promise((resolve, reject) => {
