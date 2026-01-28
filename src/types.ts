@@ -314,18 +314,50 @@ export interface FeedComment {
   sentiment: 'positive' | 'negative' | 'neutral' | 'controversial' | 'humorous';
   /** Timestamp de generación */
   createdAt: number;
+  /** Indica si es una respuesta a otro comentario (para hilos) */
+  isReplyTo?: string;
+  /** Índice del comentario en el hilo (para mostrar orden) */
+  threadIndex?: number;
+}
+
+/** Comentario existente de una persona real (para contexto) */
+export interface ExistingComment {
+  id: string;
+  /** Nombre/username del autor */
+  authorName: string;
+  /** Texto del comentario */
+  content: string;
+  /** Es destacado/popular */
+  isHighlighted?: boolean;
+}
+
+/** Imagen del feed (publicación o captura de comentarios) */
+export interface FeedImage {
+  id: string;
+  /** URL de la imagen */
+  url: string;
+  /** Thumbnail de la imagen */
+  thumbnail: string;
+  /** Tipo de imagen */
+  type: 'post' | 'comments_screenshot' | 'other';
+  /** Descripción opcional */
+  description?: string;
 }
 
 /** Sesión de feed con imagen y comentarios */
 export interface FeedSession {
   id: string;
   deviceId: string;
-  /** URL de la imagen del post/publicación */
+  /** URL de la imagen del post/publicación (legacy) */
   postImageUrl: string;
-  /** Thumbnail de la imagen */
+  /** Thumbnail de la imagen (legacy) */
   postImageThumbnail: string;
+  /** Múltiples imágenes del feed */
+  images?: FeedImage[];
   /** Descripción opcional del post */
   postDescription?: string;
+  /** Comentarios existentes de personas reales */
+  existingComments?: ExistingComment[];
   /** Comentarios generados */
   comments: FeedComment[];
   /** Timestamp de creación */
