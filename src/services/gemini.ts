@@ -14,13 +14,26 @@ import type {
   HairColor,
   HairType
 } from '../types';
-import { downscaleImage, defaultOptimizationConfig, type ImageOptimizationConfig } from './imageOptimizer';
+import {
+  downscaleImage,
+  defaultOptimizationConfig,
+  upscaleGeneratedImage,
+  OPTIMIZATION_PRESETS,
+  applyOptimizationPreset,
+  getActivePreset,
+  setCustomPreset,
+  type ImageOptimizationConfig,
+  type OptimizationPreset,
+} from './imageOptimizer';
 
 // API Key desde variable de entorno
 const GEMINI_API_KEY = import.meta.env.VITE_APP_API_KEY_GOOGLE;
 
 // Configuración de optimización de imágenes (se puede modificar desde UI)
 let optimizationConfig: ImageOptimizationConfig = { ...defaultOptimizationConfig };
+
+// Flag para habilitar upscaling automático de imágenes generadas
+let autoUpscaleEnabled: boolean = true;
 
 // Modelo de texto para análisis de rostro (Flash es más rápido y económico para esta tarea)
 // Usando el modelo estable sin sufijo preview para evitar errores 404
@@ -407,6 +420,8 @@ type ContentPart = TextPart | InlineDataPart;
  */
 export function setOptimizationConfig(config: Partial<ImageOptimizationConfig>): void {
   optimizationConfig = { ...optimizationConfig, ...config };
+  // Mark as custom if user modified individual settings
+  setCustomPreset();
 }
 
 /**
@@ -414,6 +429,52 @@ export function setOptimizationConfig(config: Partial<ImageOptimizationConfig>):
  */
 export function getOptimizationConfig(): ImageOptimizationConfig {
   return { ...optimizationConfig };
+}
+
+/**
+ * Aplica un preset de optimización predefinido
+ */
+export function applyPreset(preset: OptimizationPreset): ImageOptimizationConfig {
+  optimizationConfig = applyOptimizationPreset(preset);
+  return { ...optimizationConfig };
+}
+
+/**
+ * Obtiene el preset activo actual
+ */
+export function getCurrentPreset(): OptimizationPreset | 'custom' {
+  return getActivePreset();
+}
+
+/**
+ * Obtiene los presets disponibles con sus configuraciones
+ */
+export function getAvailablePresets(): Record<OptimizationPreset, ImageOptimizationConfig> {
+  return OPTIMIZATION_PRESETS;
+}
+
+/**
+ * Habilita o deshabilita el upscaling automático de imágenes generadas
+ */
+export function setAutoUpscale(enabled: boolean): void {
+  autoUpscaleEnabled = enabled;
+}
+
+/**
+ * Verifica si el upscaling automático está habilitado
+ */
+export function isAutoUpscaleEnabled(): boolean {
+  return autoUpscaleEnabled;
+}
+
+/**
+ * Aplica upscaling a una imagen generada usando la configuración actual
+ */
+export async function upscaleImage(imageUrl: string): Promise<string> {
+  if (!autoUpscaleEnabled || !optimizationConfig.enableUpscaling) {
+    return imageUrl;
+  }
+  return upscaleGeneratedImage(imageUrl, optimizationConfig);
 }
 
 /**

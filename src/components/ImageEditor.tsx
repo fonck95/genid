@@ -10,9 +10,9 @@ import {
   createEditingThread,
   getIdentity
 } from '../services/identityStore';
-import { generateWithAttachedImages } from '../services/gemini';
+import { generateWithAttachedImages, getOptimizationConfig } from '../services/gemini';
 import { isWebGPUAvailable } from '../services/webgpu';
-import { upscaleImageWebGPU } from '../services/imageOptimizer';
+import { upscaleImageAdvanced } from '../services/imageOptimizer';
 
 interface Props {
   deviceId: string;
@@ -154,10 +154,18 @@ export function ImageEditor({
         identity?.description
       );
 
-      // Aplicar upscaling si está disponible WebGPU
-      if (isWebGPUAvailable()) {
-        setProcessingStatus('Mejorando calidad con WebGPU...');
-        const upscaled = await upscaleImageWebGPU(newImageUrl, 1024);
+      // Aplicar upscaling avanzado si está disponible WebGPU
+      const config = getOptimizationConfig();
+      if (isWebGPUAvailable() && config.enableUpscaling) {
+        const algorithmName = config.upscaleAlgorithm === 'superres' ? 'super-resolucion' :
+                              config.upscaleAlgorithm === 'lanczos' ? 'Lanczos-3' : 'bicubico';
+        setProcessingStatus(`Mejorando calidad con WebGPU (${algorithmName})...`);
+        const upscaled = await upscaleImageAdvanced(newImageUrl, {
+          targetDimension: config.targetOutputDimension,
+          algorithm: config.upscaleAlgorithm,
+          sharpeningIntensity: config.sharpeningIntensity,
+          edgeEnhancement: config.edgeEnhancement,
+        });
         if (upscaled) {
           newImageUrl = upscaled;
         }
