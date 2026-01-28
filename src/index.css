@@ -5740,3 +5740,327 @@ textarea {
     align-items: flex-start;
   }
 }
+
+/* ========== NUEVOS ESTILOS PARA FEED MULTI-IMAGEN Y HILO ========== */
+
+/* Hint para secciones */
+.feed-section-hint {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+/* Grid de múltiples imágenes */
+.feed-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.feed-image-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feed-image-preview {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+
+.feed-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feed-image-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.feed-image-remove:hover {
+  background: var(--color-error);
+}
+
+.feed-image-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+}
+
+.feed-image-badge.post {
+  background: rgba(52, 152, 219, 0.9);
+}
+
+.feed-image-badge.comments_screenshot {
+  background: rgba(155, 89, 182, 0.9);
+}
+
+.feed-image-type-select {
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.feed-clear-images {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.feed-post-details {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Sección de comentarios existentes */
+.feed-existing-comments-section {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  border: 1px dashed var(--border-color);
+}
+
+.feed-existing-comments-section h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.feed-existing-comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.feed-existing-comment {
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--color-primary);
+}
+
+.feed-existing-comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.feed-existing-comment-author {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+}
+
+.feed-existing-comment-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+
+.feed-existing-comment-remove:hover {
+  color: var(--color-error);
+}
+
+.feed-existing-comment-content {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.feed-add-existing-comment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feed-existing-author-input {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.feed-existing-content-input {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.feed-existing-author-input:focus,
+.feed-existing-content-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+/* Opciones de generación */
+.feed-generate-options {
+  margin-bottom: 1rem;
+}
+
+.feed-threaded-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.feed-threaded-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.feed-toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.feed-toggle-hint {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-weight: normal;
+}
+
+.feed-generate-hint {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  margin-top: 0.75rem;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Estilos para comentarios en hilo */
+.feed-comment.threaded {
+  display: grid;
+  grid-template-columns: 30px auto 1fr;
+  gap: 0.75rem;
+}
+
+.feed-comment-thread-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.feed-comment-thread-number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(52, 152, 219, 0.1);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feed-comment-thread-line {
+  width: 2px;
+  flex: 1;
+  min-height: 30px;
+  background: linear-gradient(to bottom, var(--color-primary), transparent);
+  border-radius: 1px;
+}
+
+/* Opinion bias textarea */
+.feed-opinion-bias {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.feed-opinion-bias:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+/* Responsive para nuevos elementos */
+@media (max-width: 768px) {
+  .feed-images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .feed-comment.threaded {
+    grid-template-columns: 24px 40px 1fr;
+    gap: 0.5rem;
+  }
+
+  .feed-comment-thread-number {
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .feed-images-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .feed-add-existing-comment {
+    gap: 0.4rem;
+  }
+
+  .feed-existing-comment {
+    padding: 0.6rem 0.8rem;
+  }
+}

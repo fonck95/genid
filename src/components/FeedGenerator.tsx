@@ -1,35 +1,39 @@
 import { useState, useRef, useEffect } from 'react';
-import type { Identity, FeedComment } from '../types';
-import { generateFeedComments } from '../services/gemini';
+import type { Identity, FeedComment, FeedImage, ExistingComment } from '../types';
+import { generateFeedCommentsThreaded } from '../services/gemini';
 
 interface Props {
   identities: Identity[];
 }
 
 export function FeedGenerator({ identities }: Props) {
-  const [postImage, setPostImage] = useState<string | null>(null);
-  const [postImageThumbnail, setPostImageThumbnail] = useState<string | null>(null);
+  // Estado para múltiples imágenes
+  const [feedImages, setFeedImages] = useState<FeedImage[]>([]);
   const [postDescription, setPostDescription] = useState('');
   const [opinionBias, setOpinionBias] = useState('');
+  // Estado para comentarios existentes de personas reales
+  const [existingComments, setExistingComments] = useState<ExistingComment[]>([]);
+  const [newExistingComment, setNewExistingComment] = useState({ authorName: '', content: '' });
   const [selectedIdentityIds, setSelectedIdentityIds] = useState<Set<string>>(new Set());
   const [comments, setComments] = useState<FeedComment[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState<string>('');
   const [expandedComment, setExpandedComment] = useState<FeedComment | null>(null);
   const [copiedCommentId, setCopiedCommentId] = useState<string | null>(null);
+  // Estado para modo de hilo
+  const [threadedMode, setThreadedMode] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Identidades que tienen contexto definido
   const identitiesWithContext = identities.filter(id => id.context);
 
-  // Función para procesar archivo de imagen
-  const processImageFile = (file: File) => {
+  // Función para procesar archivo de imagen y agregarlo al array
+  const processImageFile = (file: File, imageType: FeedImage['type'] = 'post') => {
     if (!file.type.startsWith('image/')) return;
 
     const reader = new FileReader();
     reader.onloadend = () => {
       const dataUrl = reader.result as string;
-      setPostImage(dataUrl);
 
       // Crear thumbnail
       const img = new Image();
@@ -55,19 +59,25 @@ export function FeedGenerator({ identities }: Props) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-        setPostImageThumbnail(canvas.toDataURL('image/jpeg', 0.8));
+        const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+
+        // Agregar nueva imagen al array
+        const newImage: FeedImage = {
+          id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          url: dataUrl,
+          thumbnail,
+          type: imageType,
+        };
+        setFeedImages(prev => [...prev, newImage]);
       };
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
   };
 
-  // Manejar pegado de imágenes desde el portapapeles
+  // Manejar pegado de imágenes desde el portapapeles (soporta múltiples)
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
-      // Solo permitir pegado si no hay imagen ya cargada
-      if (postImage) return;
-
       const items = e.clipboardData?.items;
       if (!items) return;
 
@@ -76,7 +86,9 @@ export function FeedGenerator({ identities }: Props) {
           e.preventDefault();
           const file = items[i].getAsFile();
           if (file) {
-            processImageFile(file);
+            // Si ya hay imágenes, las nuevas se agregan como capturas de comentarios
+            const imageType = feedImages.length === 0 ? 'post' : 'comments_screenshot';
+            processImageFile(file, imageType);
           }
           break;
         }
@@ -85,13 +97,13 @@ export function FeedGenerator({ identities }: Props) {
 
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, [postImage]);
+  }, [feedImages.length]);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, imageType: FeedImage['type'] = 'post') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    processImageFile(file);
+    processImageFile(file, imageType);
 
     // Limpiar input
     if (fileInputRef.current) {
@@ -99,10 +111,40 @@ export function FeedGenerator({ identities }: Props) {
     }
   };
 
-  const handleRemoveImage = () => {
-    setPostImage(null);
-    setPostImageThumbnail(null);
+  // Eliminar una imagen específica
+  const handleRemoveImage = (imageId: string) => {
+    setFeedImages(prev => prev.filter(img => img.id !== imageId));
+  };
+
+  // Eliminar todas las imágenes
+  const handleClearAllImages = () => {
+    setFeedImages([]);
     setComments([]);
+  };
+
+  // Cambiar tipo de imagen
+  const handleChangeImageType = (imageId: string, newType: FeedImage['type']) => {
+    setFeedImages(prev => prev.map(img =>
+      img.id === imageId ? { ...img, type: newType } : img
+    ));
+  };
+
+  // Agregar comentario existente (de persona real)
+  const handleAddExistingComment = () => {
+    if (!newExistingComment.authorName.trim() || !newExistingComment.content.trim()) return;
+
+    const newComment: ExistingComment = {
+      id: `existing-${Date.now()}`,
+      authorName: newExistingComment.authorName.trim(),
+      content: newExistingComment.content.trim(),
+    };
+    setExistingComments(prev => [...prev, newComment]);
+    setNewExistingComment({ authorName: '', content: '' });
+  };
+
+  // Eliminar comentario existente
+  const handleRemoveExistingComment = (commentId: string) => {
+    setExistingComments(prev => prev.filter(c => c.id !== commentId));
   };
 
   const handleToggleIdentity = (identityId: string) => {
@@ -124,22 +166,28 @@ export function FeedGenerator({ identities }: Props) {
   };
 
   const handleGenerateComments = async () => {
-    if (!postImage || selectedIdentityIds.size === 0) return;
+    if (feedImages.length === 0 || selectedIdentityIds.size === 0) return;
 
     setIsGenerating(true);
     setComments([]);
-    setGenerationProgress('Analizando imagen...');
+    setGenerationProgress('Analizando imágenes...');
 
     try {
       const selectedIdentities = identities.filter(id => selectedIdentityIds.has(id.id));
 
-      setGenerationProgress(`Generando comentarios para ${selectedIdentities.length} identidad(es)...`);
+      // Callback para actualizar el progreso en tiempo real
+      const onProgress = (current: number, total: number, identityName: string) => {
+        setGenerationProgress(`Generando comentario ${current}/${total}: ${identityName}...`);
+      };
 
-      const generatedComments = await generateFeedComments(
-        postImage,
+      const generatedComments = await generateFeedCommentsThreaded(
+        feedImages,
         postDescription || undefined,
         selectedIdentities,
-        opinionBias || undefined
+        existingComments.length > 0 ? existingComments : undefined,
+        opinionBias || undefined,
+        threadedMode,
+        onProgress
       );
 
       setComments(generatedComments);
@@ -188,44 +236,77 @@ export function FeedGenerator({ identities }: Props) {
       </div>
 
       <div className="feed-content">
-        {/* Sección de imagen del post */}
+        {/* Sección de imágenes del post */}
         <div className="feed-post-section">
-          <h3>Publicación</h3>
+          <h3>Imágenes de Contexto</h3>
+          <p className="feed-section-hint">
+            Sube capturas de la publicación y de los comentarios existentes para que las identidades tengan contexto completo.
+          </p>
 
-          {!postImage ? (
-            <div className="feed-upload-area">
-              <label className="feed-upload-label">
-                <div className="feed-upload-content">
-                  <span className="feed-upload-icon">📷</span>
-                  <span className="feed-upload-text">Haz clic para subir una imagen</span>
-                  <span className="feed-upload-hint">Esta será la publicación que las identidades van a comentar</span>
-                  <span className="feed-upload-paste-hint">Ctrl+V para pegar desde el portapapeles</span>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                />
-              </label>
-            </div>
-          ) : (
-            <div className="feed-post-preview">
-              <div className="feed-post-image-container">
-                <img
-                  src={postImageThumbnail || postImage}
-                  alt="Post"
-                  className="feed-post-image"
-                />
-                <button
-                  className="feed-post-remove"
-                  onClick={handleRemoveImage}
-                  title="Eliminar imagen"
-                >
-                  ×
-                </button>
+          {/* Área de carga de imágenes */}
+          <div className="feed-upload-area">
+            <label className="feed-upload-label">
+              <div className="feed-upload-content">
+                <span className="feed-upload-icon">📷</span>
+                <span className="feed-upload-text">Agregar imagen</span>
+                <span className="feed-upload-hint">
+                  {feedImages.length === 0
+                    ? 'La primera imagen se considera la publicación principal'
+                    : `${feedImages.length} imagen(es) cargada(s) - agrega más capturas`}
+                </span>
+                <span className="feed-upload-paste-hint">Ctrl+V para pegar desde el portapapeles</span>
               </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, feedImages.length === 0 ? 'post' : 'comments_screenshot')}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
+
+          {/* Lista de imágenes cargadas */}
+          {feedImages.length > 0 && (
+            <div className="feed-images-grid">
+              {feedImages.map((image, index) => (
+                <div key={image.id} className="feed-image-item">
+                  <div className="feed-image-preview">
+                    <img src={image.thumbnail} alt={`Imagen ${index + 1}`} />
+                    <button
+                      className="feed-image-remove"
+                      onClick={() => handleRemoveImage(image.id)}
+                      title="Eliminar imagen"
+                    >
+                      ×
+                    </button>
+                    <span className={`feed-image-badge ${image.type}`}>
+                      {image.type === 'post' ? '📝 Post' : image.type === 'comments_screenshot' ? '💬 Comentarios' : '📎 Otro'}
+                    </span>
+                  </div>
+                  <select
+                    className="feed-image-type-select"
+                    value={image.type}
+                    onChange={(e) => handleChangeImageType(image.id, e.target.value as FeedImage['type'])}
+                  >
+                    <option value="post">Publicación</option>
+                    <option value="comments_screenshot">Captura de comentarios</option>
+                    <option value="other">Otro contexto</option>
+                  </select>
+                </div>
+              ))}
+              <button
+                className="feed-clear-images btn-secondary btn-small"
+                onClick={handleClearAllImages}
+              >
+                Limpiar todas
+              </button>
+            </div>
+          )}
+
+          {/* Descripción y sesgo (solo si hay imágenes) */}
+          {feedImages.length > 0 && (
+            <div className="feed-post-details">
               <textarea
                 className="feed-post-description"
                 placeholder="Descripción del post (opcional) - ayuda a contextualizar los comentarios"
@@ -243,6 +324,61 @@ export function FeedGenerator({ identities }: Props) {
             </div>
           )}
         </div>
+
+        {/* Sección de comentarios existentes (de personas reales) */}
+        {feedImages.length > 0 && (
+          <div className="feed-existing-comments-section">
+            <h3>Comentarios Existentes (Opcional)</h3>
+            <p className="feed-section-hint">
+              Agrega comentarios de personas reales que las identidades podrán leer y responder, creando un hilo más realista.
+            </p>
+
+            {/* Lista de comentarios existentes */}
+            {existingComments.length > 0 && (
+              <div className="feed-existing-comments-list">
+                {existingComments.map(comment => (
+                  <div key={comment.id} className="feed-existing-comment">
+                    <div className="feed-existing-comment-header">
+                      <span className="feed-existing-comment-author">@{comment.authorName}</span>
+                      <button
+                        className="feed-existing-comment-remove"
+                        onClick={() => handleRemoveExistingComment(comment.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <p className="feed-existing-comment-content">{comment.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Formulario para agregar comentario existente */}
+            <div className="feed-add-existing-comment">
+              <input
+                type="text"
+                className="feed-existing-author-input"
+                placeholder="Nombre de usuario (ej: juan_perez)"
+                value={newExistingComment.authorName}
+                onChange={(e) => setNewExistingComment(prev => ({ ...prev, authorName: e.target.value }))}
+              />
+              <textarea
+                className="feed-existing-content-input"
+                placeholder="Texto del comentario..."
+                value={newExistingComment.content}
+                onChange={(e) => setNewExistingComment(prev => ({ ...prev, content: e.target.value }))}
+                rows={2}
+              />
+              <button
+                className="btn-secondary btn-small"
+                onClick={handleAddExistingComment}
+                disabled={!newExistingComment.authorName.trim() || !newExistingComment.content.trim()}
+              >
+                + Agregar comentario
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Sección de selección de identidades */}
         <div className="feed-identities-section">
@@ -298,15 +434,37 @@ export function FeedGenerator({ identities }: Props) {
         </div>
 
         {/* Botón de generación */}
-        {postImage && selectedIdentityIds.size > 0 && (
+        {feedImages.length > 0 && selectedIdentityIds.size > 0 && (
           <div className="feed-generate-section">
+            <div className="feed-generate-options">
+              <label className="feed-threaded-toggle">
+                <input
+                  type="checkbox"
+                  checked={threadedMode}
+                  onChange={(e) => setThreadedMode(e.target.checked)}
+                />
+                <span className="feed-toggle-label">
+                  Modo hilo de conversación
+                  <span className="feed-toggle-hint">
+                    {threadedMode
+                      ? 'Las identidades comentan en secuencia, cada una ve lo que dijeron las anteriores'
+                      : 'Comentarios independientes, sin contexto de los otros'}
+                  </span>
+                </span>
+              </label>
+            </div>
             <button
               className="btn-primary btn-generate-comments"
               onClick={handleGenerateComments}
               disabled={isGenerating}
             >
-              {isGenerating ? generationProgress || 'Generando...' : `Generar ${selectedIdentityIds.size} Comentario(s)`}
+              {isGenerating ? generationProgress || 'Generando...' : `Generar ${selectedIdentityIds.size} Comentario(s) en Hilo`}
             </button>
+            {selectedIdentityIds.size > 1 && threadedMode && (
+              <p className="feed-generate-hint">
+                Los comentarios se generarán secuencialmente, creando una conversación natural entre las identidades.
+              </p>
+            )}
           </div>
         )}
 
@@ -314,9 +472,20 @@ export function FeedGenerator({ identities }: Props) {
         {comments.length > 0 && (
           <div className="feed-comments-section">
             <h3>Comentarios Generados ({comments.length})</h3>
+            <p className="feed-section-hint">
+              {threadedMode && comments.length > 1
+                ? 'Hilo de conversación - cada identidad respondió considerando los comentarios anteriores'
+                : 'Comentarios generados basándose en el contexto visual'}
+            </p>
             <div className="feed-comments-list">
-              {comments.map(comment => (
-                <div key={comment.id} className="feed-comment">
+              {comments.map((comment, index) => (
+                <div key={comment.id} className={`feed-comment ${threadedMode ? 'threaded' : ''}`}>
+                  {threadedMode && (
+                    <div className="feed-comment-thread-indicator">
+                      <span className="feed-comment-thread-number">#{index + 1}</span>
+                      {index > 0 && <div className="feed-comment-thread-line" />}
+                    </div>
+                  )}
                   <div className="feed-comment-avatar">
                     {comment.identityThumbnail ? (
                       <img src={comment.identityThumbnail} alt={comment.identityName} />

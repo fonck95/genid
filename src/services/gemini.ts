@@ -10,6 +10,8 @@ import type {
   FaceVariantOptions,
   Identity,
   FeedComment,
+  FeedImage,
+  ExistingComment,
   IrisColor,
   HairColor,
   HairType
@@ -1822,6 +1824,324 @@ Recuerda responder SOLO con el JSON especificado.`
                 sentiment: 'neutral',
                 createdAt: Date.now()
               });
+            }
+          }
+          break;
+        }
+      }
+    } catch (error) {
+      console.error(`Error generando comentario para ${identity.name}:`, error);
+    }
+  }
+
+  return comments;
+}
+
+// System prompt mejorado para generación de comentarios en hilo
+const FEED_COMMENTS_THREADED_SYSTEM_PROMPT = `[ROL]
+Eres un simulador avanzado de comentarios de redes sociales. Tu tarea es generar comentarios EXTREMADAMENTE REALISTAS y DIVERSOS como si fueran escritos por PERSONAS REALES con personalidades únicas y distintivas.
+
+[OBJETIVO PRINCIPAL]
+Analizar MÚLTIPLES FUENTES DE CONTEXTO (imágenes de publicación, capturas de comentarios existentes, comentarios de personas reales, y comentarios previos en este hilo) para generar un comentario que:
+1. Sea ÚNICO y DISTINTIVO - nunca genérico ni repetitivo
+2. Refleje la PERSONALIDAD ESPECÍFICA del perfil dado
+3. INTERACTÚE de forma natural con el contexto del hilo
+4. Sea CREÍBLE como un comentario real de una persona real
+
+[REGLAS DE DIVERSIDAD - MUY IMPORTANTE]
+Para evitar comentarios genéricos y lograr máxima diversidad, DEBES:
+
+1. VARÍA LA ESTRUCTURA:
+   - A veces empieza con pregunta, otras con afirmación, otras con exclamación
+   - Usa diferentes longitudes: a veces 1 palabra, a veces 1 oración, a veces 2-3 oraciones
+   - Varía entre respuesta directa al post vs. respuesta a comentario previo
+
+2. VARÍA EL ENFOQUE:
+   - Comenta sobre diferentes aspectos de la imagen/post
+   - Relaciona con experiencias personales del perfil
+   - Debate o apoya opiniones previas según la personalidad
+   - Haz preguntas, da consejos, expresa sorpresa, critica, etc.
+
+3. VARÍA EL TONO según el perfil:
+   - Entusiasta vs. escéptico
+   - Formal vs. coloquial
+   - Serio vs. humorístico
+   - Directo vs. sutil/irónico
+
+4. PERSONALIZACIÓN ÚNICA:
+   - Usa expresiones características del perfil
+   - Incluye referencias a los intereses específicos del perfil
+   - Refleja los sesgos y opiniones del perfil
+   - Adapta el uso de emojis/puntuación al estilo del perfil
+
+[INTERACCIÓN EN HILO]
+Cuando hay comentarios PREVIOS en el hilo, tu comentario DEBE:
+- Reaccionar a lo que otros dijeron (estar de acuerdo, debatir, añadir info, etc.)
+- Mencionar nombres de usuarios anteriores cuando sea natural
+- Crear sensación de conversación real y dinámica
+- NO repetir ideas ya expresadas, aportar algo nuevo
+
+[ANÁLISIS DE IMÁGENES]
+Analiza TODAS las imágenes proporcionadas:
+- La publicación principal (qué muestra, mensaje, contexto)
+- Capturas de comentarios (qué dicen otros usuarios reales)
+- Contexto visual general
+
+[FORMATO DE RESPUESTA]
+Responde ÚNICAMENTE con un JSON válido:
+{
+  "comment": "El texto del comentario",
+  "sentiment": "positive|negative|neutral|controversial|humorous"
+}
+
+NO incluyas explicaciones adicionales, SOLO el JSON.`;
+
+/**
+ * Genera comentarios de feed en HILO/SECUENCIA para múltiples identidades.
+ * A diferencia de generateFeedComments, esta función:
+ * - Soporta múltiples imágenes (publicación + capturas de comentarios)
+ * - Genera comentarios secuencialmente, donde cada identidad ve los comentarios anteriores
+ * - Incluye comentarios existentes de personas reales en el contexto
+ * - Produce comentarios más diversos y naturales
+ *
+ * @param images - Array de imágenes (publicación, capturas de comentarios, etc.)
+ * @param postDescription - Descripción opcional del post
+ * @param identities - Array de identidades que van a "comentar"
+ * @param existingComments - Comentarios de personas reales para contexto
+ * @param opinionBias - Sesgo de opinión opcional
+ * @param threadedMode - Si true, genera comentarios en secuencia con contexto
+ * @param onProgress - Callback para reportar progreso
+ * @returns Array de comentarios generados
+ */
+export async function generateFeedCommentsThreaded(
+  images: FeedImage[],
+  postDescription: string | undefined,
+  identities: Identity[],
+  existingComments?: ExistingComment[],
+  opinionBias?: string,
+  threadedMode: boolean = true,
+  onProgress?: (current: number, total: number, identityName: string) => void
+): Promise<FeedComment[]> {
+  const comments: FeedComment[] = [];
+  const generatedCommentsInThread: { name: string; content: string; sentiment: string }[] = [];
+
+  // Optimizar todas las imágenes
+  const optimizedImages: { type: FeedImage['type']; data: string }[] = [];
+  for (const img of images) {
+    const optimized = await optimizeImageForAPI(img.url);
+    optimizedImages.push({ type: img.type, data: optimized });
+  }
+
+  // Filtrar identidades que tienen contexto
+  const validIdentities = identities.filter(id => id.context);
+  const totalIdentities = validIdentities.length;
+
+  for (let i = 0; i < validIdentities.length; i++) {
+    const identity = validIdentities[i];
+    const isFirstComment = i === 0;
+    const positionInThread = i + 1;
+
+    // Reportar progreso
+    if (onProgress) {
+      onProgress(positionInThread, totalIdentities, identity.name);
+    }
+
+    try {
+      const parts: ContentPart[] = [];
+
+      // Construir contexto del hilo
+      let threadContext = '';
+      if (threadedMode && generatedCommentsInThread.length > 0) {
+        threadContext = `
+[COMENTARIOS PREVIOS EN ESTE HILO - DEBES CONSIDERARLOS]
+Los siguientes comentarios ya fueron publicados. Tu comentario debe interactuar naturalmente con ellos:
+
+${generatedCommentsInThread.map((c, idx) => `${idx + 1}. @${c.name}: "${c.content}"`).join('\n')}
+
+IMPORTANTE: No repitas ideas ya expresadas. Aporta algo nuevo: debate, complementa, pregunta, o añade otra perspectiva.
+`;
+      }
+
+      // Construir contexto de comentarios existentes (personas reales)
+      let existingCommentsContext = '';
+      if (existingComments && existingComments.length > 0) {
+        existingCommentsContext = `
+[COMENTARIOS DE PERSONAS REALES EN LA PUBLICACIÓN]
+Estos son comentarios que ya existen en la publicación (de usuarios reales):
+
+${existingComments.map((c, idx) => `${idx + 1}. @${c.authorName}: "${c.content}"`).join('\n')}
+
+Puedes reaccionar a estos comentarios, mencionarlos, o usarlos como contexto adicional.
+`;
+      }
+
+      // System prompt + contexto completo
+      parts.push({
+        text: `${FEED_COMMENTS_THREADED_SYSTEM_PROMPT}
+
+${existingCommentsContext}
+${threadContext}
+
+[PERFIL DE LA PERSONA QUE VA A COMENTAR]
+Nombre: ${identity.name}
+${identity.description ? `Descripción breve: ${identity.description}` : ''}
+
+[CONTEXTO DETALLADO DE LA PERSONALIDAD]
+${identity.context}
+
+[POSICIÓN EN EL HILO]
+${isFirstComment
+  ? 'Eres el PRIMER comentario del hilo. Establece el tono inicial de la conversación.'
+  : `Eres el comentario #${positionInThread} de ${totalIdentities}. Ya hay ${generatedCommentsInThread.length} comentarios antes del tuyo.`}
+
+${postDescription ? `[DESCRIPCIÓN DEL POST]\n${postDescription}` : ''}
+
+${opinionBias ? `
+[SESGO DE OPINIÓN - DIRECTIVA IMPORTANTE]
+El comentario debe seguir esta orientación o enfoque específico:
+${opinionBias}
+
+Esta directiva tiene PRIORIDAD sobre la personalidad natural. El comentario debe reflejar este sesgo mientras mantiene el estilo característico de la persona.
+` : ''}
+
+[IMÁGENES A ANALIZAR]
+A continuación se muestran ${optimizedImages.length} imagen(es). Analízalas todas para generar tu comentario:`
+      });
+
+      // Añadir todas las imágenes con sus tipos
+      for (const img of optimizedImages) {
+        const imgDescription = img.type === 'post'
+          ? '[IMAGEN: Publicación principal]'
+          : img.type === 'comments_screenshot'
+            ? '[IMAGEN: Captura de comentarios existentes]'
+            : '[IMAGEN: Contexto adicional]';
+
+        parts.push({ text: imgDescription });
+        parts.push(createImagePart(img.data, 'image/jpeg'));
+      }
+
+      // Instrucción final
+      parts.push({
+        text: `
+Ahora genera un comentario ÚNICO y DISTINTIVO como si fueras "${identity.name}" reaccionando a todo este contexto.
+
+RECUERDA:
+- Tu comentario debe ser DIFERENTE a los demás, reflejando tu personalidad única
+- ${threadedMode && !isFirstComment ? 'INTERACTÚA con los comentarios previos del hilo' : 'Establece una perspectiva interesante'}
+- Sé NATURAL y CREÍBLE como una persona real
+- Evita frases genéricas o que suenen artificiales
+
+Responde SOLO con el JSON especificado.`
+      });
+
+      const requestBody = {
+        contents: [{
+          parts
+        }],
+        generationConfig: {
+          temperature: 0.95, // Alta variabilidad para máxima diversidad
+          maxOutputTokens: 2048,
+        }
+      };
+
+      const response = await fetch(
+        `${getApiUrl(GEMINI_TEXT_MODEL)}?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      if (!response.ok) {
+        console.error(`Error generando comentario para ${identity.name}`);
+        continue;
+      }
+
+      const data: GeminiResponse = await response.json();
+
+      if (data.error) {
+        console.error(`Error Gemini para ${identity.name}:`, data.error.message);
+        continue;
+      }
+
+      const candidate = data.candidates?.[0];
+      if (!candidate?.content?.parts) {
+        continue;
+      }
+
+      // Detectar si la respuesta fue truncada
+      const wasTruncated = candidate.finishReason === 'MAX_TOKENS' || candidate.finishReason === 'LENGTH';
+      if (wasTruncated) {
+        console.warn(`Respuesta truncada para ${identity.name}, finishReason: ${candidate.finishReason}`);
+      }
+
+      for (const part of candidate.content.parts) {
+        if (part.text) {
+          try {
+            // Limpiar el texto de posibles marcadores de código
+            let jsonText = part.text.trim();
+            if (jsonText.startsWith('```json')) {
+              jsonText = jsonText.slice(7);
+            }
+            if (jsonText.startsWith('```')) {
+              jsonText = jsonText.slice(3);
+            }
+            if (jsonText.endsWith('```')) {
+              jsonText = jsonText.slice(0, -3);
+            }
+            jsonText = jsonText.trim();
+
+            const parsed = JSON.parse(jsonText);
+
+            const newComment: FeedComment = {
+              id: `${identity.id}-${Date.now()}-${i}`,
+              identityId: identity.id,
+              identityName: identity.name,
+              identityThumbnail: identity.photos[0]?.thumbnail,
+              content: parsed.comment,
+              sentiment: parsed.sentiment || 'neutral',
+              createdAt: Date.now() + (i * 1000), // Diferente timestamp para orden
+              threadIndex: positionInThread,
+            };
+
+            comments.push(newComment);
+
+            // Guardar para contexto del siguiente comentario (si está en modo hilo)
+            if (threadedMode) {
+              generatedCommentsInThread.push({
+                name: identity.name,
+                content: parsed.comment,
+                sentiment: parsed.sentiment || 'neutral',
+              });
+            }
+          } catch (parseError) {
+            console.error(`Error parseando respuesta para ${identity.name}:`, parseError);
+            // Intentar extraer el comentario del JSON incompleto
+            const extractedComment = extractCommentFromIncompleteJson(part.text);
+            if (extractedComment) {
+              const newComment: FeedComment = {
+                id: `${identity.id}-${Date.now()}-${i}`,
+                identityId: identity.id,
+                identityName: identity.name,
+                identityThumbnail: identity.photos[0]?.thumbnail,
+                content: extractedComment,
+                sentiment: 'neutral',
+                createdAt: Date.now() + (i * 1000),
+                threadIndex: positionInThread,
+              };
+
+              comments.push(newComment);
+
+              if (threadedMode) {
+                generatedCommentsInThread.push({
+                  name: identity.name,
+                  content: extractedComment,
+                  sentiment: 'neutral',
+                });
+              }
             }
           }
           break;
