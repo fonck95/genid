@@ -2044,31 +2044,60 @@ Responde SOLO con el JSON especificado.`
         }
       };
 
-      const response = await fetch(
-        `${getApiUrl(GEMINI_TEXT_MODEL)}?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody)
+      // Retry con backoff para manejar fallos transitorios de la API (especialmente el primer request)
+      const MAX_RETRIES = 2;
+      let candidate: NonNullable<GeminiResponse['candidates']>[number] | undefined = undefined;
+
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          if (attempt > 0) {
+            const backoffMs = 1500 * Math.pow(2, attempt - 1);
+            console.warn(`Reintentando comentario para ${identity.name} (intento ${attempt + 1}/${MAX_RETRIES + 1})...`);
+            if (onProgress) {
+              onProgress(positionInThread, totalIdentities, `${identity.name} (reintento ${attempt})`);
+            }
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+          }
+
+          const response = await fetch(
+            `${getApiUrl(GEMINI_TEXT_MODEL)}?key=${GEMINI_API_KEY}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestBody)
+            }
+          );
+
+          if (!response.ok) {
+            console.error(`Error generando comentario para ${identity.name}: HTTP ${response.status} (intento ${attempt + 1})`);
+            continue;
+          }
+
+          const data: GeminiResponse = await response.json();
+
+          if (data.error) {
+            console.error(`Error Gemini para ${identity.name}: ${data.error.message} (intento ${attempt + 1})`);
+            continue;
+          }
+
+          const c = data.candidates?.[0];
+          if (!c?.content?.parts) {
+            console.error(`Respuesta vacía para ${identity.name} (intento ${attempt + 1})`);
+            continue;
+          }
+
+          // Éxito - salir del loop de reintentos
+          candidate = c;
+          break;
+        } catch (fetchError) {
+          console.error(`Error de red para ${identity.name}: ${fetchError instanceof Error ? fetchError.message : fetchError} (intento ${attempt + 1})`);
         }
-      );
-
-      if (!response.ok) {
-        console.error(`Error generando comentario para ${identity.name}`);
-        continue;
       }
 
-      const data: GeminiResponse = await response.json();
-
-      if (data.error) {
-        console.error(`Error Gemini para ${identity.name}:`, data.error.message);
-        continue;
-      }
-
-      const candidate = data.candidates?.[0];
       if (!candidate?.content?.parts) {
+        console.error(`No se pudo generar comentario para ${identity.name} después de ${MAX_RETRIES + 1} intentos`);
         continue;
       }
 
